@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
-import './RotatingButton.css';
+import styles from './RotatingButton.module.css';
 
 export function RotatingButton() {
   const textRef = useRef<HTMLDivElement>(null);
@@ -14,8 +14,8 @@ export function RotatingButton() {
   }, []);
 
   return (
-    <button class="rotating-button">
-      <div class="rotating-text" ref={textRef}></div>
+    <button class={styles['rotating-button']}>
+      <div class={styles['rotating-text']} ref={textRef}></div>
     </button>
   );
 }

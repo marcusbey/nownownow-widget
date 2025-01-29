@@ -1,13 +1,9 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { resolve } from 'path';
-import cssInjector from './vite-plugin-css-injector';
 
 export default defineConfig({
-  plugins: [
-    preact(),
-    cssInjector(),
-  ],
+  plugins: [preact()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -15,36 +11,29 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
-    cssCodeSplit: false,
+    minify: 'esbuild',
+    target: 'es2015',
     lib: {
       entry: resolve(__dirname, 'src/main.tsx'),
       name: 'NowWidget',
       formats: ['es'],
-      fileName: 'now-widget',
+      fileName: () => 'now-widget.js',
     },
     rollupOptions: {
-      external: ['preact'],
       output: {
-        format: 'es',
         inlineDynamicImports: true,
+        manualChunks: undefined,
+        compact: true,
       },
+    },
+  },
+  css: {
+    modules: {
+      generateScopedName: 'now-widget-[local]',
     },
   },
   server: {
     port: 5173,
-    strictPort: true,
-    cors: true,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-    },
-    fs: {
-      strict: false,
-      allow: ['..'],
-    },
-    open: '/index.dev.html',
-  },
-  preview: {
-    port: 4001,
     strictPort: true,
     cors: true,
     headers: {
