@@ -22,7 +22,7 @@ The widget displays a floating circular button with sophisticated animations:
 - **Accessibility**:
   - Keyboard navigable
   - ARIA labels for screen readers
-  - High contrast text for readability
+  - High contrast text for readability (WIP)
 
 ### 2. Side Panel
 
