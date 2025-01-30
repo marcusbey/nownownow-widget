@@ -1,102 +1,102 @@
 import { h } from 'preact';
 
 interface SpinningButtonProps {
-  size?: number;
+  onClick: () => void;
+  size?: string;
   color?: string;
-  position?: 'left' | 'right';
-  onClick?: () => void;
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  isOpen?: boolean;
+  isVisible?: boolean;
 }
 
 export function SpinningButton({ 
-  size = 60, 
-  color = "#000",
-  position = 'left',
-  onClick 
+  onClick, 
+  size = '48', 
+  color = '#f59e0b',
+  position = 'bottom-right',
+  isOpen = false,
+  isVisible = true
 }: SpinningButtonProps) {
-  const styles = `
-    :host {
-      display: block;
-      position: absolute;
-      bottom: 2rem;
-      ${position}: 2rem;
-      z-index: 50;
+  const buttonStyle = `
+    .button-wrapper {
+      position: fixed;
+      ${position.includes('top') ? 'top: 20px;' : 'bottom: 20px;'}
+      ${position.includes('right') ? 'right: 20px;' : 'left: 20px;'}
+      z-index: 2147483647;
+      pointer-events: ${isVisible ? 'auto' : 'none'};
+      transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1),
+                  opacity 0.3s ease-in-out;
+      transform: translateX(${isOpen ? (position.includes('right') ? '-' : '') + 'min(600px, 80vw)' : '0'});
+      opacity: ${isVisible ? '1' : '0'};
     }
 
     .button {
-      position: relative;
-      width: var(--button-size);
-      height: var(--button-size);
-      border-radius: 9999px;
-      background: rgb(251, 191, 36); /* amber-400 */
-      border: 2px solid rgba(251, 191, 36, 0.2); /* amber-400/20 */
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      background: ${color};
+      border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      pointer-events: all;
-      transform: translateZ(0);
-      transition: all 0.2s ease;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .button:hover {
-      background: rgb(245, 158, 11); /* amber-500 */
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      transform: translateY(-1px);
+      transform: scale(1.05);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      background: ${color}ee;
     }
 
     .button:active {
-      transform: translateY(1px);
+      transform: scale(0.95);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .button svg {
-      width: 2rem;
-      height: 2rem;
-      color: rgb(15, 23, 42); /* slate-900 */
-      transition: transform 0.3s ease;
+      width: ${parseInt(size) * 0.5}px;
+      height: ${parseInt(size) * 0.5}px;
+      transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform: rotate(${isOpen ? '180deg' : '0deg'});
     }
 
-    .button.open svg {
-      transform: rotate(180deg);
+    @media (max-width: 768px) {
+      .button-wrapper {
+        ${position.includes('top') ? 'top: 12px;' : 'bottom: 12px;'}
+        ${position.includes('right') ? 'right: 12px;' : 'left: 12px;'}
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .button, .button svg {
-        transition-duration: 0s;
+      .button-wrapper,
+      .button,
+      .button svg {
+        transition: none;
       }
     }
   `;
 
   return (
-    <div 
-      ref={el => {
-        if (el && !el.shadowRoot) {
-          const shadow = el.attachShadow({ mode: 'closed' });
-          const style = document.createElement('style');
-          style.textContent = styles;
-          shadow.appendChild(style);
-
-          const button = document.createElement('button');
-          button.className = 'button';
-          button.setAttribute('aria-label', 'Toggle panel');
-          button.innerHTML = `
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="${position === 'left' ? 
-                'M9 5l7 7-7 7' : 
-                'M15 19l-7-7 7-7'}" />
-            </svg>
-          `;
-
-          button.onclick = () => {
-            button.classList.toggle('open');
-            onClick?.();
-          };
-
-          shadow.appendChild(button);
-        }
-      }}
-    />
+    <div class="button-wrapper">
+      <style>{buttonStyle}</style>
+      <button 
+        class="button"
+        onClick={onClick}
+        aria-label="Toggle panel"
+        aria-hidden={!isVisible}
+      >
+        <svg viewBox="0 0 24 24">
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      </button>
+    </div>
   );
 }

@@ -47,7 +47,7 @@ const panelStyles = `
     top: 0;
     left: 0;
     bottom: 0;
-    width: min(400px, 80%);
+    width: min(600px, 80%);
     z-index: 2147483646;
     pointer-events: none;
   }
@@ -61,7 +61,7 @@ const panelStyles = `
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(4px);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
     pointer-events: none;
   }
 
@@ -76,10 +76,10 @@ const panelStyles = `
     left: 0;
     bottom: 0;
     width: 100%;
-    background: rgb(15, 23, 42); /* slate-900 */
+    background: rgb(15, 23, 42);
     border-right: 1px solid rgba(255, 255, 255, 0.1);
     transform: translateX(-100%);
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
     pointer-events: all;
   }
 
@@ -232,8 +232,8 @@ function mount(config: WidgetConfig): WidgetInstance {
       html.now-widget-open #root,
       html.now-widget-open [id="root"],
       html.now-widget-open > body > div:not([id^="now-widget"]) {
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-        transform: translateX(min(400px, 80vw));
+        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transform: translateX(min(600px, 80vw));
         transform-origin: left top;
         will-change: transform;
       }
@@ -245,7 +245,7 @@ function mount(config: WidgetConfig): WidgetInstance {
       html:not(.now-widget-open) #root,
       html:not(.now-widget-open) [id="root"],
       html:not(.now-widget-open) > body > div:not([id^="now-widget"]) {
-        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
         transform: translateX(0);
         transform-origin: left top;
         will-change: transform;
@@ -272,32 +272,96 @@ function mount(config: WidgetConfig): WidgetInstance {
       init();
     }
 
-    // Add click handlers
-    const togglePanel = () => {
-      panel.classList.toggle('open');
-      overlay.classList.toggle('open');
-      document.documentElement.classList.toggle('now-widget-open');
+    // Create state for panel
+    let isOpen = false;
+    
+    // Check if we're on homepage - exclude auth and other paths
+    const isHomePage = () => {
+      const path = window.location.pathname;
+      return path === '/' || path === '/index.html';
     };
 
-    closeButton.addEventListener('click', togglePanel);
-    overlay.addEventListener('click', togglePanel);
+    let isButtonVisible = isHomePage();
+    let lastScrollY = window.scrollY;
+    const heroHeight = 800; // Adjust this based on your hero section height
+
+    // Handle scroll visibility
+    const handleScroll = () => {
+      if (isHomePage()) {
+        const currentScrollY = window.scrollY;
+        const shouldShow = currentScrollY <= heroHeight;
+        
+        if (shouldShow !== isButtonVisible) {
+          isButtonVisible = shouldShow;
+          renderButton();
+        }
+        
+        lastScrollY = currentScrollY;
+      }
+    };
+
+    // Handle page visibility
+    const handlePathChange = () => {
+      const onHomePage = isHomePage();
+      if (!onHomePage) {
+        isButtonVisible = false;
+        renderButton();
+      } else {
+        handleScroll(); // Check scroll position if we're on homepage
+      }
+    };
+
+    // Add scroll and navigation listeners
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('popstate', handlePathChange);
+
+    // Also listen for URL changes that don't trigger popstate
+    const observer = new MutationObserver(() => {
+      handlePathChange();
+    });
+    observer.observe(document.querySelector('head > base') || document.querySelector('head'), 
+      { subtree: true, childList: true });
+
+    // Handle initial visibility
+    handlePathChange();
+
+    // Add click handlers
+    const togglePanel = (forceClose = false) => {
+      isOpen = forceClose ? false : !isOpen;
+      panel.classList.toggle('open', isOpen);
+      overlay.classList.toggle('open', isOpen);
+      document.documentElement.classList.toggle('now-widget-open', isOpen);
+      renderButton();
+    };
+
+    closeButton.addEventListener('click', () => togglePanel(true));
+    overlay.addEventListener('click', () => togglePanel(true));
 
     // Render panel content
-    render(h(App, config), content);
+    render(h(App, { ...config, isOpen }), content);
 
     // Render button
-    render(
-      h(SpinningButton, {
-        size: config.buttonSize,
-        color: config.buttonColor,
-        position: config.position,
-        onClick: togglePanel,
-      }),
-      buttonWrapper
-    );
+    const renderButton = () => {
+      render(
+        h(SpinningButton, {
+          size: config.buttonSize || '48',
+          color: config.buttonColor || '#f59e0b',
+          position: config.position || 'bottom-right',
+          onClick: () => togglePanel(),
+          isOpen,
+          isVisible: isButtonVisible,
+        }),
+        buttonWrapper
+      );
+    };
+
+    renderButton();
 
     return {
       unmount: () => {
+        window.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('popstate', handlePathChange);
+        observer.disconnect();
         render(null, content);
         render(null, buttonWrapper);
         widgetContainer.remove();
