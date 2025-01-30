@@ -1,0 +1,19 @@
+# Panel and Animation Core Files
+src/main.tsx lockable
+src/components/SpinningButton.tsx lockable
+src/components/RotatingButton.css lockable
+
+# Enforce LF line endings
+* text=auto eol=lf
+
+# Lock specific file patterns
+*.{tsx,ts,css} diff=typescript
+
+# Binary files
+*.{png,jpg,jpeg,gif,webp,ico,pdf} binary
+
+# Documentation
+*.md diff=markdown
+
+# Configuration files
+*.json diff=json
