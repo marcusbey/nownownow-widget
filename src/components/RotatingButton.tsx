@@ -1,5 +1,6 @@
 import { h } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
+
 import styles from './RotatingButton.module.css';
 
 export function RotatingButton() {

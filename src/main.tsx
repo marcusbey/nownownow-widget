@@ -338,7 +338,12 @@ function mount(config: WidgetConfig): WidgetInstance {
     overlay.addEventListener('click', () => togglePanel(true));
 
     // Render panel content
-    render(h(App, { ...config, isOpen }), content);
+    render(h(App, { 
+      theme: config.theme,
+      userId: config.userId,
+      token: config.token,
+      isOpen 
+    }), content);
 
     // Render button
     const renderButton = () => {

@@ -4,7 +4,7 @@ interface SpinningButtonProps {
   onClick: () => void;
   size?: string;
   color?: string;
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: 'left' | 'right';
   isOpen?: boolean;
   isVisible?: boolean;
 }
@@ -20,13 +20,13 @@ export function SpinningButton({
   const buttonStyle = `
     .button-wrapper {
       position: fixed;
-      ${position.includes('top') ? 'top: 20px;' : 'bottom: 20px;'}
-      ${position.includes('right') ? 'right: 20px;' : 'left: 20px;'}
+      bottom: 20px;
+      ${position === 'right' ? 'right: 20px;' : 'left: 20px;'}
       z-index: 2147483647;
       pointer-events: ${isVisible ? 'auto' : 'none'};
       transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1),
                   opacity 0.3s ease-in-out;
-      transform: translateX(${isOpen ? (position.includes('right') ? '-' : '') + 'min(600px, 80vw)' : '0'});
+      transform: translateX(${isOpen ? (position === 'right' ? '-' : '') + 'min(600px, 80vw)' : '0'});
       opacity: ${isVisible ? '1' : '0'};
     }
 

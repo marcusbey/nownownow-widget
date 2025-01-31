@@ -1,4 +1,4 @@
-import type { User, Post } from '../types/api';
+import { User, Post, UserData } from '@/types/api';
 
 interface UserPanelProps {
   user: User;
