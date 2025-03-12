@@ -23,18 +23,38 @@ class WidgetStore {
       this.isLoading.value = true;
       this.error.value = null;
 
-      // Simulate API calls - replace with actual API endpoints
-      const userData = await fetch(`/api/users/${this.config.userId}`, {
-        headers: {
-          Authorization: `Bearer ${this.config.token}`
-        }
-      }).then(res => res.json());
+      const { VITE_API_URL = 'http://localhost:3000' } = import.meta.env;
+      const API_VERSION = '/api/v1';
+      const API_ENDPOINTS = {
+        USER_INFO: '/widget/user-info',
+        USER_POSTS: '/widget/user-posts'
+      } as const;
 
-      const postsData = await fetch(`/api/users/${this.config.userId}/posts`, {
-        headers: {
-          Authorization: `Bearer ${this.config.token}`
-        }
-      }).then(res => res.json());
+      const headers = {
+        'Authorization': `Bearer ${this.config.token}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      } as const;
+
+      const fetchOptions = {
+        headers,
+        mode: 'cors' as const,
+        credentials: 'omit' as const
+      };
+
+      const [userData, postsData] = await Promise.all([
+        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.USER_INFO}?userId=${encodeURIComponent(this.config.userId)}`, fetchOptions)
+          .then(async res => {
+            if (!res.ok) throw new Error(`User info failed: ${res.status}`);
+            return res.json();
+          }),
+
+        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.USER_POSTS}?userId=${encodeURIComponent(this.config.userId)}`, fetchOptions)
+          .then(async res => {
+            if (!res.ok) throw new Error(`Posts failed: ${res.status}`);
+            return res.json();
+          })
+      ]);
 
       this.user.value = userData;
       this.posts.value = postsData;
