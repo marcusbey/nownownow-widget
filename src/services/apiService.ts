@@ -1,47 +1,52 @@
-import { type User, type Post } from '@/types/api';
+import { type WidgetUserInfo, type WidgetPost } from '@/types/api';
 
-const API_BASE = 'https://nownownow.io/api';
+import { API_CONFIG, getApiUrl } from '@/config/api';
 
 interface ApiResponse<T> {
-  data: T;
   success: boolean;
+  data: T | null;
   error?: string;
 }
 
 async function fetchWithAuth<T>(
-  endpoint: string,
+  path: string,
   token: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetch(getApiUrl(path), {
       ...options,
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         ...options.headers,
       },
+      mode: 'cors',
+      credentials: 'omit'
     });
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    return { data, success: true };
+    return { success: true, data };
   } catch (error) {
+    console.error('API request failed:', error);
     return {
-      data: null as T,
       success: false,
-      error: error instanceof Error ? error.message : 'An unknown error occurred',
+      data: null,
+      error: error instanceof Error ? error.message : 'An unknown error occurred'
     };
   }
 }
 
-export async function fetchUserInfo(token: string): Promise<ApiResponse<User>> {
-  return fetchWithAuth<User>('/users/me', token);
-}
+// Export a type-safe API client
+export const api = {
+  getUserInfo: (token: string, userId: string): Promise<ApiResponse<WidgetUserInfo>> => 
+    fetchWithAuth<WidgetUserInfo>(`${API_CONFIG.ENDPOINTS.WIDGET.USER_INFO}?userId=${encodeURIComponent(userId)}`, token),
 
-export async function fetchUserPosts(token: string): Promise<ApiResponse<Post[]>> {
-  return fetchWithAuth<Post[]>('/users/me/posts', token);
-}
+  getUserPosts: (token: string, userId: string): Promise<ApiResponse<WidgetPost[]>> => 
+    fetchWithAuth<WidgetPost[]>(`${API_CONFIG.ENDPOINTS.WIDGET.USER_POSTS}?userId=${encodeURIComponent(userId)}`, token)
+} as const;

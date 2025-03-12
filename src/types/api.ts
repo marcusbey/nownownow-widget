@@ -32,3 +32,31 @@ export interface WidgetConfig {
   theme?: 'light' | 'dark';
   locale?: string;
 }
+
+export interface WidgetApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
+export interface WidgetUserInfo {
+  id: string;
+  name: string;
+  image?: string;
+  bio?: string;
+}
+
+export interface WidgetPost {
+  id: string;
+  content: string;
+  createdAt: string;
+  _count?: {
+    comments: number;
+    likes: number;
+  };
+}
+
+export const API_ENDPOINTS = {
+  USER_INFO: '/api/v1/widget/user-info',
+  USER_POSTS: '/api/v1/widget/user-posts',
+} as const;
