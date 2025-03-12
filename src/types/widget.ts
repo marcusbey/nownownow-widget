@@ -11,7 +11,9 @@ export interface WidgetConfig {
   buttonSize?: number;
 }
 
-export interface WidgetState {
+import { Signal } from '@preact/signals';
+
+export interface WidgetStateData {
   initialized: boolean;
   instance: WidgetInstance | null;
   config: WidgetConfig | null;
@@ -19,6 +21,8 @@ export interface WidgetState {
   maxAttempts: number;
   initializationPromise: Promise<void> | null;
 }
+
+export type WidgetState = Signal<WidgetStateData>;
 
 export interface WidgetInstance {
   unmount: () => void;

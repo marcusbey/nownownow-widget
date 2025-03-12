@@ -1,7 +1,8 @@
-import { render, h } from 'preact';
-import App from './App';
+import { h, render } from 'preact';
+import { signal } from '@preact/signals';
+import type { WidgetInstance, WidgetConfig, WidgetStateData, WidgetPosition } from './types/widget';
 import { SpinningButton } from './components/SpinningButton';
-import type { WidgetInstance, WidgetConfig, WidgetState, WidgetPosition } from './types/widget';
+import App from './App';
 
 // Define custom event types
 interface NowWidgetEvents {
@@ -12,26 +13,34 @@ declare global {
   interface WindowEventMap extends NowWidgetEvents {}
 }
 
-function getCurrentScript(): HTMLScriptElement | null {
+const isNowWidgetScript = (script: HTMLScriptElement): boolean => 
+  script.src.includes('now-widget.js') && 
+  script.hasAttribute('data-user-id') && 
+  script.hasAttribute('data-token');
+
+const getCurrentScript = (): HTMLScriptElement => {
   const currentScript = document.currentScript as HTMLScriptElement;
-  if (currentScript) {
+  if (currentScript && isNowWidgetScript(currentScript)) {
     return currentScript;
   }
 
   const scripts = Array.from(document.getElementsByTagName('script'));
-  return scripts.find(script => 
-    script.src.includes('now-widget.js') && 
-    (script.hasAttribute('data-user-id') || script.hasAttribute('data-token'))
-  ) || null;
-}
+  const widgetScript = scripts.find(isNowWidgetScript);
 
-function getScriptConfig(): WidgetConfig {
-  const currentScript = getCurrentScript();
-
-  if (!currentScript) {
+  if (!widgetScript) {
     throw new Error('Now Widget: Script element not found. Make sure to include data-user-id and data-token attributes.');
   }
 
+  return widgetScript;
+};
+
+const parseButtonSize = (value: string | null): number => {
+  const size = parseInt(value || '60', 10);
+  return isNaN(size) ? 60 : Math.max(40, Math.min(size, 120));
+};
+
+const getScriptConfig = (): WidgetConfig => {
+  const currentScript = getCurrentScript();
   const userId = currentScript.getAttribute('data-user-id');
   const token = currentScript.getAttribute('data-token');
 
@@ -45,9 +54,9 @@ function getScriptConfig(): WidgetConfig {
     theme: (currentScript.getAttribute('data-theme') || 'light') as 'light' | 'dark',
     position: (currentScript.getAttribute('data-position') || 'left') as 'right' | 'left',
     buttonColor: currentScript.getAttribute('data-button-color') || '#000000',
-    buttonSize: parseInt(currentScript.getAttribute('data-button-size') || '60', 10),
+    buttonSize: parseButtonSize(currentScript.getAttribute('data-button-size')),
   };
-}
+};
 
 const panelStyles = `
   :host {
@@ -157,7 +166,7 @@ const containerStyles = `
   }
 `;
 
-function mount(config: WidgetConfig): WidgetInstance {
+const mount = (config: WidgetConfig): WidgetInstance => {
   try {
     // Create a container for our widget elements
     const widgetContainer = document.createElement('div');
@@ -405,25 +414,25 @@ declare global {
   interface WindowEventMap extends NowWidgetEvents {}
 }
 
-// Initialize mutable widget state
-let widgetState: WidgetState = {
+// Initialize widget state with signals
+const widgetState = signal<WidgetStateData>({
   initialized: false,
   instance: null,
   config: null,
   mountAttempts: 0,
   maxAttempts: 3,
   initializationPromise: null
-};
+});
 
 // Initialization function with retry logic and promise handling
-async function initializeWidget(): Promise<void> {
-  if (widgetState.initializationPromise) {
-    return widgetState.initializationPromise;
+const initializeWidget = async (): Promise<void> => {
+  if (widgetState.value.initializationPromise) {
+    return widgetState.value.initializationPromise;
   }
 
-  widgetState.initializationPromise = new Promise<void>((resolve, reject) => {
+  const initPromise = new Promise<void>((resolve, reject) => {
     function attemptInitialization() {
-      if (widgetState.mountAttempts >= widgetState.maxAttempts) {
+      if (widgetState.value.mountAttempts >= widgetState.value.maxAttempts) {
         const error = new Error('Now Widget: Failed to initialize after multiple attempts');
         console.error(error);
         reject(error);
@@ -431,13 +440,20 @@ async function initializeWidget(): Promise<void> {
       }
 
       try {
-        if (!widgetState.config) {
-          widgetState.config = getScriptConfig();
+        if (!widgetState.value.config) {
+          widgetState.value = {
+            ...widgetState.value,
+            config: getScriptConfig()
+          };
         }
 
-        if (!widgetState.instance && widgetState.config) {
-          widgetState.instance = mount(widgetState.config);
-          widgetState.initialized = true;
+        if (!widgetState.value.instance && widgetState.value.config) {
+          const instance = mount(widgetState.value.config);
+          widgetState.value = {
+            ...widgetState.value,
+            instance,
+            initialized: true
+          };
           
           // Dispatch initialization event
           window.dispatchEvent(new CustomEvent('nowWidgetInitialized', {
@@ -448,17 +464,24 @@ async function initializeWidget(): Promise<void> {
         }
       } catch (error) {
         console.error('Now Widget: Initialization attempt failed:', error);
-        widgetState.mountAttempts++;
+        widgetState.value = {
+      ...widgetState.value,
+      mountAttempts: widgetState.value.mountAttempts + 1
+    };
         
         // Retry initialization after a delay with exponential backoff
-        setTimeout(attemptInitialization, 500 * Math.pow(2, widgetState.mountAttempts));
+        setTimeout(attemptInitialization, 500 * Math.pow(2, widgetState.value.mountAttempts));
       }
     }
 
     attemptInitialization();
   });
 
-  return widgetState.initializationPromise;
+  widgetState.value = {
+    ...widgetState.value,
+    initializationPromise: initPromise
+  };
+  return initPromise;
 }
 
 // Auto-initialize when the script loads
