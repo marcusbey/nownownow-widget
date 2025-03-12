@@ -3,7 +3,7 @@ export const API_CONFIG = {
   VERSION: '/api/v1',
   ENDPOINTS: {
     WIDGET: {
-      USER_INFO: '/widget/user-info',
+      USER_INFO: '/widget/org-info',
       USER_POSTS: '/widget/user-posts'
     }
   }

@@ -26,7 +26,7 @@ class WidgetStore {
       const { VITE_API_URL = 'http://localhost:3000' } = import.meta.env;
       const API_VERSION = '/api/v1';
       const API_ENDPOINTS = {
-        USER_INFO: '/widget/user-info',
+        USER_INFO: '/widget/org-info',
         USER_POSTS: '/widget/user-posts'
       } as const;
 

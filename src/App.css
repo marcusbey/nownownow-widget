@@ -41,14 +41,14 @@
   to { transform: rotate(360deg); }
 }
 
-.user-info {
+.org-info {
   display: flex;
   align-items: center;
   padding: 1rem 0;
   border-bottom: 1px solid rgba(226, 232, 240, 0.1);
 }
 
-.light .user-info {
+.light .org-info {
   border-bottom-color: rgba(15, 23, 42, 0.1);
 }
 

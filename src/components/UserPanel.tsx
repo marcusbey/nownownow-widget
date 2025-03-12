@@ -9,7 +9,7 @@ interface UserPanelProps {
 export function UserPanel({ user, posts, theme }: UserPanelProps) {
   return (
     <div className={`user-panel ${theme}`}>
-      <div className="user-info">
+      <div className="org-info">
         {user.avatar && (
           <img 
             src={user.avatar} 

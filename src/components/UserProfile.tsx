@@ -1,21 +1,27 @@
-import { h } from 'preact';
+import { h, FunctionComponent } from 'preact';
+
+type Theme = 'light' | 'dark';
 
 interface UserInfo {
   id: string;
   name: string;
-  image?: string;
-  bio?: string;
+  image?: string | null;
+  bio?: string | null;
   _count?: {
     followers: number;
-  };
+  } | null;
 }
 
 interface UserProfileProps {
   userInfo: UserInfo | null;
-  theme?: 'light' | 'dark';
+  theme?: Theme;
 }
 
-export function UserProfile({ userInfo, theme = 'light' }: UserProfileProps) {
+const getInitial = (name: string): string => name.charAt(0).toUpperCase();
+
+const getFollowerCount = (count: { followers: number } | null | undefined): number => count?.followers ?? 0;
+
+export const UserProfile: FunctionComponent<UserProfileProps> = ({ userInfo, theme = 'light' }) => {
   if (!userInfo) return null;
 
   return (
@@ -29,14 +35,17 @@ export function UserProfile({ userInfo, theme = 'light' }: UserProfileProps) {
           />
         ) : (
           <div class="user-avatar-placeholder">
-            {userInfo.name[0].toUpperCase()}
+            {getInitial(userInfo.name)}
           </div>
         )}
       </div>
-      <div class="user-info">
+      <div class="org-info">
         <h2 class="user-name">{userInfo.name}</h2>
+        {userInfo.bio && (
+          <p class="user-bio">{userInfo.bio}</p>
+        )}
         <div class="user-meta">
-          {userInfo._count?.followers || 0} followers
+          {getFollowerCount(userInfo._count)} followers
         </div>
       </div>
     </div>

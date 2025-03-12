@@ -57,6 +57,6 @@ export interface WidgetPost {
 }
 
 export const API_ENDPOINTS = {
-  USER_INFO: '/api/v1/widget/user-info',
+  USER_INFO: '/api/v1/widget/org-info',
   USER_POSTS: '/api/v1/widget/user-posts',
 } as const;
