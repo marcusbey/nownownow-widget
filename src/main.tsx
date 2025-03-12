@@ -1,7 +1,16 @@
 import { render, h } from 'preact';
 import App from './App';
 import { SpinningButton } from './components/SpinningButton';
-import type { WidgetInstance, WidgetConfig } from './types';
+import type { WidgetInstance, WidgetConfig, WidgetState, WidgetPosition } from './types/widget';
+
+// Define custom event types
+interface NowWidgetEvents {
+  nowWidgetInitialized: CustomEvent<{ success: boolean }>
+}
+
+declare global {
+  interface WindowEventMap extends NowWidgetEvents {}
+}
 
 function getCurrentScript(): HTMLScriptElement | null {
   const currentScript = document.currentScript as HTMLScriptElement;
@@ -282,21 +291,28 @@ function mount(config: WidgetConfig): WidgetInstance {
     };
 
     let isButtonVisible = isHomePage();
-    let lastScrollY = window.scrollY;
-    const heroHeight = 800; // Adjust this based on your hero section height
+    const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
-    // Handle scroll visibility
+    // Handle scroll visibility using functional approach
     const handleScroll = () => {
       if (isHomePage()) {
         const currentScrollY = window.scrollY;
-        const shouldShow = currentScrollY <= heroHeight;
+        const viewportHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        
+        // Show button if:
+        // 1. User is near the top (within threshold)
+        // 2. User is near the bottom of the page
+        // 3. Page is shorter than threshold
+        const shouldShow = 
+          currentScrollY <= SCROLL_THRESHOLD ||
+          (documentHeight - (currentScrollY + viewportHeight)) < 100 ||
+          documentHeight <= SCROLL_THRESHOLD;
         
         if (shouldShow !== isButtonVisible) {
           isButtonVisible = shouldShow;
           renderButton();
         }
-        
-        lastScrollY = currentScrollY;
       }
     };
 
@@ -317,8 +333,10 @@ function mount(config: WidgetConfig): WidgetInstance {
 
     // Also listen for URL changes that don't trigger popstate
     const observer = new MutationObserver(handlePathChange);
-    observer.observe(document.querySelector('head > base') || document.querySelector('head'), 
-      { subtree: true, childList: true });
+    const targetNode = document.querySelector('head > base') || document.querySelector('head');
+if (targetNode) {
+  observer.observe(targetNode, { subtree: true, childList: true });
+}
 
     // Handle initial visibility
     handlePathChange();
@@ -337,19 +355,19 @@ function mount(config: WidgetConfig): WidgetInstance {
 
     // Render panel content
     render(h(App, { 
-      theme: config.theme,
+      theme: config.theme || 'light',
       userId: config.userId,
       token: config.token,
-      isOpen 
+      onToggle: () => togglePanel()
     }), content);
 
     // Render button
     const renderButton = () => {
       render(
         h(SpinningButton, {
-          size: config.buttonSize || '48',
+          size: String(config.buttonSize || 48),
           color: config.buttonColor || '#f59e0b',
-          position: config.position || 'bottom-right',
+          position: (config.position || 'right') as WidgetPosition,
           onClick: () => togglePanel(),
           isOpen,
           isVisible: isButtonVisible,
@@ -378,14 +396,85 @@ function mount(config: WidgetConfig): WidgetInstance {
   }
 }
 
+// Define custom event types
+interface NowWidgetEvents {
+  nowWidgetInitialized: CustomEvent<{ success: boolean }>
+}
+
+declare global {
+  interface WindowEventMap extends NowWidgetEvents {}
+}
+
+// Initialize mutable widget state
+let widgetState: WidgetState = {
+  initialized: false,
+  instance: null,
+  config: null,
+  mountAttempts: 0,
+  maxAttempts: 3,
+  initializationPromise: null
+};
+
+// Initialization function with retry logic and promise handling
+async function initializeWidget(): Promise<void> {
+  if (widgetState.initializationPromise) {
+    return widgetState.initializationPromise;
+  }
+
+  widgetState.initializationPromise = new Promise<void>((resolve, reject) => {
+    function attemptInitialization() {
+      if (widgetState.mountAttempts >= widgetState.maxAttempts) {
+        const error = new Error('Now Widget: Failed to initialize after multiple attempts');
+        console.error(error);
+        reject(error);
+        return;
+      }
+
+      try {
+        if (!widgetState.config) {
+          widgetState.config = getScriptConfig();
+        }
+
+        if (!widgetState.instance && widgetState.config) {
+          widgetState.instance = mount(widgetState.config);
+          widgetState.initialized = true;
+          
+          // Dispatch initialization event
+          window.dispatchEvent(new CustomEvent('nowWidgetInitialized', {
+            detail: { success: true }
+          }));
+
+          resolve();
+        }
+      } catch (error) {
+        console.error('Now Widget: Initialization attempt failed:', error);
+        widgetState.mountAttempts++;
+        
+        // Retry initialization after a delay with exponential backoff
+        setTimeout(attemptInitialization, 500 * Math.pow(2, widgetState.mountAttempts));
+      }
+    }
+
+    attemptInitialization();
+  });
+
+  return widgetState.initializationPromise;
+}
+
 // Auto-initialize when the script loads
 (function () {
   if (typeof window !== 'undefined') {
-    try {
-      const config = getScriptConfig();
-      mount(config);
-    } catch (error) {
-      console.error(error);
+    // Ensure DOM is ready before initialization
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        initializeWidget().catch(error => {
+          console.error('Now Widget: Initialization failed:', error);
+        });
+      });
+    } else {
+      initializeWidget().catch(error => {
+        console.error('Now Widget: Initialization failed:', error);
+      });
     }
   }
 })();
