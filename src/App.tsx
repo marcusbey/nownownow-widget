@@ -1,5 +1,11 @@
 import { h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
+import { UserProfile } from './components/UserProfile';
+import { PostCard } from './components/PostCard';
+import { IntegrationTutorial } from './components/IntegrationTutorial';
+import { api } from './services/apiService';
+import { type WidgetUserInfo, type WidgetPost, API_ENDPOINTS } from './types/api';
+import './components/IntegrationTutorial.css';
 
 interface Props {
   theme?: 'light' | 'dark';
@@ -7,86 +13,31 @@ interface Props {
   token: string;
 }
 
-interface UserInfo {
-  id: string;
-  name: string;
-  avatar?: string;
-  bio?: string;
-}
-
-interface UserPost {
-  id: string;
-  content: string;
-  createdAt: string;
-}
-
 export default function App({ theme = 'light', userId, token }: Props) {
   const [isLoading, setIsLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
-  const [posts, setPosts] = useState<UserPost[]>([]);
+  const [userInfo, setUserInfo] = useState<WidgetUserInfo | null>(null);
+  const [posts, setPosts] = useState<WidgetPost[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'feed' | 'integration'>('feed');
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // Fetch user info
-        const userResponse = await fetch(
-          `http://localhost:3000/api/widget/user-info?userId=${encodeURIComponent(userId)}`, 
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json'
-            },
-            mode: 'cors',
-            credentials: 'omit'
-          }
-        );
-        
-        if (!userResponse.ok) {
-          const errorText = await userResponse.text();
-          throw new Error(`User info failed: ${userResponse.status} ${userResponse.statusText} - ${errorText}`);
-        }
-        const userData = await userResponse.json();
-        if (userData.user) {
-          setUserInfo({
-            id: userData.user.id,
-            name: userData.user.name,
-            avatar: userData.user.image,
-            bio: userData.user.bio
-          });
+        const [userResponse, postsResponse] = await Promise.all([
+          api.getUserInfo(token, userId),
+          api.getUserPosts(token, userId)
+        ]);
+
+        if (!userResponse.success) {
+          throw new Error(userResponse.error || 'Failed to fetch user info');
         }
 
-        // Fetch user posts
-        const postsResponse = await fetch(
-          `http://localhost:3000/api/widget/user-posts?userId=${encodeURIComponent(userId)}`,
-          {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Accept': 'application/json'
-            },
-            mode: 'cors',
-            credentials: 'omit'
-          }
-        );
-
-        if (!postsResponse.ok) {
-          const errorText = await postsResponse.text();
-          console.error('Posts response:', {
-            status: postsResponse.status,
-            statusText: postsResponse.statusText,
-            headers: Object.fromEntries(postsResponse.headers.entries()),
-            body: errorText
-          });
-          throw new Error(`Posts failed: ${postsResponse.status} ${postsResponse.statusText} - ${errorText || 'No response body'}`);
+        if (!postsResponse.success) {
+          throw new Error(postsResponse.error || 'Failed to fetch posts');
         }
 
-        const postsData = await postsResponse.json();
-        if (postsData.posts) {
-          setPosts(postsData.posts);
-        }
-        
+        setUserInfo(userResponse.data);
+        setPosts(postsResponse.data ?? []);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
         setError(errorMessage);
@@ -118,37 +69,48 @@ export default function App({ theme = 'light', userId, token }: Props) {
 
   return (
     <div class={`panel-content ${theme}`}>
-      {userInfo && (
-        <div class="user-info">
-          {userInfo.avatar && (
-            <img 
-              src={userInfo.avatar} 
-              alt={userInfo.name} 
-              class="user-avatar"
-            />
-          )}
-          <h2>{userInfo.name}</h2>
-          {userInfo.bio && <p class="user-bio">{userInfo.bio}</p>}
-        </div>
-      )}
-      
-      <div class="posts-section">
-        <h3>Latest Updates</h3>
-        {posts.length > 0 ? (
-          <div class="posts-list">
-            {posts.map(post => (
-              <div key={post.id} class="post-item">
-                <p>{post.content}</p>
-                <span class="post-date">
-                  {new Date(post.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p>No updates yet</p>
-        )}
+      <div class="panel-tabs">
+        <button 
+          class={`panel-tab ${activeTab === 'feed' ? 'active' : ''}`}
+          onClick={() => setActiveTab('feed')}
+        >
+          Feed
+        </button>
+        <button 
+          class={`panel-tab ${activeTab === 'integration' ? 'active' : ''}`}
+          onClick={() => setActiveTab('integration')}
+        >
+          Integration
+        </button>
       </div>
+      
+      {activeTab === 'feed' ? (
+        <>
+          <UserProfile userInfo={userInfo} theme={theme} />
+          <div class="posts-section">
+            <h3 class="section-title">Latest Updates</h3>
+            {posts.length > 0 ? (
+              posts.map(post => (
+                <PostCard
+                  content={post.content}
+                  createdAt={post.createdAt}
+                  comments={post._count?.comments ?? 0}
+                  likes={post._count?.likes ?? 0}
+                  theme={theme}
+                />
+              ))
+            ) : (
+              <p>No updates yet</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <IntegrationTutorial 
+          theme={theme} 
+          userId={userId} 
+          token={token} 
+        />
+      )}
     </div>
   );
 }

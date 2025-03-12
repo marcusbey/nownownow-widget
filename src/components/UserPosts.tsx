@@ -10,12 +10,20 @@ interface UserPostsProps {
   theme?: 'light' | 'dark';
 }
 
+interface Post {
+  id: string;
+  content: string;
+  createdAt: string;
+  _count?: {
+    comments: number;
+    likes: number;
+  };
+}
+
 export function UserPosts({ token, theme = 'light' }: UserPostsProps): FunctionComponent {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [nextCursor, setNextCursor] = useState<string>();
+  const [error, setError] = useState<string | null>(null);
 
   async function loadPosts(cursor?: string): Promise<void> {
     try {

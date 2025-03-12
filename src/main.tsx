@@ -300,8 +300,8 @@ function mount(config: WidgetConfig): WidgetInstance {
       }
     };
 
-    // Handle page visibility
-    const handlePathChange = () => {
+    // Define handlePathChange function before using it
+    function handlePathChange() {
       const onHomePage = isHomePage();
       if (!onHomePage) {
         isButtonVisible = false;
@@ -309,16 +309,14 @@ function mount(config: WidgetConfig): WidgetInstance {
       } else {
         handleScroll(); // Check scroll position if we're on homepage
       }
-    };
+    }
 
     // Add scroll and navigation listeners
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('popstate', handlePathChange);
 
     // Also listen for URL changes that don't trigger popstate
-    const observer = new MutationObserver(() => {
-      handlePathChange();
-    });
+    const observer = new MutationObserver(handlePathChange);
     observer.observe(document.querySelector('head > base') || document.querySelector('head'), 
       { subtree: true, childList: true });
 
