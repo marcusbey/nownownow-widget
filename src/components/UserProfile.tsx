@@ -2,7 +2,7 @@ import { h, FunctionComponent } from 'preact';
 
 type Theme = 'light' | 'dark';
 
-interface UserInfo {
+interface OrgInfo {
   id: string;
   name: string;
   image?: string | null;
@@ -13,7 +13,7 @@ interface UserInfo {
 }
 
 interface UserProfileProps {
-  userInfo: UserInfo | null;
+  userInfo: OrgInfo | null;
   theme?: Theme;
 }
 

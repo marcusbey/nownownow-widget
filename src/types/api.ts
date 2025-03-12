@@ -39,7 +39,7 @@ export interface WidgetApiResponse<T> {
   error?: string;
 }
 
-export interface WidgetUserInfo {
+export interface WidgetOrgInfo {
   id: string;
   name: string;
   image?: string;
@@ -57,6 +57,6 @@ export interface WidgetPost {
 }
 
 export const API_ENDPOINTS = {
-  USER_INFO: '/api/v1/widget/org-info',
-  USER_POSTS: '/api/v1/widget/user-posts',
+  ORG_INFO: '/api/v1/widget/org-info',
+  ORG_POSTS: '/api/v1/widget/org-posts',
 } as const;

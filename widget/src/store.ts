@@ -26,8 +26,8 @@ class WidgetStore {
       const { VITE_API_URL = 'http://localhost:3000' } = import.meta.env;
       const API_VERSION = '/api/v1';
       const API_ENDPOINTS = {
-        USER_INFO: '/widget/org-info',
-        USER_POSTS: '/widget/user-posts'
+        ORG_INFO: '/widget/org-info',
+        ORG_POSTS: '/widget/org-posts'
       } as const;
 
       const headers = {
@@ -43,13 +43,13 @@ class WidgetStore {
       };
 
       const [userData, postsData] = await Promise.all([
-        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.USER_INFO}?userId=${encodeURIComponent(this.config.userId)}`, fetchOptions)
+        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.ORG_INFO}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
           .then(async res => {
             if (!res.ok) throw new Error(`User info failed: ${res.status}`);
             return res.json();
           }),
 
-        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.USER_POSTS}?userId=${encodeURIComponent(this.config.userId)}`, fetchOptions)
+        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.ORG_POSTS}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
           .then(async res => {
             if (!res.ok) throw new Error(`Posts failed: ${res.status}`);
             return res.json();

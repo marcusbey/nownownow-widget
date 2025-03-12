@@ -53,7 +53,7 @@ export function UserPosts({ token, theme = 'light' }: UserPostsProps): FunctionC
 
   if (isLoading && !posts.length) {
     return (
-      <div class={`user-posts ${theme}`}>
+      <div class={`org-posts ${theme}`}>
         <div class="loading-skeleton">Loading posts...</div>
       </div>
     );
@@ -61,14 +61,14 @@ export function UserPosts({ token, theme = 'light' }: UserPostsProps): FunctionC
 
   if (hasError && !posts.length) {
     return (
-      <div class={`user-posts ${theme} error`}>
+      <div class={`org-posts ${theme} error`}>
         Failed to load posts
       </div>
     );
   }
 
   return (
-    <div class={`user-posts ${theme}`}>
+    <div class={`org-posts ${theme}`}>
       {posts.map(post => (
         <div key={post.id} class="post">
           <div class="post-header">
@@ -111,7 +111,7 @@ export function UserPosts({ token, theme = 'light' }: UserPostsProps): FunctionC
       )}
 
       <style>{`
-        .user-posts {
+        .org-posts {
           padding: 1rem;
         }
 

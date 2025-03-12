@@ -41,15 +41,15 @@ const parseButtonSize = (value: string | null): number => {
 
 const getScriptConfig = (): WidgetConfig => {
   const currentScript = getCurrentScript();
-  const userId = currentScript.getAttribute('data-user-id');
+  const orgId = currentScript.getAttribute('data-user-id');
   const token = currentScript.getAttribute('data-token');
 
-  if (!userId || !token) {
-    throw new Error('Now Widget: Missing required configuration (userId and token). Make sure to include both data-user-id and data-token attributes.');
+  if (!orgId || !token) {
+    throw new Error('Now Widget: Missing required configuration (orgId and token). Make sure to include both data-user-id and data-token attributes.');
   }
 
   return {
-    userId,
+    orgId,
     token,
     theme: (currentScript.getAttribute('data-theme') || 'light') as 'light' | 'dark',
     position: (currentScript.getAttribute('data-position') || 'left') as 'right' | 'left',
@@ -365,7 +365,7 @@ if (targetNode) {
     // Render panel content
     render(h(App, { 
       theme: config.theme || 'light',
-      userId: config.userId,
+      orgId: config.orgId,
       token: config.token,
       onToggle: () => togglePanel()
     }), content);

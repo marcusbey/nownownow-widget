@@ -37,7 +37,7 @@
     <script>
         // Mock data for testing
         const mockToken = 'test-token';
-        const mockUserId = 'test-user';
+        const mockorgId = 'test-user';
 
         // Initialize widget
         const script = document.createElement('script');
@@ -47,7 +47,7 @@
             const widget = new NowWidget({
                 container,
                 token: mockToken,
-                userId: mockUserId,
+                orgId: mockorgId,
                 theme: 'light'
             });
         };
@@ -61,7 +61,7 @@
             const widget = new NowWidget({
                 container,
                 token: mockToken,
-                userId: mockUserId,
+                orgId: mockorgId,
                 theme
             });
         });

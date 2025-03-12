@@ -1,5 +1,5 @@
 export interface WidgetConfig {
-  userId: string;
+  orgId: string;
   token: string;
   theme: 'light' | 'dark';
   position: 'left' | 'right';

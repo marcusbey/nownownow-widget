@@ -3,7 +3,7 @@ import { useState } from 'preact/hooks';
 
 interface IntegrationTutorialProps {
   theme?: 'light' | 'dark';
-  userId?: string;
+  orgId?: string;
   token?: string;
 }
 
@@ -17,7 +17,7 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-user-id="DEMO_ORG_ID" 
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
@@ -41,7 +41,7 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_USER_ID" 
+      data-user-id="DEMO_ORG_ID" 
       data-token="DEMO_TOKEN"
       data-theme="dark">
     </script>
@@ -49,14 +49,14 @@ const codeExamples = {
 </html>`
 };
 
-export function IntegrationTutorial({ theme = 'light', userId = 'DEMO_USER_ID', token = 'DEMO_TOKEN' }: IntegrationTutorialProps) {
+export function IntegrationTutorial({ theme = 'light', orgId = 'DEMO_ORG_ID', token = 'DEMO_TOKEN' }: IntegrationTutorialProps) {
   const [activeTab, setActiveTab] = useState<'head' | 'body'>('head');
   
   const handleCopyCode = () => {
     navigator.clipboard.writeText(
       activeTab === 'head' 
-        ? codeExamples.head.replace('DEMO_USER_ID', userId).replace('DEMO_TOKEN_SIGNATURE', token)
-        : codeExamples.body.replace('DEMO_USER_ID', userId).replace('DEMO_TOKEN', token)
+        ? codeExamples.head.replace('DEMO_ORG_ID', orgId).replace('DEMO_TOKEN_SIGNATURE', token)
+        : codeExamples.body.replace('DEMO_ORG_ID', orgId).replace('DEMO_TOKEN', token)
     );
   };
 

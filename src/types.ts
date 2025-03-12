@@ -15,7 +15,7 @@ export interface WidgetInstance {
 export type MountFunction = (options: MountOptions) => WidgetInstance;
 
 export interface WidgetConfig {
-  userId: string;
+  orgId: string;
   token: string;
   theme?: 'light' | 'dark';
   position?: 'right' | 'left';

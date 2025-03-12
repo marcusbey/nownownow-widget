@@ -1,4 +1,4 @@
-import { type WidgetUserInfo, type WidgetPost } from '@/types/api';
+import { type WidgetOrgInfo, type WidgetPost } from '@/types/api';
 
 import { API_CONFIG, getApiUrl } from '@/config/api';
 
@@ -44,9 +44,9 @@ async function fetchWithAuth<T>(
 
 // Export a type-safe API client
 export const api = {
-  getUserInfo: (token: string, userId: string): Promise<ApiResponse<WidgetUserInfo>> => 
-    fetchWithAuth<WidgetUserInfo>(`${API_CONFIG.ENDPOINTS.WIDGET.USER_INFO}?userId=${encodeURIComponent(userId)}`, token),
+  getOrgInfo: (token: string, orgId: string): Promise<ApiResponse<WidgetOrgInfo>> => 
+    fetchWithAuth<WidgetOrgInfo>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_INFO}?orgId=${encodeURIComponent(orgId)}`, token),
 
-  getUserPosts: (token: string, userId: string): Promise<ApiResponse<WidgetPost[]>> => 
-    fetchWithAuth<WidgetPost[]>(`${API_CONFIG.ENDPOINTS.WIDGET.USER_POSTS}?userId=${encodeURIComponent(userId)}`, token)
+  getUserPosts: (token: string, orgId: string): Promise<ApiResponse<WidgetPost[]>> => 
+    fetchWithAuth<WidgetPost[]>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_POSTS}?orgId=${encodeURIComponent(orgId)}`, token)
 } as const;

@@ -4,18 +4,18 @@ import { UserProfile } from './components/UserProfile';
 import { PostCard } from './components/PostCard';
 import { IntegrationTutorial } from './components/IntegrationTutorial';
 import { api } from './services/apiService';
-import { type WidgetUserInfo, type WidgetPost, API_ENDPOINTS } from './types/api';
+import { type WidgetOrgInfo, type WidgetPost, API_ENDPOINTS } from './types/api';
 import './components/IntegrationTutorial.css';
 
 interface Props {
   theme?: 'light' | 'dark';
-  userId: string;
+  orgId: string;
   token: string;
 }
 
-export default function App({ theme = 'light', userId, token }: Props) {
+export default function App({ theme = 'light', orgId, token }: Props) {
   const [isLoading, setIsLoading] = useState(true);
-  const [userInfo, setUserInfo] = useState<WidgetUserInfo | null>(null);
+  const [userInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
   const [posts, setPosts] = useState<WidgetPost[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'feed' | 'integration'>('feed');
@@ -24,8 +24,8 @@ export default function App({ theme = 'light', userId, token }: Props) {
     async function fetchData() {
       try {
         const [userResponse, postsResponse] = await Promise.all([
-          api.getUserInfo(token, userId),
-          api.getUserPosts(token, userId)
+          api.getOrgInfo(token, orgId),
+          api.getUserPosts(token, orgId)
         ]);
 
         if (!userResponse.success) {
@@ -36,7 +36,7 @@ export default function App({ theme = 'light', userId, token }: Props) {
           throw new Error(postsResponse.error || 'Failed to fetch posts');
         }
 
-        setUserInfo(userResponse.data);
+        setOrgInfo(userResponse.data);
         setPosts(postsResponse.data ?? []);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
@@ -48,7 +48,7 @@ export default function App({ theme = 'light', userId, token }: Props) {
     }
 
     fetchData();
-  }, [userId, token]);
+  }, [orgId, token]);
 
   if (isLoading) {
     return (
@@ -107,7 +107,7 @@ export default function App({ theme = 'light', userId, token }: Props) {
       ) : (
         <IntegrationTutorial 
           theme={theme} 
-          userId={userId} 
+          orgId={orgId} 
           token={token} 
         />
       )}

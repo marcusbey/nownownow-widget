@@ -3,8 +3,8 @@ export const API_CONFIG = {
   VERSION: '/api/v1',
   ENDPOINTS: {
     WIDGET: {
-      USER_INFO: '/widget/org-info',
-      USER_POSTS: '/widget/user-posts'
+      ORG_INFO: '/widget/org-info',
+      ORG_POSTS: '/widget/org-posts'
     }
   }
 } as const;

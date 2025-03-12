@@ -3,7 +3,7 @@ export type WidgetPosition = 'left' | 'right';
 export type WidgetTheme = 'light' | 'dark';
 
 export interface WidgetConfig {
-  userId: string;
+  orgId: string;
   token: string;
   theme?: WidgetTheme;
   position?: WidgetPosition;
@@ -30,7 +30,7 @@ export interface WidgetInstance {
 
 export interface WidgetProps {
   theme: WidgetTheme;
-  userId: string;
+  orgId: string;
   token: string;
   isOpen?: boolean;
   onToggle?: () => void;

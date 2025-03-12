@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { fetchUserInfo, fetchUserPosts } from '@/services/apiService';
+import { fetchOrgInfo, fetchUserPosts } from '@/services/apiService';
 import type { User, Post } from '@/types/api';
 
 interface UseUserDataResult {
@@ -19,7 +19,7 @@ export function useUserData(token: string): UseUserDataResult {
     async function loadData() {
       try {
         const [userResponse, postsResponse] = await Promise.all([
-          fetchUserInfo(token),
+          fetchOrgInfo(token),
           fetchUserPosts(token),
         ]);
 
