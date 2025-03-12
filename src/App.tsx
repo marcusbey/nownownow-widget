@@ -25,7 +25,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
       try {
         const [userResponse, postsResponse] = await Promise.all([
           api.getOrgInfo(token, orgId),
-          api.getUserPosts(token, orgId)
+          api.getOrgPosts(token, orgId)
         ]);
 
         if (!userResponse.success) {

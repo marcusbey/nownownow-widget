@@ -47,6 +47,6 @@ export const api = {
   getOrgInfo: (token: string, orgId: string): Promise<ApiResponse<WidgetOrgInfo>> => 
     fetchWithAuth<WidgetOrgInfo>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_INFO}?orgId=${encodeURIComponent(orgId)}`, token),
 
-  getUserPosts: (token: string, orgId: string): Promise<ApiResponse<WidgetPost[]>> => 
+  getOrgPosts: (token: string, orgId: string): Promise<ApiResponse<WidgetPost[]>> => 
     fetchWithAuth<WidgetPost[]>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_POSTS}?orgId=${encodeURIComponent(orgId)}`, token)
 } as const;
