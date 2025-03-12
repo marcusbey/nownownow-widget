@@ -1,10 +1,10 @@
 import { Signal, signal } from '@preact/signals';
-import type { User, Post, WidgetConfig } from './types';
+import type { Organization, Post, WidgetConfig } from './types';
 
 class WidgetStore {
   config: WidgetConfig;
   isOpen: Signal<boolean>;
-  user: Signal<User | null>;
+  organization: Signal<Organization | null>;
   posts: Signal<Post[]>;
   isLoading: Signal<boolean>;
   error: Signal<string | null>;
@@ -12,7 +12,7 @@ class WidgetStore {
   constructor(config: WidgetConfig) {
     this.config = config;
     this.isOpen = signal(false);
-    this.user = signal(null);
+    this.organization = signal(null);
     this.posts = signal([]);
     this.isLoading = signal(false);
     this.error = signal(null);
@@ -42,7 +42,7 @@ class WidgetStore {
         credentials: 'omit' as const
       };
 
-      const [userData, postsData] = await Promise.all([
+      const [orgData, postsData] = await Promise.all([
         fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.ORG_INFO}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
           .then(async res => {
             if (!res.ok) throw new Error(`User info failed: ${res.status}`);
@@ -56,7 +56,7 @@ class WidgetStore {
           })
       ]);
 
-      this.user.value = userData;
+      this.organization.value = orgData;
       this.posts.value = postsData;
     } catch (err) {
       this.error.value = 'Failed to load data';
@@ -68,7 +68,7 @@ class WidgetStore {
 
   togglePanel() {
     this.isOpen.value = !this.isOpen.value;
-    if (this.isOpen.value && !this.user.value) {
+    if (this.isOpen.value && !this.organization.value) {
       this.fetchData();
     }
   }

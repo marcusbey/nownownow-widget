@@ -15,10 +15,10 @@ export interface Post {
   bookmarks: number;
 }
 
-export interface User {
+export interface Organization {
   id: string;
   name: string;
-  avatar: string;
+  image: string;
   bio: string;
   followers: number;
 }
