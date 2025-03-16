@@ -17,7 +17,7 @@ interface OrganizationProfileProps {
   theme?: Theme;
 }
 
-const getInitial = (name: string): string => name.charAt(0).toUpperCase();
+const getInitial = (name?: string | null): string => name ? name.charAt(0).toUpperCase() : 'O';
 
 const getFollowerCount = (count: { followers: number } | null | undefined): number => count?.followers ?? 0;
 

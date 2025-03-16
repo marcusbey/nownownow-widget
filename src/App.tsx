@@ -15,7 +15,7 @@ interface Props {
 
 export default function App({ theme = 'light', orgId, token }: Props) {
   const [isLoading, setIsLoading] = useState(true);
-  const [userInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
+  const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
   const [posts, setPosts] = useState<WidgetPost[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'feed' | 'integration'>('feed');
@@ -36,8 +36,17 @@ export default function App({ theme = 'light', orgId, token }: Props) {
           throw new Error(postsResponse.error || 'Failed to fetch posts');
         }
 
-        setOrgInfo(userResponse.data);
-        setPosts(postsResponse.data ?? []);
+        // Extract organization info from the response
+        if (userResponse.data) {
+          setOrgInfo(userResponse.data.organization);
+        }
+        
+        // Extract posts from the response
+        if (postsResponse.data && postsResponse.data.posts) {
+          setPosts(postsResponse.data.posts);
+        } else {
+          setPosts([]);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
         setError(errorMessage);
@@ -86,7 +95,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
       
       {activeTab === 'feed' ? (
         <>
-          <OrganizationProfile orgInfo={userInfo} theme={theme} />
+          <OrganizationProfile orgInfo={orgInfo} theme={theme} />
           <div class="posts-section">
             <h3 class="section-title">Latest Updates</h3>
             {posts.length > 0 ? (

@@ -42,8 +42,23 @@ export interface WidgetApiResponse<T> {
 export interface WidgetOrgInfo {
   id: string;
   name: string;
-  image?: string;
-  bio?: string;
+  image?: string | null;
+  bio?: string | null;
+  websiteUrl?: string | null;
+}
+
+export interface WidgetUser {
+  id: string;
+  name: string;
+  displayName?: string;
+  image?: string | null;
+  bio?: string | null;
+  websiteUrl?: string | null;
+}
+
+export interface OrgInfoResponse {
+  organization: WidgetOrgInfo;
+  user: WidgetUser;
 }
 
 export interface WidgetPost {

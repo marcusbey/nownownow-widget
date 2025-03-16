@@ -27,17 +27,37 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-function formatHashtags(content: string): h.JSX.Element[] {
-  const words = content.split(' ');
-  return words.map((word, index) => {
-    if (word.startsWith('#')) {
-      return <span key={index} class="text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer transition-colors">{word}</span>;
-    }
-    return <span key={index}>{word} </span>;
-  });
+function sanitizeHtml(html: string): string {
+  // Simple sanitization to prevent script injection
+  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
 }
 
-export function PostCard({ content, createdAt, likes = 0, comments = 0, theme = 'light' }: PostCardProps): FunctionComponent {
+function renderContent(content: string): h.JSX.Element {
+  // If the content appears to be HTML, render it as HTML
+  if (content.includes('<') && content.includes('>')) {
+    return (
+      <div 
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} 
+        class="post-content"
+      />
+    );
+  }
+  
+  // Otherwise, handle it as plain text with hashtag formatting
+  const words = content.split(' ');
+  return (
+    <div class="post-content">
+      {words.map((word, index) => {
+        if (word.startsWith('#')) {
+          return <span key={index} class="text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer transition-colors">{word} </span>;
+        }
+        return <span key={index}>{word} </span>;
+      })}
+    </div>
+  );
+}
+
+export const PostCard: FunctionComponent<PostCardProps> = ({ content, createdAt, likes = 0, comments = 0, theme = 'light' }) => {
   const isDark = theme === 'dark';
   
   return (
@@ -48,7 +68,7 @@ export function PostCard({ content, createdAt, likes = 0, comments = 0, theme = 
       </div>
       
       <div class={`text-[15px] leading-relaxed mb-4 ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>
-        {formatHashtags(content)}
+        {renderContent(content)}
       </div>
       
       <div class={`flex gap-6 pt-3 ${isDark ? 'border-t border-slate-700/50' : 'border-t border-slate-200'}`}>

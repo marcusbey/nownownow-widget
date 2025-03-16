@@ -17,7 +17,8 @@ type ApiStore = {
 
 // Initialize with default values
 export const apiStore: ApiStore = {
-  baseUrl: 'http://localhost:3000',
+  // Use production URL by default, with fallback to localhost for development
+  baseUrl: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://nownownow.io',
   config: {
     VERSION: '/api/v1',
     ENDPOINTS: {
