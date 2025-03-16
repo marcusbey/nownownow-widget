@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
-import { UserProfile } from './components/UserProfile';
+import { OrganizationProfile } from './components/OrganizationProfile';
 import { PostCard } from './components/PostCard';
 import { IntegrationTutorial } from './components/IntegrationTutorial';
 import { api } from './services/apiService';
@@ -86,7 +86,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
       
       {activeTab === 'feed' ? (
         <>
-          <UserProfile userInfo={userInfo} theme={theme} />
+          <OrganizationProfile orgInfo={userInfo} theme={theme} />
           <div class="posts-section">
             <h3 class="section-title">Latest Updates</h3>
             {posts.length > 0 ? (

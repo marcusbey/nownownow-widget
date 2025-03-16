@@ -17,7 +17,7 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_ORG_ID" 
+      data-org-id="DEMO_ORG_ID" 
       data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
       data-theme="dark" 
       data-position="left" 
@@ -41,7 +41,7 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-user-id="DEMO_ORG_ID" 
+      data-org-id="DEMO_ORG_ID" 
       data-token="DEMO_TOKEN"
       data-theme="dark">
     </script>
@@ -96,7 +96,7 @@ export function IntegrationTutorial({ theme = 'light', orgId = 'DEMO_ORG_ID', to
       <div class="configuration-options">
         <h3>Configuration Options</h3>
         <ul>
-          <li><code>data-user-id</code>: Your unique user identifier (required)</li>
+          <li><code>data-org-id</code>: Your unique organization identifier (required)</li>
           <li><code>data-token</code>: Authentication token (required)</li>
           <li><code>data-theme</code>: Widget theme, either "light" or "dark" (default: "light")</li>
           <li><code>data-position</code>: Button position, either "left" or "right" (default: "left")</li>

@@ -76,7 +76,7 @@ npm install @your-org/now-widget
 <script
   defer
   src="path/to/now-widget.js"
-  data-user-id="user123"
+  data-org-id="org123"
   data-token="your-jwt-token"
   data-theme="light"
   data-position="right"
@@ -90,7 +90,7 @@ The widget can be customized using data attributes:
 
 | Attribute | Type | Description | Default |
 |-----------|------|-------------|---------|
-| data-user-id | string | User ID to fetch posts for | Required |
+| data-org-id | string | Organization ID to fetch posts for | Required |
 | data-token | string | JWT authentication token | Required |
 | data-theme | 'light' \| 'dark' | Widget theme | 'light' |
 | data-position | 'left' \| 'right' | Button and panel position | 'right' |

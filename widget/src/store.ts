@@ -1,5 +1,6 @@
 import { Signal, signal } from '@preact/signals';
 import type { Organization, Post, WidgetConfig } from './types';
+import { apiStore } from '../../src/config/api';
 
 class WidgetStore {
   config: WidgetConfig;
@@ -23,13 +24,6 @@ class WidgetStore {
       this.isLoading.value = true;
       this.error.value = null;
 
-      const { VITE_API_URL = 'http://localhost:3000' } = import.meta.env;
-      const API_VERSION = '/api/v1';
-      const API_ENDPOINTS = {
-        ORG_INFO: '/widget/org-info',
-        ORG_POSTS: '/widget/org-posts'
-      } as const;
-
       const headers = {
         'Authorization': `Bearer ${this.config.token}`,
         'Accept': 'application/json',
@@ -42,14 +36,15 @@ class WidgetStore {
         credentials: 'omit' as const
       };
 
+      const { config } = apiStore;
       const [orgData, postsData] = await Promise.all([
-        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.ORG_INFO}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
+        fetch(`${apiStore.baseUrl}${config.VERSION}${config.ENDPOINTS.WIDGET.ORG_INFO}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
           .then(async res => {
             if (!res.ok) throw new Error(`User info failed: ${res.status}`);
             return res.json();
           }),
 
-        fetch(`${VITE_API_URL}${API_VERSION}${API_ENDPOINTS.ORG_POSTS}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
+        fetch(`${apiStore.baseUrl}${config.VERSION}${config.ENDPOINTS.WIDGET.ORG_POSTS}?orgId=${encodeURIComponent(this.config.orgId)}`, fetchOptions)
           .then(async res => {
             if (!res.ok) throw new Error(`Posts failed: ${res.status}`);
             return res.json();

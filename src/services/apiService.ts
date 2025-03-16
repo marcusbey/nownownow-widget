@@ -1,6 +1,6 @@
 import { type WidgetOrgInfo, type WidgetPost } from '@/types/api';
 
-import { API_CONFIG, getApiUrl } from '@/config/api';
+import { apiStore, getApiUrl } from '@/config/api';
 
 interface ApiResponse<T> {
   success: boolean;
@@ -45,8 +45,8 @@ async function fetchWithAuth<T>(
 // Export a type-safe API client
 export const api = {
   getOrgInfo: (token: string, orgId: string): Promise<ApiResponse<WidgetOrgInfo>> => 
-    fetchWithAuth<WidgetOrgInfo>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_INFO}?orgId=${encodeURIComponent(orgId)}`, token),
+    fetchWithAuth<WidgetOrgInfo>(`${apiStore.config.ENDPOINTS.WIDGET.ORG_INFO}?orgId=${encodeURIComponent(orgId)}`, token),
 
   getOrgPosts: (token: string, orgId: string): Promise<ApiResponse<WidgetPost[]>> => 
-    fetchWithAuth<WidgetPost[]>(`${API_CONFIG.ENDPOINTS.WIDGET.ORG_POSTS}?orgId=${encodeURIComponent(orgId)}`, token)
+    fetchWithAuth<WidgetPost[]>(`${apiStore.config.ENDPOINTS.WIDGET.ORG_POSTS}?orgId=${encodeURIComponent(orgId)}`, token)
 } as const;

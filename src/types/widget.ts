@@ -9,6 +9,7 @@ export interface WidgetConfig {
   position?: WidgetPosition;
   buttonColor?: string;
   buttonSize?: number;
+  apiUrl?: string;
 }
 
 import { Signal } from '@preact/signals';
@@ -20,6 +21,8 @@ export interface WidgetStateData {
   mountAttempts: number;
   maxAttempts: number;
   initializationPromise: Promise<void> | null;
+  lastPathChecked: string;
+  pollIntervalId?: ReturnType<typeof setInterval>;
 }
 
 export type WidgetState = Signal<WidgetStateData>;

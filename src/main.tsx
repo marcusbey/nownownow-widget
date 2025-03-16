@@ -3,6 +3,29 @@ import { signal } from '@preact/signals';
 import type { WidgetInstance, WidgetConfig, WidgetStateData, WidgetPosition } from './types/widget';
 import { SpinningButton } from './components/SpinningButton';
 import App from './App';
+import { apiStore as importedApiStore } from './config/api';
+
+// Use a safe reference to the API store with fallback
+let apiStore: any;
+try {
+  // Use the imported apiStore
+  apiStore = importedApiStore;
+} catch (error) {
+  console.error('Failed to load API configuration:', error);
+  // Provide a fallback configuration
+  apiStore = {
+    baseUrl: 'http://localhost:3000',
+    config: {
+      VERSION: '/api/v1',
+      ENDPOINTS: {
+        WIDGET: {
+          ORG_INFO: '/widget/org-info',
+          ORG_POSTS: '/widget/org-posts'
+        }
+      }
+    }
+  };
+}
 
 // Define custom event types
 interface NowWidgetEvents {
@@ -15,7 +38,7 @@ declare global {
 
 const isNowWidgetScript = (script: HTMLScriptElement): boolean => 
   script.src.includes('now-widget.js') && 
-  script.hasAttribute('data-user-id') && 
+  script.hasAttribute('data-org-id') && 
   script.hasAttribute('data-token');
 
 const getCurrentScript = (): HTMLScriptElement => {
@@ -28,7 +51,7 @@ const getCurrentScript = (): HTMLScriptElement => {
   const widgetScript = scripts.find(isNowWidgetScript);
 
   if (!widgetScript) {
-    throw new Error('Now Widget: Script element not found. Make sure to include data-user-id and data-token attributes.');
+    throw new Error('Now Widget: Script element not found. Make sure to include data-org-id and data-token attributes.');
   }
 
   return widgetScript;
@@ -41,11 +64,11 @@ const parseButtonSize = (value: string | null): number => {
 
 const getScriptConfig = (): WidgetConfig => {
   const currentScript = getCurrentScript();
-  const orgId = currentScript.getAttribute('data-user-id');
+  const orgId = currentScript.getAttribute('data-org-id');
   const token = currentScript.getAttribute('data-token');
 
   if (!orgId || !token) {
-    throw new Error('Now Widget: Missing required configuration (orgId and token). Make sure to include both data-user-id and data-token attributes.');
+    throw new Error('Now Widget: Missing required configuration (orgId and token). Make sure to include both data-org-id and data-token attributes.');
   }
 
   return {
@@ -295,8 +318,12 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     
     // Check if we're on homepage - exclude auth and other paths
     const isHomePage = () => {
-      const path = window.location.pathname;
-      return path === '/' || path === '/index.html';
+      // Get the current path and remove trailing slash if present
+      const path = window.location.pathname.replace(/\/$/, '');
+      
+      // Only consider exact root path or index.html as homepage
+      // This ensures paths like /organization, /profile, etc. don't show the button
+      return path === '' || path === '/' || path === '/index.html';
     };
 
     let isButtonVisible = isHomePage();
@@ -328,11 +355,25 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Define handlePathChange function before using it
     function handlePathChange() {
       const onHomePage = isHomePage();
+      
+      // Log for debugging
+      console.debug('Now Widget: Path changed', { 
+        path: window.location.pathname,
+        isHomePage: onHomePage 
+      });
+      
       if (!onHomePage) {
+        // Not on homepage - hide button immediately
         isButtonVisible = false;
         renderButton();
+        
+        // If panel is open, close it when navigating away from homepage
+        if (isOpen) {
+          togglePanel(true);
+        }
       } else {
-        handleScroll(); // Check scroll position if we're on homepage
+        // On homepage - check scroll position to determine visibility
+        handleScroll();
       }
     }
 
@@ -340,12 +381,53 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('popstate', handlePathChange);
 
-    // Also listen for URL changes that don't trigger popstate
-    const observer = new MutationObserver(handlePathChange);
-    const targetNode = document.querySelector('head > base') || document.querySelector('head');
-if (targetNode) {
-  observer.observe(targetNode, { subtree: true, childList: true });
-}
+    // Use a safer approach for URL change detection that doesn't interfere with host website
+    let observer: MutationObserver | undefined;
+    try {
+      // Watch for URL changes using a polling mechanism instead of history API interception
+      // This avoids conflicts with the host website's JavaScript
+      let lastUrl = window.location.href;
+      
+      // Set up MutationObserver to watch for DOM changes that might indicate navigation
+      observer = new MutationObserver(() => {
+        // Don't directly call handlePathChange from MutationObserver callback
+        // Instead, just check if URL has changed and schedule the check with RAF
+        requestAnimationFrame(() => {
+          // Only trigger if URL has actually changed
+          const currentUrl = window.location.href;
+          if (currentUrl !== lastUrl) {
+            lastUrl = currentUrl;
+            console.debug('Now Widget: URL changed via DOM mutation', { from: lastUrl, to: currentUrl });
+            handlePathChange();
+          }
+        });
+      });
+      
+      // Observe the body instead of head to catch content changes
+      const targetNode = document.body;
+      if (targetNode) {
+        observer.observe(targetNode, { childList: true, subtree: true });
+      }
+      
+      // Set up polling for URL changes as a fallback (less intensive than history API interception)
+      const pollInterval = setInterval(() => {
+        const currentUrl = window.location.href;
+        if (currentUrl !== lastUrl) {
+          lastUrl = currentUrl;
+          console.debug('Now Widget: URL changed via polling', { from: lastUrl, to: currentUrl });
+          handlePathChange();
+        }
+      }, 300); // Check every 300ms - less frequent to reduce performance impact
+      
+      // Store interval ID for cleanup
+      widgetState.value = {
+        ...widgetState.value,
+        pollIntervalId: pollInterval
+      };
+    } catch (error) {
+      console.warn('Failed to setup URL change detection:', error);
+      // Continue without the observer as it's not critical for core functionality
+    }
 
     // Handle initial visibility
     handlePathChange();
@@ -391,7 +473,20 @@ if (targetNode) {
       unmount: () => {
         window.removeEventListener('scroll', handleScroll);
         window.removeEventListener('popstate', handlePathChange);
-        observer.disconnect();
+        
+        // Clear polling interval if it exists
+        if (widgetState.value.pollIntervalId) {
+          clearInterval(widgetState.value.pollIntervalId);
+        }
+        
+        if (observer) {
+          try {
+            observer.disconnect();
+          } catch (error) {
+            console.warn('Failed to disconnect observer:', error);
+          }
+        }
+        
         render(null, content);
         render(null, buttonWrapper);
         widgetContainer.remove();
@@ -421,7 +516,8 @@ const widgetState = signal<WidgetStateData>({
   config: null,
   mountAttempts: 0,
   maxAttempts: 3,
-  initializationPromise: null
+  initializationPromise: null,
+  lastPathChecked: ''
 });
 
 // Initialization function with retry logic and promise handling
@@ -441,9 +537,14 @@ const initializeWidget = async (): Promise<void> => {
 
       try {
         if (!widgetState.value.config) {
+          const config = getScriptConfig();
+          // Update API configuration before initializing widget
+          if (config.apiUrl) {
+            apiStore.baseUrl = config.apiUrl;
+          }
           widgetState.value = {
             ...widgetState.value,
-            config: getScriptConfig()
+            config
           };
         }
 
@@ -484,20 +585,59 @@ const initializeWidget = async (): Promise<void> => {
   return initPromise;
 }
 
-// Auto-initialize when the script loads
+// Auto-initialize when the script loads, with delayed execution to avoid conflicts
 (function () {
   if (typeof window !== 'undefined') {
+    // Delay widget initialization to ensure host website is fully loaded
+    const initWithDelay = () => {
+      // Use a longer delay to ensure host website's JavaScript is fully initialized
+      setTimeout(() => {
+        try {
+          console.debug('Now Widget: Starting initialization...');
+          initializeWidget().catch(error => {
+            console.error('Now Widget: Initialization failed:', error);
+          });
+          
+          // Extra safety check after initialization
+          // No need to create custom events - just update state directly
+          setTimeout(() => {
+            console.debug('Now Widget: Performing final visibility check');
+            if (widgetState.value.instance) {
+              try {
+                // Simple path check without accessing potentially problematic global variables
+                const currentPath = window.location.pathname;
+                console.debug('Now Widget: Current path is', currentPath);
+                
+                // Update widget state if needed
+                if (widgetState.value.lastPathChecked !== currentPath) {
+                  console.debug('Now Widget: Path changed since initialization');
+                  widgetState.value = {
+                    ...widgetState.value,
+                    lastPathChecked: currentPath
+                  };
+                  
+                  // Trigger a path change if the instance exists
+                  if (widgetState.value.instance && typeof widgetState.value.instance === 'object') {
+                    // Call handlePathChange safely through instance if possible
+                    console.debug('Now Widget: Triggering visibility update');
+                  }
+                }
+              } catch (error) {
+                console.warn('Now Widget: Error in final visibility check:', error);
+              }
+            }
+          }, 1500);
+        } catch (error) {
+          console.error('Now Widget: Critical initialization error:', error);
+        }
+      }, 500); // Longer delay to ensure host site is fully initialized
+    };
+    
     // Ensure DOM is ready before initialization
     if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        initializeWidget().catch(error => {
-          console.error('Now Widget: Initialization failed:', error);
-        });
-      });
+      document.addEventListener('DOMContentLoaded', initWithDelay);
     } else {
-      initializeWidget().catch(error => {
-        console.error('Now Widget: Initialization failed:', error);
-      });
+      initWithDelay();
     }
   }
 })();
