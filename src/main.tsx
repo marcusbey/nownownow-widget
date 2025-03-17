@@ -329,6 +329,30 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     let isButtonVisible = isHomePage();
     const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
+    // Define toggle panel function early
+    const togglePanel = (forceClose = false) => {
+      isOpen = forceClose ? false : !isOpen;
+      panel.classList.toggle('open', isOpen);
+      overlay.classList.toggle('open', isOpen);
+      document.documentElement.classList.toggle('now-widget-open', isOpen);
+      renderButton();
+    };
+
+    // Render button - define this function before any code that uses it
+    const renderButton = () => {
+      render(
+        h(SpinningButton, {
+          size: String(config.buttonSize || 48),
+          color: config.buttonColor || '#f59e0b',
+          position: (config.position || 'right') as WidgetPosition,
+          onClick: () => togglePanel(),
+          isOpen,
+          isVisible: isButtonVisible,
+        }),
+        buttonWrapper
+      );
+    };
+
     // Handle scroll visibility using functional approach
     const handleScroll = () => {
       if (isHomePage()) {
@@ -433,14 +457,6 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     handlePathChange();
 
     // Add click handlers
-    const togglePanel = (forceClose = false) => {
-      isOpen = forceClose ? false : !isOpen;
-      panel.classList.toggle('open', isOpen);
-      overlay.classList.toggle('open', isOpen);
-      document.documentElement.classList.toggle('now-widget-open', isOpen);
-      renderButton();
-    };
-
     closeButton.addEventListener('click', () => togglePanel(true));
     overlay.addEventListener('click', () => togglePanel(true));
 
@@ -452,21 +468,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       onToggle: () => togglePanel()
     }), content);
 
-    // Render button
-    const renderButton = () => {
-      render(
-        h(SpinningButton, {
-          size: String(config.buttonSize || 48),
-          color: config.buttonColor || '#f59e0b',
-          position: (config.position || 'right') as WidgetPosition,
-          onClick: () => togglePanel(),
-          isOpen,
-          isVisible: isButtonVisible,
-        }),
-        buttonWrapper
-      );
-    };
-
+    // Initial button render
     renderButton();
 
     return {
