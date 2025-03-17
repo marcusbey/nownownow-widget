@@ -49,7 +49,7 @@ function renderContent(content: string): h.JSX.Element {
     <div class="post-content">
       {words.map((word, index) => {
         if (word.startsWith('#')) {
-          return <span key={index} class="text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer transition-colors">{word} </span>;
+          return <span key={index} class="text-blue-500 font-medium hover:underline cursor-pointer">{word} </span>;
         }
         return <span key={index}>{word} </span>;
       })}
@@ -61,31 +61,33 @@ export const PostCard: FunctionComponent<PostCardProps> = ({ content, createdAt,
   const isDark = theme === 'dark';
   
   return (
-    <div class={`rounded-md p-2 ${isDark ? 'bg-slate-800/50 text-slate-200 hover:bg-slate-800' : 'bg-white text-slate-700 hover:bg-slate-50'} transition-colors shadow-sm`}>
-      <div class={`flex justify-between items-center mb-1.5`}>
-        <div class={`text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+    <div class={`border-b ${isDark ? 'border-slate-700 text-slate-200' : 'border-slate-100 text-slate-700'} pb-3 mb-3`}>
+      <div class="mb-2">
+        <div class="text-xs text-slate-500 mb-1">
           {formatTimeAgo(createdAt)}
         </div>
         
-        <div class="flex items-center space-x-1.5">
-          <div class={`flex items-center space-x-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <span class="text-[9px]">{comments}</span>
-          </div>
-          
-          <div class={`flex items-center space-x-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            <span class="text-[9px]">{likes}</span>
-          </div>
+        <div class="text-sm leading-5">
+          {renderContent(content)}
         </div>
       </div>
       
-      <div class={`${isDark ? 'text-slate-200' : 'text-slate-700'} text-[10px] leading-normal`}>
-        {renderContent(content)}
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-1 text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span class="text-xs">{likes}</span>
+        </div>
+        
+        <div class="flex items-center space-x-1 text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span class="text-xs">{comments}</span>
+        </div>
       </div>
     </div>
   );

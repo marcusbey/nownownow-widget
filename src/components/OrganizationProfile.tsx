@@ -29,37 +29,29 @@ export const OrganizationProfile: FunctionComponent<OrganizationProfileProps> = 
   const followerCount = getFollowerCount(orgInfo._count);
 
   return (
-    <div class={`p-2 border-b sticky top-0 z-10 backdrop-blur-sm ${isDark ? 'bg-slate-900/95 border-slate-700' : 'bg-white/95 border-slate-200'}`}>
-      <div class="flex items-start space-x-2">
-        <div class="flex-shrink-0 mt-1">
+    <div class={`p-3 border-b sticky top-0 z-10 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+      <div class="flex items-center space-x-3">
+        <div class="flex-shrink-0">
           {orgInfo.image ? (
             <img 
               src={orgInfo.image} 
               alt={orgInfo.name}
-              class="w-6 h-6 rounded-full object-cover"
+              class="w-10 h-10 rounded-full object-cover border border-slate-200"
             />
           ) : (
-            <div class={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] ${isDark ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'}`}>
+            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm bg-slate-100 text-slate-500 border border-slate-200">
               {initials}
             </div>
           )}
         </div>
         <div class="flex-1">
-          <div class="flex justify-between items-start">
-            <div>
-              <h2 class={`text-xs font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{orgInfo.name}</h2>
-              {orgInfo.bio && (
-                <p class={`text-[10px] mt-0.5 leading-tight ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{orgInfo.bio}</p>
-              )}
-            </div>
+          <div class="flex flex-col">
+            <h2 class="text-sm font-medium text-slate-900">{orgInfo.name}</h2>
+            {orgInfo.bio && (
+              <p class="text-xs text-slate-500">{orgInfo.bio}</p>
+            )}
             {followerCount > 0 && (
-              <div class={`flex items-center px-1.5 py-0.5 rounded-full ${isDark ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'}`}>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-2 h-2 mr-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                </svg>
-                <span class="text-[9px]">{followerCount}</span>
-              </div>
+              <p class="text-xs text-slate-500 mt-0.5">{followerCount} followers</p>
             )}
           </div>
         </div>
