@@ -116,7 +116,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
     <div class={`w-full h-full relative ${isDark ? 'bg-slate-900' : 'bg-slate-50'} text-xs`}>
       <div class={`flex border-b ${isDark ? 'border-slate-700' : 'border-slate-200'}`}>
         <button 
-          class={`px-3 py-2 text-xs transition-colors ${activeTab === 'feed' 
+          class={`px-2 py-1.5 text-[10px] transition-colors ${activeTab === 'feed' 
             ? (isDark ? 'text-white border-b border-blue-500' : 'text-slate-900 border-b border-blue-600') 
             : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-900')}`}
           onClick={() => setActiveTab('feed')}
@@ -124,7 +124,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
           Feed
         </button>
         <button 
-          class={`px-3 py-2 text-xs transition-colors ${activeTab === 'integration' 
+          class={`px-2 py-1.5 text-[10px] transition-colors ${activeTab === 'integration' 
             ? (isDark ? 'text-white border-b border-blue-500' : 'text-slate-900 border-b border-blue-600') 
             : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-900')}`}
           onClick={() => setActiveTab('integration')}
@@ -138,10 +138,10 @@ export default function App({ theme = 'light', orgId, token }: Props) {
           <OrganizationProfile orgInfo={orgInfo} theme={theme} />
           
           <div 
-            class={`overflow-auto h-[calc(100%-100px)]`}
+            class={`overflow-auto h-[calc(100%-80px)]`}
             ref={(el) => { scrollAreaRef.current = el; }}
           >
-            <div class="p-3 space-y-2">
+            <div class="p-2 space-y-1.5">
               {posts.length > 0 ? (
                 posts.map(post => (
                   <PostCard
@@ -154,7 +154,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
                   />
                 ))
               ) : (
-                <p class={`text-center py-4 text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                <p class={`text-center py-4 text-[10px] ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   No updates yet
                 </p>
               )}
