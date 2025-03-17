@@ -1,4 +1,5 @@
-import { User, Post, UserData } from '@/types/api';
+import { h, FunctionComponent } from 'preact';
+import type { User, Post } from '../types/api';
 
 interface UserPanelProps {
   user: User;
@@ -6,7 +7,7 @@ interface UserPanelProps {
   theme: string;
 }
 
-export function UserPanel({ user, posts, theme }: UserPanelProps) {
+export const UserPanel: FunctionComponent<UserPanelProps> = ({ user, posts, theme }) => {
   return (
     <div className={`user-panel ${theme}`}>
       <div className="org-info">
@@ -28,19 +29,19 @@ export function UserPanel({ user, posts, theme }: UserPanelProps) {
       </div>
       
       <div className="posts-container">
-        {posts.map((post) => (
+        {posts.map((post: Post) => (
           <div key={post.id} className="post">
             <p className="post-content">{post.content}</p>
-            {post.attachments?.map((attachment, index) => (
-              attachment.type === 'image' && (
+            {post.attachments?.map((attachment: { type: string; url: string }, index: number) => {
+              return attachment.type === 'image' ? (
                 <img 
                   key={index}
                   src={attachment.url}
                   alt="Post attachment"
                   className="post-image"
                 />
-              )
-            ))}
+              ) : null;
+            })}
             <div className="post-stats">
               {post._count && (
                 <>
@@ -54,4 +55,4 @@ export function UserPanel({ user, posts, theme }: UserPanelProps) {
       </div>
     </div>
   );
-}
+};

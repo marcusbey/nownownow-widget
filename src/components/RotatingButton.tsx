@@ -15,8 +15,8 @@ export function RotatingButton() {
   }, []);
 
   return (
-    <button class={styles['rotating-button']}>
-      <div class={styles['rotating-text']} ref={textRef}></div>
+    <button className={styles['rotating-button']}>
+      <div className={styles['rotating-text']} ref={textRef}></div>
     </button>
   );
 }

@@ -85,10 +85,10 @@ export function SpinningButton({
   `;
 
   return (
-    <div class="button-wrapper">
+    <div className="button-wrapper">
       <style>{buttonStyle}</style>
       <button 
-        class="button"
+        className="button"
         onClick={onClick}
         aria-label="Toggle panel"
         aria-hidden={!isVisible}

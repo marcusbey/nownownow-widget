@@ -29,29 +29,29 @@ export const OrganizationProfile: FunctionComponent<OrganizationProfileProps> = 
   const followerCount = getFollowerCount(orgInfo._count);
 
   return (
-    <div class={`p-3 border-b sticky top-0 z-10 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
-      <div class="flex items-center space-x-3">
-        <div class="flex-shrink-0">
+    <div className={`p-3 border-b sticky top-0 z-10 ${isDark ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+      <div className="flex items-center space-x-3">
+        <div className="flex-shrink-0">
           {orgInfo.image ? (
             <img 
               src={orgInfo.image} 
               alt={orgInfo.name}
-              class="w-10 h-10 rounded-full object-cover border border-slate-200"
+              className="w-10 h-10 rounded-full object-cover border border-slate-200"
             />
           ) : (
-            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm bg-slate-100 text-slate-500 border border-slate-200">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm bg-slate-100 text-slate-500 border border-slate-200">
               {initials}
             </div>
           )}
         </div>
-        <div class="flex-1">
-          <div class="flex flex-col">
-            <h2 class="text-sm font-medium text-slate-900">{orgInfo.name}</h2>
+        <div className="flex-1">
+          <div className="flex flex-col">
+            <h2 className="text-sm font-medium text-slate-900">{orgInfo.name}</h2>
             {orgInfo.bio && (
-              <p class="text-xs text-slate-500">{orgInfo.bio}</p>
+              <p className="text-xs text-slate-500">{orgInfo.bio}</p>
             )}
             {followerCount > 0 && (
-              <p class="text-xs text-slate-500 mt-0.5">{followerCount} followers</p>
+              <p className="text-xs text-slate-500 mt-0.5">{followerCount} followers</p>
             )}
           </div>
         </div>

@@ -38,7 +38,7 @@ function renderContent(content: string): h.JSX.Element {
     return (
       <div 
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} 
-        class="post-content"
+        className="post-content"
       />
     );
   }
@@ -46,10 +46,10 @@ function renderContent(content: string): h.JSX.Element {
   // Otherwise, handle it as plain text with hashtag formatting
   const words = content.split(' ');
   return (
-    <div class="post-content">
+    <div className="post-content">
       {words.map((word, index) => {
         if (word.startsWith('#')) {
-          return <span key={index} class="text-blue-500 font-medium hover:underline cursor-pointer">{word} </span>;
+          return <span key={index} className="text-blue-500 font-medium hover:underline cursor-pointer">{word} </span>;
         }
         return <span key={index}>{word} </span>;
       })}
@@ -61,32 +61,32 @@ export const PostCard: FunctionComponent<PostCardProps> = ({ content, createdAt,
   const isDark = theme === 'dark';
   
   return (
-    <div class={`border-b ${isDark ? 'border-slate-700 text-slate-200' : 'border-slate-100 text-slate-700'} pb-3 mb-3`}>
-      <div class="mb-2">
-        <div class="text-xs text-slate-500 mb-1">
+    <div className={`border-b ${isDark ? 'border-slate-700 text-slate-200' : 'border-slate-100 text-slate-700'} pb-3 mb-3`}>
+      <div className="mb-2">
+        <div className="text-xs text-slate-500 mb-1">
           {formatTimeAgo(createdAt)}
         </div>
         
-        <div class="text-sm leading-5">
+        <div className="text-sm leading-5">
           {renderContent(content)}
         </div>
       </div>
       
-      <div class="flex items-center space-x-4">
-        <div class="flex items-center space-x-1 text-slate-500">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-1 text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
-          <span class="text-xs">{likes}</span>
+          <span className="text-xs">{likes}</span>
         </div>
         
-        <div class="flex items-center space-x-1 text-slate-500">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div className="flex items-center space-x-1 text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
           </svg>
-          <span class="text-xs">{comments}</span>
+          <span className="text-xs">{comments}</span>
         </div>
       </div>
     </div>

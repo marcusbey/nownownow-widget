@@ -4,6 +4,22 @@ import type { WidgetInstance, WidgetConfig, WidgetStateData, WidgetPosition } fr
 import { SpinningButton } from './components/SpinningButton';
 import App from './App';
 import { apiStore as importedApiStore } from './config/api';
+import './index.css';
+
+// Log timestamp for testing purposes in Montreal timezone
+const montrealTime = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Montreal',
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hour12: false
+}).format(new Date());
+
+console.log(`Now Widget - Last update at: ${montrealTime} (Montreal time)`);
+
 
 // Use a safe reference to the API store with fallback
 let apiStore: any;
@@ -191,6 +207,20 @@ const containerStyles = `
 
 const mount = (config: WidgetConfig): WidgetInstance => {
   try {
+    // Log when widget is mounted in Montreal timezone
+    const mountTime = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Montreal',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).format(new Date());
+    
+    console.log(`Now Widget - Mounted at: ${mountTime} (Montreal time)`);
+
     // Create a container for our widget elements
     const widgetContainer = document.createElement('div');
     widgetContainer.id = 'now-widget-container';

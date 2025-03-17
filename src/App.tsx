@@ -113,10 +113,10 @@ export default function App({ theme = 'light', orgId, token }: Props) {
   }, [activeTab]); // Re-add listener when tab changes
 
   return (
-    <div class={`w-full h-full relative ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
-      <div class="flex border-b border-slate-200">
+    <div className={`w-full h-full relative ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+      <div className="flex border-b border-slate-200">
         <button 
-          class={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'feed' 
+          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'feed' 
             ? 'text-slate-900 border-b-2 border-slate-800' 
             : 'text-slate-500 hover:text-slate-700'}`}
           onClick={() => setActiveTab('feed')}
@@ -124,7 +124,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
           Feed
         </button>
         <button 
-          class={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'integration' 
+          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'integration' 
             ? 'text-slate-900 border-b-2 border-slate-800' 
             : 'text-slate-500 hover:text-slate-700'}`}
           onClick={() => setActiveTab('integration')}
@@ -138,10 +138,10 @@ export default function App({ theme = 'light', orgId, token }: Props) {
           <OrganizationProfile orgInfo={orgInfo} theme={theme} />
           
           <div 
-            class="overflow-auto h-[calc(100%-90px)]"
+            className="overflow-auto h-[calc(100%-90px)]"
             ref={(el) => { scrollAreaRef.current = el; }}
           >
-            <div class="px-4 py-3">
+            <div className="px-4 py-3">
               {posts.length > 0 ? (
                 posts.map(post => (
                   <PostCard
@@ -154,7 +154,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
                   />
                 ))
               ) : (
-                <p class="text-center py-6 text-sm text-slate-500">
+                <p className="text-center py-6 text-sm text-slate-500">
                   No updates yet
                 </p>
               )}
