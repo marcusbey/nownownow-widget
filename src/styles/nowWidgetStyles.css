@@ -186,11 +186,11 @@
   padding: 0;
   background-color: var(--nownownow-bg-color);
   position: sticky;
-  top: 0;
+  top: 60px; /* Height of panel header + some spacing */
   z-index: 20;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: visible;
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .nownownow-widget-org-banner {
@@ -902,7 +902,9 @@
 
 /* Content Container Styles */
 .nownownow-widget-content-container {
-  height: calc(100% - 240px); /* Account for the profile header and tabs */
+  height: calc(
+    100% - 290px
+  ); /* Account for panel header + org profile + tabs */
   overflow-y: auto;
   position: relative;
   background-color: var(--nownownow-bg-color);
@@ -975,4 +977,63 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Panel Header Styles */
+.nownownow-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: var(--nownownow-bg-color);
+  border-bottom: 1px solid var(--nownownow-border-color);
+  z-index: 30;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nownownow-widget-dark .nownownow-panel-header {
+  background-color: rgba(15, 23, 42, 0.95);
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.nownownow-panel-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--nownownow-text-color);
+  letter-spacing: 0.02em;
+}
+
+.nownownow-widget-dark .nownownow-panel-title {
+  color: #f8fafc;
+}
+
+.nownownow-close-button {
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  color: var(--nownownow-secondary-text-color);
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nownownow-close-button:hover {
+  background-color: var(--nownownow-hover-color);
+  color: var(--nownownow-text-color);
+}
+
+.nownownow-widget-dark .nownownow-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.nownownow-close-button svg {
+  width: 18px;
+  height: 18px;
 }

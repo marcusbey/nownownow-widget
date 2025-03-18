@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import "./App.css";
 import { FeedbackPanel } from "./components/FeedbackPanel";
 import "./components/IntegrationTutorial.css";
+import { OrganizationProfile } from "./components/OrganizationProfile";
 import { PostCard } from "./components/PostCard";
 import { api } from "./services/apiService";
 import "./styles/nowWidgetStyles.css";
@@ -103,55 +104,56 @@ export default function App({ theme = "light", orgId, token }: Props) {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // Extract the loadMore function from the useEffect so it can be used directly
+  const loadMore = async (): Promise<void> => {
+    if (!hasMore || isLoadingMore) return;
+
+    try {
+      setIsLoadingMore(true);
+      const response = await api.getOrgPosts(token, orgId, nextCursor);
+      console.log("Loading more posts - API Response:", response);
+
+      if (response.success && response.data) {
+        const newPosts = response.data.posts || [];
+
+        // Log detailed information about the newly loaded posts
+        console.log("Loading more posts - Detailed Response:", {
+          newPostsCount: newPosts.length,
+          firstNewPost:
+            newPosts.length > 0
+              ? {
+                  id: newPosts[0]?.id,
+                  content: newPosts[0]?.content?.substring(0, 50) + "...",
+                  authorInfo: {
+                    user: newPosts[0]?.user,
+                    author: newPosts[0]?.author,
+                    userId: newPosts[0]?.userId,
+                  },
+                }
+              : null,
+          nextCursor: response.data?.nextCursor,
+          hasMore: response.data?.hasMore,
+        });
+
+        setPosts((prev) => [...prev, ...newPosts]);
+        setNextCursor(response.data.nextCursor);
+        setHasMore(
+          response.data.hasMore !== undefined
+            ? Boolean(response.data.hasMore)
+            : false
+        );
+      }
+    } catch (err) {
+      console.error("Error loading more posts:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
     const loaderElement = loaderRef.current;
     if (!loaderElement || activeTab !== "feed") return;
-
-    const loadMore = async (): Promise<void> => {
-      if (!hasMore || isLoadingMore) return;
-
-      try {
-        setIsLoadingMore(true);
-        const response = await api.getOrgPosts(token, orgId, nextCursor);
-        console.log("Loading more posts - API Response:", response);
-
-        if (response.success && response.data) {
-          const newPosts = response.data.posts || [];
-
-          // Log detailed information about the newly loaded posts
-          console.log("Loading more posts - Detailed Response:", {
-            newPostsCount: newPosts.length,
-            firstNewPost:
-              newPosts.length > 0
-                ? {
-                    id: newPosts[0]?.id,
-                    content: newPosts[0]?.content?.substring(0, 50) + "...",
-                    authorInfo: {
-                      user: newPosts[0]?.user,
-                      author: newPosts[0]?.author,
-                      userId: newPosts[0]?.userId,
-                    },
-                  }
-                : null,
-            nextCursor: response.data?.nextCursor,
-            hasMore: response.data?.hasMore,
-          });
-
-          setPosts((prev) => [...prev, ...newPosts]);
-          setNextCursor(response.data.nextCursor);
-          setHasMore(
-            response.data.hasMore !== undefined
-              ? Boolean(response.data.hasMore)
-              : false
-          );
-        }
-      } catch (err) {
-        console.error("Error loading more posts:", err);
-      } finally {
-        setIsLoadingMore(false);
-      }
-    };
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -227,36 +229,31 @@ export default function App({ theme = "light", orgId, token }: Props) {
       ref={containerRef}
       className={`nownownow-widget-container ${widgetThemeClass}`}
     >
-      <div className="nownownow-widget-tab-container flex border-b border-slate-200">
+      <div className="nownownow-panel-header">
+        <div className="nownownow-panel-title">Now</div>
         <button
-          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
-            activeTab === "feed"
-              ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500"
-                : "text-blue-600 border-b-2 border-blue-500"
-              : isDark
-              ? "text-slate-400 hover:text-slate-300"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          onClick={() => setActiveTab("feed")}
+          className="nownownow-close-button"
+          onClick={() =>
+            window.parent.postMessage({ type: "nownownow-close-panel" }, "*")
+          }
         >
-          Feed
-        </button>
-        <button
-          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
-            activeTab === "feedback"
-              ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500"
-                : "text-blue-600 border-b-2 border-blue-500"
-              : isDark
-              ? "text-slate-400 hover:text-slate-300"
-              : "text-slate-500 hover:text-slate-700"
-          }`}
-          onClick={() => setActiveTab("feedback")}
-        >
-          Feedback
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M18 6L6 18M6 6l12 12" />
+          </svg>
         </button>
       </div>
+
+      <OrganizationProfile
+        orgInfo={orgInfo}
+        theme={theme}
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+      />
 
       <div className="nownownow-widget-content-container">
         {activeTab === "feed" && (
