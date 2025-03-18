@@ -185,12 +185,15 @@
 .nownownow-widget-org-profile {
   padding: 0;
   background-color: var(--nownownow-bg-color);
-  position: sticky;
-  top: 60px; /* Height of panel header + some spacing */
-  z-index: 20;
+  position: relative;
+  z-index: 10;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   overflow: visible;
   margin-bottom: 0;
+}
+
+.nownownow-widget-dark .nownownow-widget-org-profile {
+  background-color: #0f172a;
 }
 
 .nownownow-widget-org-banner {
@@ -346,6 +349,11 @@
   z-index: 10;
 }
 
+.nownownow-widget-dark .nownownow-widget-tab-nav {
+  background-color: #0f172a;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
 .nownownow-widget-tab {
   padding: 14px 20px;
   font-size: 15px;
@@ -364,6 +372,15 @@
   border-bottom-color: var(--nownownow-primary-color);
 }
 
+.nownownow-widget-dark .nownownow-widget-tab {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.nownownow-widget-dark .nownownow-widget-tab.active {
+  color: #38bdf8; /* Lighter blue for dark theme */
+  border-bottom-color: #38bdf8;
+}
+
 .nownownow-widget-tab:hover:not(.active) {
   color: var(--nownownow-text-color);
   background-color: rgba(0, 0, 0, 0.03);
@@ -371,6 +388,7 @@
 
 .nownownow-widget-dark .nownownow-widget-tab:hover:not(.active) {
   background-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .nownownow-widget-tab svg {
@@ -902,12 +920,14 @@
 
 /* Content Container Styles */
 .nownownow-widget-content-container {
-  height: calc(
-    100% - 290px
-  ); /* Account for panel header + org profile + tabs */
+  height: calc(100% - 230px);
   overflow-y: auto;
   position: relative;
   background-color: var(--nownownow-bg-color);
+}
+
+.nownownow-widget-dark .nownownow-widget-content-container {
+  background-color: #0f172a;
 }
 
 .nownownow-widget-posts {
@@ -992,10 +1012,12 @@
   top: 0;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  height: 56px;
+  box-sizing: border-box;
 }
 
 .nownownow-widget-dark .nownownow-panel-header {
-  background-color: rgba(15, 23, 42, 0.95);
+  background-color: rgba(15, 23, 42, 0.98);
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 

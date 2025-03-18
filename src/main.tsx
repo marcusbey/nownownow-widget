@@ -159,22 +159,34 @@ const panelStyles = `
     top: 0;
     bottom: 0;
     width: 100%;
-    background: rgb(15, 23, 42);
+    background: rgb(255, 255, 255);
     transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
     pointer-events: all;
   }
 
+  .nownownow-panel[data-theme="dark"] {
+    background: rgb(15, 23, 42);
+  }
+
   .nownownow-panel[data-position="left"] {
     left: 0;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
     transform: translateX(-100%);
   }
 
   .nownownow-panel[data-position="right"] {
     right: 0;
     left: auto;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 1px solid rgba(0, 0, 0, 0.1);
     transform: translateX(100%);
+  }
+
+  .nownownow-panel[data-theme="dark"][data-position="left"] {
+    border-right-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .nownownow-panel[data-theme="dark"][data-position="right"] {
+    border-left-color: rgba(255, 255, 255, 0.1);
   }
 
   .nownownow-panel.nownownow-open {
@@ -293,6 +305,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     panel.className = "nownownow-panel";
     // Set the panel position attribute
     panel.setAttribute("data-position", config.position || "right");
+    // Set the panel theme attribute
+    panel.setAttribute("data-theme", config.theme || "light");
 
     // Create panel header
     const header = document.createElement("div");

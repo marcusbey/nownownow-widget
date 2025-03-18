@@ -229,25 +229,6 @@ export default function App({ theme = "light", orgId, token }: Props) {
       ref={containerRef}
       className={`nownownow-widget-container ${widgetThemeClass}`}
     >
-      <div className="nownownow-panel-header">
-        <div className="nownownow-panel-title">Now</div>
-        <button
-          className="nownownow-close-button"
-          onClick={() =>
-            window.parent.postMessage({ type: "nownownow-close-panel" }, "*")
-          }
-        >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M18 6L6 18M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
       <OrganizationProfile
         orgInfo={orgInfo}
         theme={theme}
