@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --now-primary-color: #0466c8;
+  --now-primary-hover-color: #0353a4;
+  --now-primary-color-light: rgba(4, 102, 200, 0.1);
+  --now-primary-color-dark: #0466c8;
+  --now-primary-hover-color-dark: #0353a4;
+
+  /* Text Colors */
+  --now-text-color: #111827;
+  --now-secondary-text-color: #374151;
+  --now-time-text-color: #6b7280;
+  --now-tag-color: #0466c8;
+
+  /* Background & Border */
+  --now-bg-color: #ffffff;
+  --now-hover-color: #f7fafc;
+  --now-border-color: #e2e8f0;
+  --now-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  --now-avatar-bg: #e2e8f0;
+
+  /* Typography */
+  --now-font-size-small: 13px;
+  --now-font-size-normal: 14px;
+  --now-line-height: 1.5;
+  --now-border-radius: 8px;
+
+  /* Input styles */
+  --now-input-bg: #ffffff;
+  --now-card-bg: #ffffff;
+
+  /* Status colors */
+  --now-error-bg: #fee2e2;
+  --now-error-text: #b91c1c;
+  --now-success-bg: #dcfce7;
+  --now-success-text: #15803d;
+}
+
+/* Dark theme variables */
+.now-widget-dark {
+  /* Primary Colors */
+  --now-primary-color: #3b82f6;
+  --now-primary-hover-color: #2563eb;
+  --now-primary-color-light: rgba(59, 130, 246, 0.2);
+  --now-primary-color-dark: #3b82f6;
+  --now-primary-hover-color-dark: #2563eb;
+
+  /* Text Colors */
+  --now-text-color: #f3f4f6;
+  --now-secondary-text-color: #e5e7eb;
+  --now-time-text-color: #d1d5db;
+  --now-tag-color: #60a5fa;
+
+  /* Background & Border */
+  --now-bg-color: #0f172a;
+  --now-hover-color: #1e293b;
+  --now-border-color: #334155;
+  --now-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  --now-avatar-bg: #334155;
+
+  /* Input styles */
+  --now-input-bg: #1e293b;
+  --now-card-bg: #1e293b;
+
+  /* Status colors */
+  --now-error-bg: rgba(220, 38, 38, 0.2);
+  --now-error-text: #ef4444;
+  --now-success-bg: rgba(22, 163, 74, 0.2);
+  --now-success-text: #4ade80;
+}
