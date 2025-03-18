@@ -1,9 +1,7 @@
-import { Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import "./App.css";
 import { FeedbackPanel } from "./components/FeedbackPanel";
 import "./components/IntegrationTutorial.css";
-import { OrganizationProfile } from "./components/OrganizationProfile";
 import { PostCard } from "./components/PostCard";
 import { api } from "./services/apiService";
 import "./styles/nowWidgetStyles.css";
@@ -194,19 +192,18 @@ export default function App({ theme = "light", orgId, token }: Props) {
     return undefined; // Explicit return for when scrollArea is null
   }, [activeTab]); // Re-add listener when tab changes
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (isLoading) {
     return (
       <div
-        class={`nownownow-widget-loading-container w-full h-full flex flex-col items-center justify-center ${
-          isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
-        }`}
+        ref={containerRef}
+        className={`nownownow-widget-container ${widgetThemeClass}`}
       >
-        <div
-          class={`nownownow-widget-loading-spinner w-8 h-8 border-2 rounded-full border-t-transparent animate-spin mb-4 ${
-            isDark ? "border-slate-600" : "border-slate-300"
-          }`}
-        ></div>
-        <p class="nownownow-widget-loading-text text-sm">Loading...</p>
+        <div className="nownownow-widget-loading">
+          <div className="nownownow-widget-spinner"></div>
+          <p>Loading content...</p>
+        </div>
       </div>
     );
   }
@@ -214,46 +211,29 @@ export default function App({ theme = "light", orgId, token }: Props) {
   if (error) {
     return (
       <div
-        class={`nownownow-widget-error-container w-full h-full flex flex-col items-center justify-center p-6 ${
-          isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
-        }`}
+        ref={containerRef}
+        className={`nownownow-widget-container ${widgetThemeClass}`}
       >
-        <div
-          class={`nownownow-widget-error-icon mb-4 p-3 rounded-full ${
-            isDark ? "bg-red-900/20" : "bg-red-100"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class={`nownownow-widget-error-svg w-6 h-6 ${
-              isDark ? "text-red-400" : "text-red-500"
-            }`}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
+        <div className="nownownow-widget-error">
+          <h2>Error</h2>
+          <p>{error}</p>
         </div>
-        <p class="nownownow-widget-error-message text-center">{error}</p>
       </div>
     );
   }
 
   return (
-    <div className={widgetThemeClass}>
-      <div className="nownownow-widget-tab-container flex border-b border-slate-200 sticky top-0 z-20 bg-inherit shadow-sm">
+    <div
+      ref={containerRef}
+      className={`nownownow-widget-container ${widgetThemeClass}`}
+    >
+      <div className="nownownow-widget-tab-container flex border-b border-slate-200">
         <button
-          className={`nownownow-widget-tab-button px-4 py-3 text-sm font-medium transition-colors flex-1 ${
+          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
             activeTab === "feed"
               ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500 bg-slate-800/50"
-                : "text-blue-600 border-b-2 border-blue-500 bg-slate-50/50"
+                ? "text-blue-400 border-b-2 border-blue-500"
+                : "text-blue-600 border-b-2 border-blue-500"
               : isDark
               ? "text-slate-400 hover:text-slate-300"
               : "text-slate-500 hover:text-slate-700"
@@ -263,11 +243,11 @@ export default function App({ theme = "light", orgId, token }: Props) {
           Feed
         </button>
         <button
-          className={`nownownow-widget-tab-button px-4 py-3 text-sm font-medium transition-colors flex-1 ${
+          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
             activeTab === "feedback"
               ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500 bg-slate-800/50"
-                : "text-blue-600 border-b-2 border-blue-500 bg-slate-50/50"
+                ? "text-blue-400 border-b-2 border-blue-500"
+                : "text-blue-600 border-b-2 border-blue-500"
               : isDark
               ? "text-slate-400 hover:text-slate-300"
               : "text-slate-500 hover:text-slate-700"
@@ -278,84 +258,70 @@ export default function App({ theme = "light", orgId, token }: Props) {
         </button>
       </div>
 
-      {activeTab === "feed" ? (
-        <Fragment>
-          <OrganizationProfile orgInfo={orgInfo} theme={theme} />
-
-          <div
-            className="nownownow-widget-post-container overflow-auto h-[calc(100vh-160px)] relative"
-            ref={scrollAreaRef}
-          >
-            <div className="nownownow-widget-posts-container px-4 py-3 pt-2">
-              {posts.length > 0 ? (
-                <Fragment>
-                  {posts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      content={post.content}
-                      createdAt={post.createdAt}
-                      comments={post._count?.comments ?? 0}
-                      likes={post._count?.likes ?? 0}
-                      theme={theme}
-                    />
-                  ))}
-
-                  {/* Infinite scroll loader */}
-                  <div
-                    ref={loaderRef}
-                    className="nownownow-widget-loader py-4 flex justify-center"
-                  >
-                    {isLoadingMore && (
-                      <div
-                        className={`nownownow-widget-loader-spinner w-6 h-6 border-2 rounded-full border-t-transparent animate-spin ${
-                          isDark ? "border-slate-600" : "border-slate-300"
-                        }`}
-                      ></div>
-                    )}
-                    {!isLoadingMore && hasMore && (
-                      <div className="nownownow-widget-loader-spacer h-10"></div>
-                    )}
-                    {!hasMore && posts.length > 10 && (
-                      <p className="nownownow-widget-no-more-posts text-xs text-slate-500">
-                        No more updates
-                      </p>
-                    )}
-                  </div>
-                </Fragment>
-              ) : (
-                <p className="nownownow-widget-no-posts text-center py-6 text-sm text-slate-500">
-                  No updates yet
-                </p>
-              )}
-            </div>
-          </div>
-
-          {showScrollTop && (
-            <button
-              onClick={scrollToTop}
-              class={`nownownow-widget-scroll-top absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
-                isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
-              }`}
-              aria-label="Scroll to top"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-3 h-3"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+      <div className="nownownow-widget-content-container">
+        {activeTab === "feed" && (
+          <div className="nownownow-widget-posts">
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  content={post.content}
+                  createdAt={post.createdAt}
+                  likes={post._count?.likes ?? 0}
+                  comments={post._count?.comments ?? 0}
+                  theme={theme}
+                />
+              ))
+            ) : (
+              <div className="nownownow-widget-no-posts">
+                <p>No posts available.</p>
+              </div>
+            )}
+            {isLoadingMore && (
+              <div className="nownownow-widget-loading-more">
+                <div className="nownownow-widget-spinner"></div>
+                <p>Loading more posts...</p>
+              </div>
+            )}
+            {hasMore && !isLoadingMore && (
+              <button
+                className="nownownow-widget-load-more"
+                onClick={loadMore}
+                disabled={isLoadingMore}
               >
-                <path d="M12 19V5M5 12l7-7 7 7" />
-              </svg>
-            </button>
-          )}
-        </Fragment>
-      ) : (
-        <FeedbackPanel theme={theme} orgId={orgId} token={token} />
+                Load More
+              </button>
+            )}
+          </div>
+        )}
+
+        {activeTab === "feedback" && (
+          <FeedbackPanel orgId={orgId} token={token} theme={theme} />
+        )}
+      </div>
+
+      {showScrollTop && (
+        <button
+          onClick={scrollToTop}
+          class={`nownownow-widget-scroll-top absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
+            isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
+          }`}
+          aria-label="Scroll to top"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-3 h-3"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
       )}
     </div>
   );

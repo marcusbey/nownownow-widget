@@ -1,6 +1,7 @@
 import { FunctionComponent } from "preact";
 
 type Theme = "light" | "dark";
+type ActiveTab = "feed" | "feedback";
 
 interface OrgInfo {
   id: string;
@@ -17,6 +18,8 @@ interface OrgInfo {
 interface OrganizationProfileProps {
   orgInfo: OrgInfo | null;
   theme?: Theme;
+  activeTab?: ActiveTab;
+  onTabChange?: (tab: ActiveTab) => void;
 }
 
 // No longer needed as we're using initials from the name split
@@ -35,7 +38,7 @@ const DEFAULT_BANNERS = [
 
 export const OrganizationProfile: FunctionComponent<
   OrganizationProfileProps
-> = ({ orgInfo, theme = "light" }) => {
+> = ({ orgInfo, theme = "light", activeTab = "feed", onTabChange }) => {
   if (!orgInfo) return null;
 
   const isDark = theme === "dark";
@@ -60,6 +63,12 @@ export const OrganizationProfile: FunctionComponent<
   // Format website URL for display
   const formatWebsiteUrl = (url: string): string => {
     return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  };
+
+  const handleTabChange = (tab: ActiveTab) => {
+    if (onTabChange) {
+      onTabChange(tab);
+    }
   };
 
   return (
@@ -132,6 +141,51 @@ export const OrganizationProfile: FunctionComponent<
               </div>
             )}
           </div>
+        </div>
+      </div>
+      <div className="nownownow-widget-tab-nav">
+        <div
+          className={`nownownow-widget-tab ${
+            activeTab === "feed" ? "active" : ""
+          }`}
+          onClick={() => handleTabChange("feed")}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          Feed
+        </div>
+        <div
+          className={`nownownow-widget-tab ${
+            activeTab === "feedback" ? "active" : ""
+          }`}
+          onClick={() => handleTabChange("feedback")}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Feedback
         </div>
       </div>
     </div>

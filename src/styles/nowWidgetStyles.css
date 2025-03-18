@@ -184,53 +184,18 @@
 /* Organization Profile Styles */
 .nownownow-widget-org-profile {
   padding: 0;
-  border-bottom: 1px solid var(--nownownow-border-color);
   background-color: var(--nownownow-bg-color);
   position: sticky;
-  top: 44px; /* Match tab container height */
-  z-index: 10;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: visible;
   margin-bottom: 16px;
-}
-
-/* Add styles for the tab container */
-.nownownow-widget-tab-container {
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--nownownow-border-color);
-  height: 44px; /* Fixed height for consistent spacing */
-  display: flex;
-  align-items: stretch;
-}
-
-.nownownow-widget-dark .nownownow-widget-tab-container {
-  background-color: rgba(15, 23, 42, 0.92);
-}
-
-.nownownow-widget-tab-container:not(.nownownow-widget-dark) {
-  background-color: rgba(255, 255, 255, 0.92);
-}
-
-.nownownow-widget-tab-button {
-  position: relative;
-  transition: all 0.2s ease;
-  user-select: none;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-}
-
-.nownownow-widget-tab-button:hover {
-  background-color: rgba(0, 0, 0, 0.03);
-}
-
-.nownownow-widget-dark .nownownow-widget-tab-button:hover {
-  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .nownownow-widget-org-banner {
   width: 100%;
-  height: 120px;
+  height: 140px;
   background-color: var(--nownownow-primary-color-light);
   background-size: cover;
   background-position: center;
@@ -267,12 +232,26 @@
   padding: 0 16px;
   margin-top: -40px;
   position: relative;
-  padding-bottom: 16px;
+  padding-bottom: 20px;
+  background-color: var(--nownownow-bg-color);
+}
+
+/* Add glassy background effect for the sticky header */
+.nownownow-widget-org-header::before {
+  content: "";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(to top, var(--nownownow-bg-color), transparent);
+  z-index: -1;
+  pointer-events: none;
 }
 
 .nownownow-widget-org-avatar {
-  width: 72px;
-  height: 72px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   background-color: var(--nownownow-avatar-bg);
   overflow: hidden;
@@ -282,9 +261,10 @@
   justify-content: center;
   font-weight: bold;
   color: var(--nownownow-text-color);
-  font-size: 28px;
+  font-size: 32px;
   border: 4px solid var(--nownownow-bg-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1;
 }
 
 .nownownow-widget-org-avatar img {
@@ -298,19 +278,19 @@
   padding: 0 0 4px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .nownownow-widget-org-name {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--nownownow-text-color);
   margin: 0;
   line-height: 1.2;
 }
 
 .nownownow-widget-org-bio {
-  font-size: var(--nownownow-font-size-small);
+  font-size: 14px;
   color: var(--nownownow-secondary-text-color);
   margin: 0;
   line-height: 1.4;
@@ -322,7 +302,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .nownownow-widget-org-website {
@@ -354,6 +334,48 @@
 .nownownow-widget-org-followers svg {
   width: 14px;
   height: 14px;
+}
+
+/* Tab Navigation Styles */
+.nownownow-widget-tab-nav {
+  display: flex;
+  background-color: var(--nownownow-bg-color);
+  border-bottom: 1px solid var(--nownownow-border-color);
+  padding: 0 16px;
+  position: relative;
+  z-index: 10;
+}
+
+.nownownow-widget-tab {
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--nownownow-secondary-text-color);
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nownownow-widget-tab.active {
+  color: var(--nownownow-primary-color);
+  border-bottom-color: var(--nownownow-primary-color);
+}
+
+.nownownow-widget-tab:hover:not(.active) {
+  color: var(--nownownow-text-color);
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.nownownow-widget-dark .nownownow-widget-tab:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nownownow-widget-tab svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Modal styles */
@@ -878,27 +900,79 @@
   }
 }
 
-/* Update the post container for better scroll behavior */
-.nownownow-widget-post-container {
+/* Content Container Styles */
+.nownownow-widget-content-container {
+  height: calc(100% - 240px); /* Account for the profile header and tabs */
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--nownownow-secondary-text-color) transparent;
+  position: relative;
+  background-color: var(--nownownow-bg-color);
 }
 
-.nownownow-widget-post-container::-webkit-scrollbar {
-  width: 6px;
+.nownownow-widget-posts {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.nownownow-widget-post-container::-webkit-scrollbar-track {
-  background: transparent;
+.nownownow-widget-loading-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  gap: 8px;
 }
 
-.nownownow-widget-post-container::-webkit-scrollbar-thumb {
-  background-color: var(--nownownow-secondary-text-color);
-  border-radius: 3px;
+.nownownow-widget-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--nownownow-border-color);
+  border-top-color: var(--nownownow-primary-color);
+  border-radius: 50%;
+  animation: nownownow-spin 0.8s linear infinite;
 }
 
-.nownownow-widget-dark
-  .nownownow-widget-post-container::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.2);
+.nownownow-widget-load-more {
+  padding: 10px 16px;
+  background-color: var(--nownownow-bg-secondary);
+  color: var(--nownownow-primary-color);
+  border: 1px solid var(--nownownow-primary-color);
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 auto;
+  display: block;
+}
+
+.nownownow-widget-load-more:hover {
+  background-color: var(--nownownow-primary-color-light);
+}
+
+.nownownow-widget-no-posts {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--nownownow-secondary-text-color);
+}
+
+.nownownow-widget-loading,
+.nownownow-widget-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  gap: 16px;
+}
+
+.nownownow-widget-error h2 {
+  color: var(--nownownow-error-color);
+  margin: 0;
+}
+
+@keyframes nownownow-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
