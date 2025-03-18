@@ -1,6 +1,6 @@
-import { defineConfig, Plugin } from 'vite';
 import preact from '@preact/preset-vite';
 import { resolve } from 'path';
+import { defineConfig, Plugin } from 'vite';
 
 // Custom plugin to ensure CSS is inlined into JS
 function inlineStylesPlugin(): Plugin {
@@ -11,17 +11,17 @@ function inlineStylesPlugin(): Plugin {
     generateBundle(_, bundle) {
       // Find CSS chunks
       const cssChunks = Object.keys(bundle).filter(key => key.endsWith('.css'));
-      
+
       // Find the main JS chunk
       const jsChunk = Object.keys(bundle).find(key => key === 'now-widget.js');
-      
+
       if (jsChunk && cssChunks.length > 0) {
         const js = bundle[jsChunk];
-        
+
         if (js.type === 'chunk') {
           // Collect all CSS content
           let allCssContent = '';
-          
+
           // For each CSS chunk, collect its content
           cssChunks.forEach(cssChunk => {
             const css = bundle[cssChunk];
@@ -31,22 +31,35 @@ function inlineStylesPlugin(): Plugin {
               delete bundle[cssChunk];
             }
           });
-          
+
           // Add code to inject the CSS into the document when the JS runs
           const injectionCode = `
 // Inline styles injection
 (function() {
   try {
-    const style = document.createElement('style');
-    style.textContent = ${JSON.stringify(allCssContent)};
-    document.head.appendChild(style);
-    console.log('Now Widget - CSS styles injected successfully');
+    // Create a stylesheet for the document (for global styles)
+    const docStyle = document.createElement('style');
+    docStyle.textContent = ${JSON.stringify(allCssContent)};
+    document.head.appendChild(docStyle);
+    
+    // Store CSS for shadow DOM injection
+    window.__NOW_WIDGET_STYLES__ = ${JSON.stringify(allCssContent)};
+    
+    // Create a function to inject styles into shadow roots
+    window.__injectNowWidgetStyles = function(shadowRoot) {
+      if (!shadowRoot) return;
+      const style = document.createElement('style');
+      style.textContent = window.__NOW_WIDGET_STYLES__;
+      shadowRoot.appendChild(style);
+    };
+    
+    console.log('Now Widget - CSS styles prepared successfully');
   } catch (err) {
-    console.error('Failed to inject CSS:', err);
+    console.error('Failed to prepare CSS:', err);
   }
 })();
 `;
-          
+
           // Prepend the CSS injection code to the JS
           js.code = injectionCode + js.code;
         }
@@ -55,8 +68,27 @@ function inlineStylesPlugin(): Plugin {
   };
 }
 
+// Plugin to replace build timestamp placeholder
+function buildTimestampPlugin(): Plugin {
+  return {
+    name: 'build-timestamp-plugin',
+    transform(code) {
+      // Replace the placeholder with the current timestamp
+      if (code.includes('__BUILD_TIMESTAMP__')) {
+        const timestamp = new Date().toISOString();
+        const result = code.replace('__BUILD_TIMESTAMP__', timestamp);
+        return {
+          code: result,
+          map: null // Explicitly return null map to avoid sourcemap warnings
+        };
+      }
+      return null; // Return null for files that don't need transformation
+    }
+  };
+}
+
 export default defineConfig({
-  plugins: [preact(), inlineStylesPlugin()],
+  plugins: [preact(), inlineStylesPlugin(), buildTimestampPlugin()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),

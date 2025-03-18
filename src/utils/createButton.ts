@@ -1,4 +1,5 @@
 import { ButtonConfig, defaultButtonConfig } from '@/types';
+import { injectWidgetStyles } from './styleUtils';
 
 interface ButtonInstance {
   element: HTMLElement;
@@ -11,7 +12,7 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
 
   const container = document.createElement('div');
   container.id = 'now-widget-button-container';
-  
+
   Object.assign(container.style, {
     position: 'fixed',
     bottom: '20px',
@@ -23,6 +24,9 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
   });
 
   const shadow = container.attachShadow({ mode: 'open' });
+
+  // Inject shared widget styles first
+  injectWidgetStyles(shadow);
 
   const style = document.createElement('style');
   style.textContent = `
@@ -80,11 +84,11 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
   const button = document.createElement('button');
   button.className = 'now-widget-button';
   button.setAttribute('aria-label', 'Open Now Panel');
-  
+
   const text = document.createElement('div');
   text.className = 'rotating-text';
   text.textContent = 'now . '.repeat(3);
-  
+
   button.appendChild(text);
   shadow.appendChild(button);
 

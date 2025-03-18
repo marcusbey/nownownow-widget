@@ -1,56 +1,92 @@
-import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
-import { OrganizationProfile } from './components/OrganizationProfile';
-import { PostCard } from './components/PostCard';
-import { IntegrationTutorial } from './components/IntegrationTutorial';
-import { api } from './services/apiService';
-import { type WidgetOrgInfo, type WidgetPost, API_ENDPOINTS } from './types/api';
-import './components/IntegrationTutorial.css';
+import { Fragment } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { FeedbackPanel } from "./components/FeedbackPanel";
+import "./components/IntegrationTutorial.css";
+import { OrganizationProfile } from "./components/OrganizationProfile";
+import { PostCard } from "./components/PostCard";
+import { api } from "./services/apiService";
+import { type WidgetOrgInfo, type WidgetPost } from "./types/api";
 
 interface Props {
-  theme?: 'light' | 'dark';
+  theme?: "light" | "dark";
   orgId: string;
   token: string;
 }
 
-export default function App({ theme = 'light', orgId, token }: Props) {
+export default function App({ theme = "light", orgId, token }: Props) {
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
+  const [userData, setUserData] = useState<any>(null);
   const [posts, setPosts] = useState<WidgetPost[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'feed' | 'integration'>('feed');
+  const [activeTab, setActiveTab] = useState<"feed" | "feedback">("feed");
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
         const [userResponse, postsResponse] = await Promise.all([
           api.getOrgInfo(token, orgId),
-          api.getOrgPosts(token, orgId)
+          api.getOrgPosts(token, orgId),
         ]);
 
+        // Log the API responses for debugging
+        console.log("Organization Info API Response:", userResponse);
+        console.log("Posts API Response:", postsResponse);
+
         if (!userResponse.success) {
-          throw new Error(userResponse.error || 'Failed to fetch user info');
+          throw new Error(userResponse.error || "Failed to fetch user info");
         }
 
         if (!postsResponse.success) {
-          throw new Error(postsResponse.error || 'Failed to fetch posts');
+          throw new Error(postsResponse.error || "Failed to fetch posts");
         }
 
         // Extract organization info from the response
         if (userResponse.data) {
           setOrgInfo(userResponse.data.organization);
+          setUserData(userResponse.data); // Store the full response
         }
-        
+
         // Extract posts from the response
-        if (postsResponse.data && postsResponse.data.posts) {
-          setPosts(postsResponse.data.posts);
+        if (postsResponse.data) {
+          console.log("Posts API Response Details:", {
+            postsCount: postsResponse.data.posts?.length || 0,
+            firstPost:
+              postsResponse.data.posts?.length > 0
+                ? {
+                    id: postsResponse.data.posts[0].id,
+                    content:
+                      postsResponse.data.posts[0].content.substring(0, 50) +
+                      "...", // Truncate for readability
+                    authorInfo: {
+                      user: postsResponse.data.posts[0].user,
+                      author: postsResponse.data.posts[0].author,
+                      userId: postsResponse.data.posts[0].userId,
+                    },
+                    hasMedia: !!postsResponse.data.posts[0].media?.length,
+                    hasAttachments:
+                      !!postsResponse.data.posts[0].attachments?.length,
+                  }
+                : null,
+            nextCursor: postsResponse.data.nextCursor,
+            hasMore: postsResponse.data.hasMore,
+          });
+
+          setPosts(postsResponse.data.posts || []);
+          setNextCursor(postsResponse.data.nextCursor);
+          setHasMore(postsResponse.data.hasMore || false);
         } else {
           setPosts([]);
+          setHasMore(false);
         }
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to load user data';
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load user data";
         setError(errorMessage);
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
       } finally {
         setIsLoading(false);
       }
@@ -59,35 +95,78 @@ export default function App({ theme = 'light', orgId, token }: Props) {
     fetchData();
   }, [orgId, token]);
 
-  // Reference for scroll area
-  const scrollAreaRef = { current: null as HTMLDivElement | null };
+  // Reference for scroll area and loader using useRef
+  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const loaderRef = useRef<HTMLDivElement | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  
-  const isDark = theme === 'dark';
 
-  if (isLoading) {
-    return (
-      <div class={`w-full h-full flex flex-col items-center justify-center ${isDark ? 'bg-slate-900 text-slate-200' : 'bg-slate-50 text-slate-700'}`}>
-        <div class={`w-8 h-8 border-2 rounded-full border-t-transparent animate-spin mb-4 ${isDark ? 'border-slate-600' : 'border-slate-300'}`}></div>
-        <p class="text-sm">Loading...</p>
-      </div>
-    );
-  }
+  const isDark = theme === "dark";
 
-  if (error) {
-    return (
-      <div class={`w-full h-full flex flex-col items-center justify-center p-6 ${isDark ? 'bg-slate-900 text-slate-200' : 'bg-slate-50 text-slate-700'}`}>
-        <div class={`mb-4 p-3 rounded-full ${isDark ? 'bg-red-900/20' : 'bg-red-100'}`}>
-          <svg xmlns="http://www.w3.org/2000/svg" class={`w-6 h-6 ${isDark ? 'text-red-400' : 'text-red-500'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="8" x2="12" y2="12"></line>
-            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-          </svg>
-        </div>
-        <p class="text-center">{error}</p>
-      </div>
+  // Set up intersection observer for infinite scrolling
+  useEffect(() => {
+    const loaderElement = loaderRef.current;
+    if (!loaderElement || activeTab !== "feed") return;
+
+    const loadMore = async (): Promise<void> => {
+      if (!hasMore || isLoadingMore) return;
+
+      try {
+        setIsLoadingMore(true);
+        const response = await api.getOrgPosts(token, orgId, nextCursor);
+        console.log("Loading more posts - API Response:", response);
+
+        if (response.success && response.data) {
+          const newPosts = response.data.posts || [];
+
+          // Log detailed information about the newly loaded posts
+          console.log("Loading more posts - Detailed Response:", {
+            newPostsCount: newPosts.length,
+            firstNewPost:
+              newPosts.length > 0
+                ? {
+                    id: newPosts[0].id,
+                    content: newPosts[0].content.substring(0, 50) + "...",
+                    authorInfo: {
+                      user: newPosts[0].user,
+                      author: newPosts[0].author,
+                      userId: newPosts[0].userId,
+                    },
+                  }
+                : null,
+            nextCursor: response.data.nextCursor,
+            hasMore: response.data.hasMore,
+          });
+
+          setPosts((prev) => [...prev, ...newPosts]);
+          setNextCursor(response.data.nextCursor);
+          setHasMore(
+            response.data.hasMore !== undefined
+              ? Boolean(response.data.hasMore)
+              : false
+          );
+        }
+      } catch (err) {
+        console.error("Error loading more posts:", err);
+      } finally {
+        setIsLoadingMore(false);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
+          void loadMore();
+        }
+      },
+      { threshold: 0.1 }
     );
-  }
+
+    observer.observe(loaderElement);
+
+    return () => {
+      observer.unobserve(loaderElement);
+    };
+  }, [hasMore, isLoadingMore, nextCursor, activeTab, token, orgId]);
 
   // Handle scroll event to show/hide scroll to top button
   const handleScroll = (e: Event) => {
@@ -98,7 +177,7 @@ export default function App({ theme = 'light', orgId, token }: Props) {
   // Scroll to top function
   const scrollToTop = () => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollAreaRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -106,53 +185,136 @@ export default function App({ theme = 'light', orgId, token }: Props) {
   useEffect(() => {
     const scrollArea = scrollAreaRef.current;
     if (scrollArea) {
-      scrollArea.addEventListener('scroll', handleScroll);
-      return () => scrollArea.removeEventListener('scroll', handleScroll);
+      scrollArea.addEventListener("scroll", handleScroll);
+      return () => scrollArea.removeEventListener("scroll", handleScroll);
     }
     return undefined; // Explicit return for when scrollArea is null
   }, [activeTab]); // Re-add listener when tab changes
 
+  if (isLoading) {
+    return (
+      <div
+        class={`w-full h-full flex flex-col items-center justify-center ${
+          isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
+        }`}
+      >
+        <div
+          class={`w-8 h-8 border-2 rounded-full border-t-transparent animate-spin mb-4 ${
+            isDark ? "border-slate-600" : "border-slate-300"
+          }`}
+        ></div>
+        <p class="text-sm">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        class={`w-full h-full flex flex-col items-center justify-center p-6 ${
+          isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
+        }`}
+      >
+        <div
+          class={`mb-4 p-3 rounded-full ${
+            isDark ? "bg-red-900/20" : "bg-red-100"
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`w-6 h-6 ${isDark ? "text-red-400" : "text-red-500"}`}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <p class="text-center">{error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className={`w-full h-full relative ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+    <div
+      className={`w-full h-full relative ${
+        isDark ? "bg-slate-900" : "bg-white"
+      }`}
+    >
       <div className="flex border-b border-slate-200">
-        <button 
-          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'feed' 
-            ? 'text-slate-900 border-b-2 border-slate-800' 
-            : 'text-slate-500 hover:text-slate-700'}`}
-          onClick={() => setActiveTab('feed')}
+        <button
+          className={`px-4 py-2 text-xs font-medium transition-colors ${
+            activeTab === "feed"
+              ? isDark
+                ? "text-blue-400 border-b-2 border-blue-500"
+                : "text-blue-600 border-b-2 border-blue-500"
+              : isDark
+              ? "text-slate-400 hover:text-slate-300"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+          onClick={() => setActiveTab("feed")}
         >
           Feed
         </button>
-        <button 
-          className={`px-4 py-2 text-xs font-medium transition-colors ${activeTab === 'integration' 
-            ? 'text-slate-900 border-b-2 border-slate-800' 
-            : 'text-slate-500 hover:text-slate-700'}`}
-          onClick={() => setActiveTab('integration')}
+        <button
+          className={`px-4 py-2 text-xs font-medium transition-colors ${
+            activeTab === "feedback"
+              ? isDark
+                ? "text-blue-400 border-b-2 border-blue-500"
+                : "text-blue-600 border-b-2 border-blue-500"
+              : isDark
+              ? "text-slate-400 hover:text-slate-300"
+              : "text-slate-500 hover:text-slate-700"
+          }`}
+          onClick={() => setActiveTab("feedback")}
         >
-          Integration
+          Feedback
         </button>
       </div>
-      
-      {activeTab === 'feed' ? (
-        <>
+
+      {activeTab === "feed" ? (
+        <Fragment>
           <OrganizationProfile orgInfo={orgInfo} theme={theme} />
-          
-          <div 
+
+          <div
             className="overflow-auto h-[calc(100%-90px)]"
-            ref={(el) => { scrollAreaRef.current = el; }}
+            ref={scrollAreaRef}
           >
             <div className="px-4 py-3">
               {posts.length > 0 ? (
-                posts.map(post => (
-                  <PostCard
-                    key={post.id}
-                    content={post.content}
-                    createdAt={post.createdAt}
-                    comments={post._count?.comments ?? 0}
-                    likes={post._count?.likes ?? 0}
-                    theme={theme}
-                  />
-                ))
+                <Fragment>
+                  {posts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      content={post.content}
+                      createdAt={post.createdAt}
+                      comments={post._count?.comments ?? 0}
+                      likes={post._count?.likes ?? 0}
+                      theme={theme}
+                    />
+                  ))}
+
+                  {/* Infinite scroll loader */}
+                  <div ref={loaderRef} className="py-4 flex justify-center">
+                    {isLoadingMore && (
+                      <div
+                        className={`w-6 h-6 border-2 rounded-full border-t-transparent animate-spin ${
+                          isDark ? "border-slate-600" : "border-slate-300"
+                        }`}
+                      ></div>
+                    )}
+                    {!isLoadingMore && hasMore && <div className="h-10"></div>}
+                    {!hasMore && posts.length > 10 && (
+                      <p className="text-xs text-slate-500">No more updates</p>
+                    )}
+                  </div>
+                </Fragment>
               ) : (
                 <p className="text-center py-6 text-sm text-slate-500">
                   No updates yet
@@ -160,25 +322,32 @@ export default function App({ theme = 'light', orgId, token }: Props) {
               )}
             </div>
           </div>
-          
+
           {showScrollTop && (
             <button
               onClick={scrollToTop}
-              class={`absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${isDark ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'}`}
+              class={`absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
+                isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
+              }`}
               aria-label="Scroll to top"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 19V5M5 12l7-7 7 7"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-3 h-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 19V5M5 12l7-7 7 7" />
               </svg>
             </button>
           )}
-        </>
+        </Fragment>
       ) : (
-        <IntegrationTutorial 
-          theme={theme} 
-          orgId={orgId} 
-          token={token} 
-        />
+        <FeedbackPanel theme={theme} orgId={orgId} token={token} />
       )}
     </div>
   );

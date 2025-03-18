@@ -1,25 +1,44 @@
-import { h, render } from 'preact';
-import { signal } from '@preact/signals';
-import type { WidgetInstance, WidgetConfig, WidgetStateData, WidgetPosition } from './types/widget';
-import { SpinningButton } from './components/SpinningButton';
-import App from './App';
-import { apiStore as importedApiStore } from './config/api';
-import './index.css';
+import { signal } from "@preact/signals";
+import { h, render } from "preact";
+import App from "./App";
+import { SpinningButton } from "./components/SpinningButton";
+import { apiStore as importedApiStore } from "./config/api";
+import "./index.css";
+import "./styles/nowWidgetStyles.css";
+import type {
+  WidgetConfig,
+  WidgetInstance,
+  WidgetPosition,
+  WidgetStateData,
+} from "./types/widget";
+import { injectWidgetStyles } from "./utils/styleUtils";
 
-// Log timestamp for testing purposes in Montreal timezone
-const montrealTime = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'America/Montreal',
-  year: 'numeric',
-  month: 'short',
-  day: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  hour12: false
-}).format(new Date());
+// Log build timestamp for tracking purposes
+const BUILD_TIMESTAMP = "__BUILD_TIMESTAMP__"; // This will be replaced during build
 
-console.log(`Now Widget - Last update at: ${montrealTime} (Montreal time)`);
+const formatBuildTime = (timestamp: string): string => {
+  try {
+    const date = new Date(timestamp);
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Montreal",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(date);
+  } catch (e) {
+    return timestamp;
+  }
+};
 
+console.log(
+  `Now Widget - Build timestamp: ${formatBuildTime(
+    BUILD_TIMESTAMP
+  )} (Montreal time)`
+);
 
 // Use a safe reference to the API store with fallback
 let apiStore: any;
@@ -27,35 +46,35 @@ try {
   // Use the imported apiStore
   apiStore = importedApiStore;
 } catch (error) {
-  console.error('Failed to load API configuration:', error);
+  console.error("Failed to load API configuration:", error);
   // Provide a fallback configuration
   apiStore = {
-    baseUrl: 'http://localhost:3000',
+    baseUrl: "http://localhost:3000",
     config: {
-      VERSION: '/api/v1',
+      VERSION: "/api/v1",
       ENDPOINTS: {
         WIDGET: {
-          ORG_INFO: '/widget/org-info',
-          ORG_POSTS: '/widget/org-posts'
-        }
-      }
-    }
+          ORG_INFO: "/widget/org-info",
+          ORG_POSTS: "/widget/org-posts",
+        },
+      },
+    },
   };
 }
 
 // Define custom event types
 interface NowWidgetEvents {
-  nowWidgetInitialized: CustomEvent<{ success: boolean }>
+  nowWidgetInitialized: CustomEvent<{ success: boolean }>;
 }
 
 declare global {
   interface WindowEventMap extends NowWidgetEvents {}
 }
 
-const isNowWidgetScript = (script: HTMLScriptElement): boolean => 
-  script.src.includes('now-widget.js') && 
-  script.hasAttribute('data-org-id') && 
-  script.hasAttribute('data-token');
+const isNowWidgetScript = (script: HTMLScriptElement): boolean =>
+  script.src.includes("now-widget.js") &&
+  script.hasAttribute("data-org-id") &&
+  script.hasAttribute("data-token");
 
 const getCurrentScript = (): HTMLScriptElement => {
   const currentScript = document.currentScript as HTMLScriptElement;
@@ -63,37 +82,45 @@ const getCurrentScript = (): HTMLScriptElement => {
     return currentScript;
   }
 
-  const scripts = Array.from(document.getElementsByTagName('script'));
+  const scripts = Array.from(document.getElementsByTagName("script"));
   const widgetScript = scripts.find(isNowWidgetScript);
 
   if (!widgetScript) {
-    throw new Error('Now Widget: Script element not found. Make sure to include data-org-id and data-token attributes.');
+    throw new Error(
+      "Now Widget: Script element not found. Make sure to include data-org-id and data-token attributes."
+    );
   }
 
   return widgetScript;
 };
 
 const parseButtonSize = (value: string | null): number => {
-  const size = parseInt(value || '60', 10);
+  const size = parseInt(value || "60", 10);
   return isNaN(size) ? 60 : Math.max(40, Math.min(size, 120));
 };
 
 const getScriptConfig = (): WidgetConfig => {
   const currentScript = getCurrentScript();
-  const orgId = currentScript.getAttribute('data-org-id');
-  const token = currentScript.getAttribute('data-token');
+  const orgId = currentScript.getAttribute("data-org-id");
+  const token = currentScript.getAttribute("data-token");
 
   if (!orgId || !token) {
-    throw new Error('Now Widget: Missing required configuration (orgId and token). Make sure to include both data-org-id and data-token attributes.');
+    throw new Error(
+      "Now Widget: Missing required configuration (orgId and token). Make sure to include both data-org-id and data-token attributes."
+    );
   }
 
   return {
     orgId,
     token,
-    theme: (currentScript.getAttribute('data-theme') || 'light') as 'light' | 'dark',
-    position: (currentScript.getAttribute('data-position') || 'left') as 'right' | 'left',
-    buttonColor: currentScript.getAttribute('data-button-color') || '#000000',
-    buttonSize: parseButtonSize(currentScript.getAttribute('data-button-size')),
+    theme: (currentScript.getAttribute("data-theme") || "light") as
+      | "light"
+      | "dark",
+    position: (currentScript.getAttribute("data-position") || "left") as
+      | "right"
+      | "left",
+    buttonColor: currentScript.getAttribute("data-button-color") || "#000000",
+    buttonSize: parseButtonSize(currentScript.getAttribute("data-button-size")),
   };
 };
 
@@ -208,22 +235,22 @@ const containerStyles = `
 const mount = (config: WidgetConfig): WidgetInstance => {
   try {
     // Log when widget is mounted in Montreal timezone
-    const mountTime = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Montreal',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
+    const mountTime = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Montreal",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
     }).format(new Date());
-    
+
     console.log(`Now Widget - Mounted at: ${mountTime} (Montreal time)`);
 
     // Create a container for our widget elements
-    const widgetContainer = document.createElement('div');
-    widgetContainer.id = 'now-widget-container';
+    const widgetContainer = document.createElement("div");
+    widgetContainer.id = "now-widget-container";
     widgetContainer.style.cssText = `
       position: fixed;
       top: 0;
@@ -235,61 +262,68 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     `;
 
     // Create panel container with shadow DOM
-    const panelContainer = document.createElement('div');
-    panelContainer.id = 'now-widget-panel';
-    const panelShadow = panelContainer.attachShadow({ mode: 'closed' });
+    const panelContainer = document.createElement("div");
+    panelContainer.id = "now-widget-panel";
+    const panelShadow = panelContainer.attachShadow({ mode: "closed" });
 
-    const panelStyle = document.createElement('style');
+    // Inject shared widget styles
+    injectWidgetStyles(panelShadow);
+
+    const panelStyle = document.createElement("style");
     panelStyle.textContent = panelStyles;
     panelShadow.appendChild(panelStyle);
 
     // Create overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'overlay';
+    const overlay = document.createElement("div");
+    overlay.className = "overlay";
     panelShadow.appendChild(overlay);
 
     // Create panel
-    const panel = document.createElement('div');
-    panel.className = 'panel';
-    
+    const panel = document.createElement("div");
+    panel.className = "panel";
+
     // Create panel header
-    const header = document.createElement('div');
-    header.className = 'panel-header';
-    
-    const title = document.createElement('span');
-    title.className = 'panel-title';
-    title.textContent = 'Latest Updates';
-    
-    const closeButton = document.createElement('button');
-    closeButton.className = 'close-button';
-    closeButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-    closeButton.setAttribute('aria-label', 'Close panel');
-    
+    const header = document.createElement("div");
+    header.className = "panel-header";
+
+    const title = document.createElement("span");
+    title.className = "panel-title";
+    title.textContent = "Latest Updates";
+
+    const closeButton = document.createElement("button");
+    closeButton.className = "close-button";
+    closeButton.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+    closeButton.setAttribute("aria-label", "Close panel");
+
     header.appendChild(title);
     header.appendChild(closeButton);
     panel.appendChild(header);
 
     // Create panel content
-    const content = document.createElement('div');
-    content.className = 'panel-content';
+    const content = document.createElement("div");
+    content.className = "panel-content";
     panel.appendChild(content);
 
     panelShadow.appendChild(panel);
 
     // Create button container with shadow DOM
-    const buttonContainer = document.createElement('div');
-    buttonContainer.id = 'now-widget-button-container';
-    const buttonShadow = buttonContainer.attachShadow({ mode: 'closed' });
+    const buttonContainer = document.createElement("div");
+    buttonContainer.id = "now-widget-button-container";
+    const buttonShadow = buttonContainer.attachShadow({ mode: "closed" });
 
-    const buttonStyle = document.createElement('style');
+    // Inject shared widget styles
+    injectWidgetStyles(buttonShadow);
+
+    const buttonStyle = document.createElement("style");
     buttonStyle.textContent = containerStyles;
     buttonShadow.appendChild(buttonStyle);
 
-    const buttonWrapper = document.createElement('div');
+    const buttonWrapper = document.createElement("div");
     buttonShadow.appendChild(buttonWrapper);
 
     // Create style tag for the main document
-    const mainStyle = document.createElement('style');
+    const mainStyle = document.createElement("style");
     mainStyle.textContent = `
       html.now-widget-open,
       html.now-widget-open body {
@@ -337,23 +371,23 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       widgetContainer.appendChild(buttonContainer);
     };
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
     } else {
       init();
     }
 
     // Create state for panel
     let isOpen = false;
-    
+
     // Check if we're on homepage - exclude auth and other paths
     const isHomePage = () => {
       // Get the current path and remove trailing slash if present
-      const path = window.location.pathname.replace(/\/$/, '');
-      
+      const path = window.location.pathname.replace(/\/$/, "");
+
       // Only consider exact root path or index.html as homepage
       // This ensures paths like /organization, /profile, etc. don't show the button
-      return path === '' || path === '/' || path === '/index.html';
+      return path === "" || path === "/" || path === "/index.html";
     };
 
     let isButtonVisible = isHomePage();
@@ -362,9 +396,9 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Define toggle panel function early
     const togglePanel = (forceClose = false) => {
       isOpen = forceClose ? false : !isOpen;
-      panel.classList.toggle('open', isOpen);
-      overlay.classList.toggle('open', isOpen);
-      document.documentElement.classList.toggle('now-widget-open', isOpen);
+      panel.classList.toggle("open", isOpen);
+      overlay.classList.toggle("open", isOpen);
+      document.documentElement.classList.toggle("now-widget-open", isOpen);
       renderButton();
     };
 
@@ -373,8 +407,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       render(
         h(SpinningButton, {
           size: String(config.buttonSize || 48),
-          color: config.buttonColor || '#f59e0b',
-          position: (config.position || 'right') as WidgetPosition,
+          color: config.buttonColor || "#f59e0b",
+          position: (config.position || "right") as WidgetPosition,
           onClick: () => togglePanel(),
           isOpen,
           isVisible: isButtonVisible,
@@ -389,16 +423,16 @@ const mount = (config: WidgetConfig): WidgetInstance => {
         const currentScrollY = window.scrollY;
         const viewportHeight = window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
-        
+
         // Show button if:
         // 1. User is near the top (within threshold)
         // 2. User is near the bottom of the page
         // 3. Page is shorter than threshold
-        const shouldShow = 
+        const shouldShow =
           currentScrollY <= SCROLL_THRESHOLD ||
-          (documentHeight - (currentScrollY + viewportHeight)) < 100 ||
+          documentHeight - (currentScrollY + viewportHeight) < 100 ||
           documentHeight <= SCROLL_THRESHOLD;
-        
+
         if (shouldShow !== isButtonVisible) {
           isButtonVisible = shouldShow;
           renderButton();
@@ -409,18 +443,18 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Define handlePathChange function before using it
     function handlePathChange() {
       const onHomePage = isHomePage();
-      
+
       // Log for debugging
-      console.debug('Now Widget: Path changed', { 
+      console.debug("Now Widget: Path changed", {
         path: window.location.pathname,
-        isHomePage: onHomePage 
+        isHomePage: onHomePage,
       });
-      
+
       if (!onHomePage) {
         // Not on homepage - hide button immediately
         isButtonVisible = false;
         renderButton();
-        
+
         // If panel is open, close it when navigating away from homepage
         if (isOpen) {
           togglePanel(true);
@@ -432,8 +466,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     }
 
     // Add scroll and navigation listeners
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('popstate', handlePathChange);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("popstate", handlePathChange);
 
     // Use a safer approach for URL change detection that doesn't interfere with host website
     let observer: MutationObserver | undefined;
@@ -441,7 +475,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       // Watch for URL changes using a polling mechanism instead of history API interception
       // This avoids conflicts with the host website's JavaScript
       let lastUrl = window.location.href;
-      
+
       // Set up MutationObserver to watch for DOM changes that might indicate navigation
       observer = new MutationObserver(() => {
         // Don't directly call handlePathChange from MutationObserver callback
@@ -451,35 +485,41 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           const currentUrl = window.location.href;
           if (currentUrl !== lastUrl) {
             lastUrl = currentUrl;
-            console.debug('Now Widget: URL changed via DOM mutation', { from: lastUrl, to: currentUrl });
+            console.debug("Now Widget: URL changed via DOM mutation", {
+              from: lastUrl,
+              to: currentUrl,
+            });
             handlePathChange();
           }
         });
       });
-      
+
       // Observe the body instead of head to catch content changes
       const targetNode = document.body;
       if (targetNode) {
         observer.observe(targetNode, { childList: true, subtree: true });
       }
-      
+
       // Set up polling for URL changes as a fallback (less intensive than history API interception)
       const pollInterval = setInterval(() => {
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
           lastUrl = currentUrl;
-          console.debug('Now Widget: URL changed via polling', { from: lastUrl, to: currentUrl });
+          console.debug("Now Widget: URL changed via polling", {
+            from: lastUrl,
+            to: currentUrl,
+          });
           handlePathChange();
         }
       }, 300); // Check every 300ms - less frequent to reduce performance impact
-      
+
       // Store interval ID for cleanup
       widgetState.value = {
         ...widgetState.value,
-        pollIntervalId: pollInterval
+        pollIntervalId: pollInterval,
       };
     } catch (error) {
-      console.warn('Failed to setup URL change detection:', error);
+      console.warn("Failed to setup URL change detection:", error);
       // Continue without the observer as it's not critical for core functionality
     }
 
@@ -487,54 +527,57 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     handlePathChange();
 
     // Add click handlers
-    closeButton.addEventListener('click', () => togglePanel(true));
-    overlay.addEventListener('click', () => togglePanel(true));
+    closeButton.addEventListener("click", () => togglePanel(true));
+    overlay.addEventListener("click", () => togglePanel(true));
 
     // Render panel content
-    render(h(App, { 
-      theme: config.theme || 'light',
-      orgId: config.orgId,
-      token: config.token,
-      onToggle: () => togglePanel()
-    }), content);
+    render(
+      h(App, {
+        theme: config.theme || "light",
+        orgId: config.orgId,
+        token: config.token,
+        onToggle: () => togglePanel(),
+      }),
+      content
+    );
 
     // Initial button render
     renderButton();
 
     return {
       unmount: () => {
-        window.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('popstate', handlePathChange);
-        
+        window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("popstate", handlePathChange);
+
         // Clear polling interval if it exists
         if (widgetState.value.pollIntervalId) {
           clearInterval(widgetState.value.pollIntervalId);
         }
-        
+
         if (observer) {
           try {
             observer.disconnect();
           } catch (error) {
-            console.warn('Failed to disconnect observer:', error);
+            console.warn("Failed to disconnect observer:", error);
           }
         }
-        
+
         render(null, content);
         render(null, buttonWrapper);
         widgetContainer.remove();
         mainStyle.remove();
-        document.documentElement.classList.remove('now-widget-open');
+        document.documentElement.classList.remove("now-widget-open");
       },
     };
   } catch (error) {
-    console.error('Failed to mount Now Widget:', error);
+    console.error("Failed to mount Now Widget:", error);
     throw error;
   }
-}
+};
 
 // Define custom event types
 interface NowWidgetEvents {
-  nowWidgetInitialized: CustomEvent<{ success: boolean }>
+  nowWidgetInitialized: CustomEvent<{ success: boolean }>;
 }
 
 declare global {
@@ -549,7 +592,7 @@ const widgetState = signal<WidgetStateData>({
   mountAttempts: 0,
   maxAttempts: 3,
   initializationPromise: null,
-  lastPathChecked: ''
+  lastPathChecked: "",
 });
 
 // Initialization function with retry logic and promise handling
@@ -561,7 +604,9 @@ const initializeWidget = async (): Promise<void> => {
   const initPromise = new Promise<void>((resolve, reject) => {
     function attemptInitialization() {
       if (widgetState.value.mountAttempts >= widgetState.value.maxAttempts) {
-        const error = new Error('Now Widget: Failed to initialize after multiple attempts');
+        const error = new Error(
+          "Now Widget: Failed to initialize after multiple attempts"
+        );
         console.error(error);
         reject(error);
         return;
@@ -576,7 +621,7 @@ const initializeWidget = async (): Promise<void> => {
           }
           widgetState.value = {
             ...widgetState.value,
-            config
+            config,
           };
         }
 
@@ -585,25 +630,30 @@ const initializeWidget = async (): Promise<void> => {
           widgetState.value = {
             ...widgetState.value,
             instance,
-            initialized: true
+            initialized: true,
           };
-          
+
           // Dispatch initialization event
-          window.dispatchEvent(new CustomEvent('nowWidgetInitialized', {
-            detail: { success: true }
-          }));
+          window.dispatchEvent(
+            new CustomEvent("nowWidgetInitialized", {
+              detail: { success: true },
+            })
+          );
 
           resolve();
         }
       } catch (error) {
-        console.error('Now Widget: Initialization attempt failed:', error);
+        console.error("Now Widget: Initialization attempt failed:", error);
         widgetState.value = {
-      ...widgetState.value,
-      mountAttempts: widgetState.value.mountAttempts + 1
-    };
-        
+          ...widgetState.value,
+          mountAttempts: widgetState.value.mountAttempts + 1,
+        };
+
         // Retry initialization after a delay with exponential backoff
-        setTimeout(attemptInitialization, 500 * Math.pow(2, widgetState.value.mountAttempts));
+        setTimeout(
+          attemptInitialization,
+          500 * Math.pow(2, widgetState.value.mountAttempts)
+        );
       }
     }
 
@@ -612,62 +662,70 @@ const initializeWidget = async (): Promise<void> => {
 
   widgetState.value = {
     ...widgetState.value,
-    initializationPromise: initPromise
+    initializationPromise: initPromise,
   };
   return initPromise;
-}
+};
 
 // Auto-initialize when the script loads, with delayed execution to avoid conflicts
 (function () {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // Delay widget initialization to ensure host website is fully loaded
     const initWithDelay = () => {
       // Use a longer delay to ensure host website's JavaScript is fully initialized
       setTimeout(() => {
         try {
-          console.debug('Now Widget: Starting initialization...');
-          initializeWidget().catch(error => {
-            console.error('Now Widget: Initialization failed:', error);
+          console.debug("Now Widget: Starting initialization...");
+          initializeWidget().catch((error) => {
+            console.error("Now Widget: Initialization failed:", error);
           });
-          
+
           // Extra safety check after initialization
           // No need to create custom events - just update state directly
           setTimeout(() => {
-            console.debug('Now Widget: Performing final visibility check');
+            console.debug("Now Widget: Performing final visibility check");
             if (widgetState.value.instance) {
               try {
                 // Simple path check without accessing potentially problematic global variables
                 const currentPath = window.location.pathname;
-                console.debug('Now Widget: Current path is', currentPath);
-                
+                console.debug("Now Widget: Current path is", currentPath);
+
                 // Update widget state if needed
                 if (widgetState.value.lastPathChecked !== currentPath) {
-                  console.debug('Now Widget: Path changed since initialization');
+                  console.debug(
+                    "Now Widget: Path changed since initialization"
+                  );
                   widgetState.value = {
                     ...widgetState.value,
-                    lastPathChecked: currentPath
+                    lastPathChecked: currentPath,
                   };
-                  
+
                   // Trigger a path change if the instance exists
-                  if (widgetState.value.instance && typeof widgetState.value.instance === 'object') {
+                  if (
+                    widgetState.value.instance &&
+                    typeof widgetState.value.instance === "object"
+                  ) {
                     // Call handlePathChange safely through instance if possible
-                    console.debug('Now Widget: Triggering visibility update');
+                    console.debug("Now Widget: Triggering visibility update");
                   }
                 }
               } catch (error) {
-                console.warn('Now Widget: Error in final visibility check:', error);
+                console.warn(
+                  "Now Widget: Error in final visibility check:",
+                  error
+                );
               }
             }
           }, 1500);
         } catch (error) {
-          console.error('Now Widget: Critical initialization error:', error);
+          console.error("Now Widget: Critical initialization error:", error);
         }
       }, 500); // Longer delay to ensure host site is fully initialized
     };
-    
+
     // Ensure DOM is ready before initialization
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initWithDelay);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initWithDelay);
     } else {
       initWithDelay();
     }
@@ -678,8 +736,8 @@ const initializeWidget = async (): Promise<void> => {
 export { mount };
 
 // Expose to window for direct browser usage
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   (window as any).NowWidget = { mount };
 }
 
-export type { WidgetInstance } from './types';
+export type { WidgetInstance } from "./types";
