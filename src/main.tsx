@@ -187,6 +187,26 @@ const panelStyles = `
     justify-content: space-between;
     padding: 1rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgb(15, 23, 42); /* Match panel background */
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    width: 100%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Add an overlay behind header to ensure no content shows through */
+  .nownownow-panel-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    background: rgb(15, 23, 42); /* Match panel background */
+    z-index: -1;
   }
 
   .nownownow-panel-title {
@@ -217,9 +237,12 @@ const panelStyles = `
 
   .nownownow-panel-content {
     padding: 1rem;
+    padding-top: 0.5rem; /* Reduced top padding since we have the header */
     color: rgb(226, 232, 240);
     overflow-y: auto;
     height: calc(100% - 3.5rem);
+    position: relative;
+    z-index: 1;
   }
 
   @media (prefers-reduced-motion: reduce) {

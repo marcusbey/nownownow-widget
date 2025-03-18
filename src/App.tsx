@@ -286,7 +286,7 @@ export default function App({ theme = "light", orgId, token }: Props) {
             className="nownownow-widget-post-container overflow-auto h-[calc(100%-90px)]"
             ref={scrollAreaRef}
           >
-            <div className="nownownow-widget-post-wrapper px-4 py-3">
+            <div className="nownownow-widget-posts-container px-4 py-3">
               {posts.length > 0 ? (
                 <Fragment>
                   {posts.map((post) => (
