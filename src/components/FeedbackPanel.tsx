@@ -196,120 +196,119 @@ export const FeedbackPanel: FunctionComponent<FeedbackPanelProps> = ({
 
   return (
     <div
-      className={`now-widget-feedback-panel ${isDark ? "now-widget-dark" : ""}`}
+      className={`nownownow-widget-feedback-panel ${
+        isDark ? "nownownow-widget-dark" : ""
+      }`}
     >
-      {/* Top bar with title and new feedback button */}
-      <div className="now-widget-feedback-header">
-        <h2 className="now-widget-feedback-title">Feedback</h2>
+      <div className="nownownow-widget-feedback-header">
+        <h2 className="nownownow-widget-feedback-title">Feedback</h2>
         <button
-          className={`now-widget-feedback-new-btn ${
-            isDark ? "now-widget-btn-dark" : ""
-          }`}
           onClick={handleNewFeedbackClick}
-          disabled={showSubmitForm}
+          className={`nownownow-widget-feedback-new-btn ${
+            isDark ? "nownownow-widget-btn-dark" : ""
+          }`}
+          disabled={isSubmitting}
         >
-          {showSubmitForm ? "Submitting..." : "Submit Feedback"}
+          {showSubmitForm ? "Cancel" : "Submit Feedback"}
         </button>
       </div>
 
-      {/* Error message */}
       {error && (
-        <div className="now-widget-feedback-error">
+        <div className="nownownow-widget-feedback-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="now-widget-feedback-error-icon"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+            className="nownownow-widget-feedback-error-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
           {error}
         </div>
       )}
 
-      {/* Success message */}
       {successMessage && (
-        <div className="now-widget-feedback-success">
+        <div className="nownownow-widget-feedback-success">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="now-widget-feedback-success-icon"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+            className="nownownow-widget-feedback-success-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
           {successMessage}
         </div>
       )}
 
-      {/* Feedback submission form */}
       {showSubmitForm && (
-        <form className="now-widget-feedback-form" onSubmit={handleSubmit}>
-          <div className="now-widget-feedback-form-field">
-            <label
-              className="now-widget-feedback-label"
-              htmlFor="feedback-content"
-            >
-              Your Feedback
+        <form
+          className="nownownow-widget-feedback-form"
+          onSubmit={handleSubmit}
+        >
+          <div className="nownownow-widget-feedback-form-field">
+            <label className="nownownow-widget-feedback-label">
+              Your Feedback (required)
             </label>
             <textarea
-              id="feedback-content"
               ref={contentRef}
-              className={`now-widget-feedback-textarea ${
-                !isContentValid && content
-                  ? "now-widget-feedback-input-error"
+              className={`nownownow-widget-feedback-textarea ${
+                content.length > 1000
+                  ? "nownownow-widget-feedback-input-error"
                   : ""
               }`}
-              placeholder="What would you like to share? (1-1000 characters)"
               value={content}
               onInput={(e) =>
                 setContent((e.target as HTMLTextAreaElement).value)
               }
-              rows={4}
-              maxLength={1000}
-              required
+              rows={5}
+              placeholder="Share your thoughts, suggestions, or report issues..."
             ></textarea>
-            <div className="now-widget-feedback-char-count">
+            {content.length > 1000 && (
+              <div className="nownownow-widget-feedback-input-error-text">
+                Feedback is too long (max 1000 characters)
+              </div>
+            )}
+            <div className="nownownow-widget-feedback-char-count">
               {content.length}/1000
             </div>
           </div>
 
-          <div className="now-widget-feedback-form-field">
-            <label
-              className="now-widget-feedback-label"
-              htmlFor="feedback-email"
-            >
+          <div className="nownownow-widget-feedback-form-field">
+            <label className="nownownow-widget-feedback-label">
               Email (optional)
             </label>
             <input
               type="email"
-              id="feedback-email"
-              className={`now-widget-feedback-input ${
-                !isEmailValid ? "now-widget-feedback-input-error" : ""
+              className={`nownownow-widget-feedback-input ${
+                !isEmailValid ? "nownownow-widget-feedback-input-error" : ""
               }`}
-              placeholder="your@email.com (optional)"
               value={email}
               onInput={(e) => setEmail((e.target as HTMLInputElement).value)}
+              placeholder="Your email for follow-ups (optional)"
             />
             {!isEmailValid && (
-              <div className="now-widget-feedback-input-error-text">
+              <div className="nownownow-widget-feedback-input-error-text">
                 Please enter a valid email address
               </div>
             )}
           </div>
 
-          <div className="now-widget-feedback-form-actions">
+          <div className="nownownow-widget-feedback-form-actions">
             <button
               type="button"
-              className="now-widget-feedback-cancel-btn"
+              className="nownownow-widget-feedback-cancel-btn"
               onClick={() => {
                 setShowSubmitForm(false);
                 setContent("");
@@ -321,141 +320,138 @@ export const FeedbackPanel: FunctionComponent<FeedbackPanelProps> = ({
             </button>
             <button
               type="submit"
-              className={`now-widget-feedback-submit-btn ${
-                isDark ? "now-widget-btn-dark" : ""
-              }`}
-              disabled={
-                isSubmitting ||
-                !isContentValid ||
-                !isEmailValid ||
-                content.length === 0
-              }
+              className="nownownow-widget-feedback-submit-btn"
+              disabled={isSubmitting || !isContentValid || !isEmailValid}
             >
               {isSubmitting ? (
-                <span className="now-widget-feedback-submitting">
+                <span className="nownownow-widget-feedback-submitting">
                   <svg
-                    className="now-widget-feedback-spinner"
-                    viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
+                    className="nownownow-widget-feedback-spinner"
+                    viewBox="0 0 24 24"
                   >
                     <circle
-                      className="now-widget-feedback-spinner-circle"
+                      className="nownownow-widget-feedback-spinner-circle"
                       cx="12"
                       cy="12"
                       r="10"
                       fill="none"
-                      strokeWidth="3"
+                      strokeWidth="4"
                     />
                   </svg>
                   Submitting...
                 </span>
               ) : (
-                "Submit Feedback"
+                "Submit"
               )}
             </button>
           </div>
         </form>
       )}
 
-      {/* Feedback list */}
-      <div className="now-widget-feedback-list">
+      <div className="nownownow-widget-feedback-list">
         {isLoading ? (
-          <div className="now-widget-feedback-loading">
+          <div className="nownownow-widget-feedback-loading">
             <svg
-              className="now-widget-feedback-loading-spinner"
-              viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
+              className="nownownow-widget-feedback-loading-spinner"
+              viewBox="0 0 24 24"
             >
               <circle
-                className="now-widget-feedback-loading-circle"
+                className="nownownow-widget-feedback-loading-circle"
                 cx="12"
                 cy="12"
                 r="10"
                 fill="none"
-                strokeWidth="3"
+                strokeWidth="4"
               />
             </svg>
             Loading feedback...
           </div>
         ) : feedback.length === 0 ? (
-          <div className="now-widget-feedback-empty">
+          <div className="nownownow-widget-feedback-empty">
             No feedback yet. Be the first to share your thoughts!
           </div>
         ) : (
-          feedback.map((item) => (
-            <div key={item.id} className="now-widget-feedback-item">
-              <div className="now-widget-feedback-item-header">
-                <div className="now-widget-feedback-item-date">
-                  {formatDate(item.createdAt)}
+          <>
+            {feedback.map((item) => (
+              <div key={item.id} className="nownownow-widget-feedback-item">
+                <div className="nownownow-widget-feedback-item-header">
+                  <div>{renderStatusBadge(item.status)}</div>
+                  <div className="nownownow-widget-feedback-item-date">
+                    {formatDate(item.createdAt)}
+                  </div>
                 </div>
-                {renderStatusBadge(item.status)}
-              </div>
-              <div className="now-widget-feedback-item-content">
-                {item.content}
-              </div>
-              <div className="now-widget-feedback-item-footer">
-                <button
-                  className={`now-widget-feedback-vote-btn ${
-                    item.hasVoted ? "now-widget-feedback-voted" : ""
-                  } ${isDark ? "now-widget-btn-dark" : ""}`}
-                  onClick={() => !item.hasVoted && handleVote(item.id)}
-                  disabled={isVoting[item.id] || item.hasVoted}
-                  aria-label={
-                    item.hasVoted ? "Voted" : "Vote for this feedback"
-                  }
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="now-widget-feedback-vote-icon"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+                <div className="nownownow-widget-feedback-item-content">
+                  {item.content}
+                </div>
+                <div className="nownownow-widget-feedback-item-footer">
+                  <button
+                    onClick={() => handleVote(item.id)}
+                    className={`nownownow-widget-feedback-vote-btn ${
+                      item.hasVoted || isVoting[item.id]
+                        ? "nownownow-widget-feedback-voted"
+                        : ""
+                    }`}
+                    disabled={item.hasVoted || isVoting[item.id]}
                   >
-                    <path
-                      fillRule="evenodd"
-                      d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span>
-                    {item.votes} {item.votes === 1 ? "vote" : "votes"}
-                  </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="nownownow-widget-feedback-vote-icon"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="9 11 12 14 22 4"></polyline>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    {item.hasVoted ? "Upvoted" : "Upvote"} (
+                    {item._count?.votes || 0})
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <div className="nownownow-widget-feedback-pagination">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage <= 1}
+                  className={`nownownow-widget-feedback-page-btn ${
+                    currentPage <= 1
+                      ? "nownownow-widget-feedback-page-disabled"
+                      : ""
+                  }`}
+                >
+                  Previous
+                </button>
+                <span className="nownownow-widget-feedback-page-info">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage >= totalPages}
+                  className={`nownownow-widget-feedback-page-btn ${
+                    currentPage >= totalPages
+                      ? "nownownow-widget-feedback-page-disabled"
+                      : ""
+                  }`}
+                >
+                  Next
                 </button>
               </div>
-            </div>
-          ))
+            )}
+          </>
         )}
       </div>
-
-      {/* Pagination */}
-      {!isLoading && totalPages > 1 && (
-        <div className="now-widget-feedback-pagination">
-          <button
-            className={`now-widget-feedback-page-btn ${
-              currentPage === 1 ? "now-widget-feedback-page-disabled" : ""
-            }`}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            &larr; Previous
-          </button>
-          <div className="now-widget-feedback-page-info">
-            Page {currentPage} of {totalPages}
-          </div>
-          <button
-            className={`now-widget-feedback-page-btn ${
-              currentPage === totalPages
-                ? "now-widget-feedback-page-disabled"
-                : ""
-            }`}
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
-            disabled={currentPage === totalPages}
-          >
-            Next &rarr;
-          </button>
-        </div>
-      )}
     </div>
   );
 };

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Now Widget Test</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin-top: 2em;
+      }
+
+      code {
+        background-color: #f5f5f5;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-family: monospace;
+      }
+
+      pre {
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 5px;
+        overflow-x: auto;
+      }
+
+      .content {
+        min-height: 2000px; /* Make the page scrollable to test button visibility */
+      }
+
+      .section {
+        margin-bottom: 40px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 9998;
+      }
+
+      .controls button {
+        padding: 8px 16px;
+        background: #4a5568;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 8px;
+        font-weight: 500;
+      }
+
+      .controls button:hover {
+        background: #2d3748;
+      }
+
+      .controls button:last-child {
+        margin-right: 0;
+      }
+
+      .position-indicator {
+        position: fixed;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        font-size: 12px;
+        border-radius: 4px;
+        z-index: 9997;
+      }
+
+      .position-indicator.left {
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .position-indicator.right {
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .active {
+        background: #38a169 !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="content">
+      <h1>Now Widget Test Page</h1>
+
+      <div class="section">
+        <h2>About the Now Widget</h2>
+        <p>
+          This page is testing the Now Widget integration. The widget should
+          appear as a floating button on the page, and clicking it should open a
+          panel.
+        </p>
+      </div>
+
+      <div class="section">
+        <h2>Widget Integration</h2>
+        <p>
+          The widget is loaded from: <code id="script-src">Checking...</code>
+        </p>
+        <p>Configuration:</p>
+        <ul>
+          <li>Organization ID: <code id="org-id">Checking...</code></li>
+          <li>Token: <code id="token">Checking...</code></li>
+          <li>Theme: <code id="theme">light</code></li>
+          <li>Position: <code id="position">left</code></li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>Page Animation Test</h2>
+        <p>
+          This section tests how the page content moves when the panel is
+          opened/closed.
+        </p>
+        <p>
+          The Now Widget button should appear when you're at the top of the
+          page, disappear as you scroll down, and reappear when you reach the
+          bottom of the page.
+        </p>
+
+        <p>When the panel opens:</p>
+        <ul>
+          <li>
+            If panel is on the <strong>left</strong>: the page should slide to
+            the <strong>right</strong>
+          </li>
+          <li>
+            If panel is on the <strong>right</strong>: the page should slide to
+            the <strong>left</strong>
+          </li>
+        </ul>
+
+        <p>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+          auctor, nisl eget ultricies tincidunt, nisl nisl aliquam nisl, eget
+          aliquam nisl nisl eget nisl.
+        </p>
+        <p>
+          Donec euismod, nisl eget ultricies tincidunt, nisl nisl aliquam nisl,
+          eget aliquam nisl nisl eget nisl.
+        </p>
+      </div>
+    </div>
+
+    <div class="position-indicator left" id="left-indicator">Left Panel</div>
+    <div class="position-indicator right" id="right-indicator">Right Panel</div>
+
+    <div class="controls">
+      <button id="toggle-left" class="active">Left Panel</button>
+      <button id="toggle-right">Right Panel</button>
+      <button id="reload">Reload Widget</button>
+    </div>
+
+    <!-- Now Widget Script - Initially with left position -->
+    <script
+      id="now-widget-script"
+      src="http://localhost:3000/now-widget.js"
+      data-org-id="test-org-123"
+      data-token="test-token-456"
+      data-theme="light"
+      data-position="left"
+    ></script>
+
+    <script>
+      // Display the configuration in the page
+      document.getElementById("script-src").textContent =
+        "http://localhost:3000/now-widget.js";
+      document.getElementById("org-id").textContent = "test-org-123";
+      document.getElementById("token").textContent = "test-token-456";
+      document.getElementById("theme").textContent = "light";
+      document.getElementById("position").textContent = "left";
+
+      // Update active indicator
+      function updateIndicators(position) {
+        document.getElementById("left-indicator").style.display =
+          position === "left" ? "block" : "none";
+        document.getElementById("right-indicator").style.display =
+          position === "right" ? "block" : "none";
+
+        document
+          .getElementById("toggle-left")
+          .classList.toggle("active", position === "left");
+        document
+          .getElementById("toggle-right")
+          .classList.toggle("active", position === "right");
+
+        document.getElementById("position").textContent = position;
+      }
+
+      // Initially set the left indicator as active
+      updateIndicators("left");
+
+      // Function to reload the widget with new position
+      function reloadWidget(position) {
+        // Remove previous widget script
+        const oldScript = document.getElementById("now-widget-script");
+        if (oldScript) {
+          oldScript.remove();
+        }
+
+        // Create new script with updated position
+        const newScript = document.createElement("script");
+        newScript.id = "now-widget-script";
+        newScript.src = "http://localhost:3000/now-widget.js";
+        newScript.setAttribute("data-org-id", "test-org-123");
+        newScript.setAttribute("data-token", "test-token-456");
+        newScript.setAttribute("data-theme", "light");
+        newScript.setAttribute("data-position", position);
+
+        // Append new script to body
+        document.body.appendChild(newScript);
+
+        // Update displayed config
+        updateIndicators(position);
+      }
+
+      // Set up button click handlers
+      document
+        .getElementById("toggle-left")
+        .addEventListener("click", () => reloadWidget("left"));
+      document
+        .getElementById("toggle-right")
+        .addEventListener("click", () => reloadWidget("right"));
+      document.getElementById("reload").addEventListener("click", () => {
+        const currentPosition = document.getElementById("position").textContent;
+        reloadWidget(currentPosition);
+      });
+    </script>
+  </body>
+</html>

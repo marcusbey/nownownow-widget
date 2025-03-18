@@ -64,33 +64,37 @@ export const OrganizationProfile: FunctionComponent<
 
   return (
     <div
-      className={`now-widget-org-profile ${isDark ? "now-widget-dark" : ""}`}
+      className={`nownownow-widget-org-profile ${
+        isDark ? "nownownow-widget-dark" : ""
+      }`}
     >
       <div
-        className="now-widget-org-banner"
+        className="nownownow-widget-org-banner"
         style={{ backgroundImage: `url(${bannerUrl})` }}
       >
-        <div className="now-widget-org-banner-overlay"></div>
+        <div className="nownownow-widget-org-banner-overlay"></div>
       </div>
-      <div className="now-widget-org-header">
-        <div className="now-widget-org-avatar">
+      <div className="nownownow-widget-org-header">
+        <div className="nownownow-widget-org-avatar">
           {orgInfo.image ? (
             <img src={orgInfo.image} alt={orgInfo.name} />
           ) : (
             <span>{initials}</span>
           )}
         </div>
-        <div className="now-widget-org-info">
-          <h2 className="now-widget-org-name">{orgInfo.name}</h2>
-          {orgInfo.bio && <p className="now-widget-org-bio">{orgInfo.bio}</p>}
+        <div className="nownownow-widget-org-info">
+          <h2 className="nownownow-widget-org-name">{orgInfo.name}</h2>
+          {orgInfo.bio && (
+            <p className="nownownow-widget-org-bio">{orgInfo.bio}</p>
+          )}
 
-          <div className="now-widget-org-meta">
+          <div className="nownownow-widget-org-meta">
             {orgInfo.websiteUrl && (
               <a
                 href={orgInfo.websiteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="now-widget-org-website"
+                className="nownownow-widget-org-website"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -109,7 +113,7 @@ export const OrganizationProfile: FunctionComponent<
             )}
 
             {followerCount > 0 && (
-              <div className="now-widget-org-followers">
+              <div className="nownownow-widget-org-followers">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"

@@ -13,7 +13,7 @@ function inlineStylesPlugin(): Plugin {
       const cssChunks = Object.keys(bundle).filter(key => key.endsWith('.css'));
 
       // Find the main JS chunk
-      const jsChunk = Object.keys(bundle).find(key => key === 'now-widget.js');
+      const jsChunk = Object.keys(bundle).find(key => key.endsWith('.js') && !key.endsWith('.map.js'));
 
       if (jsChunk && cssChunks.length > 0) {
         const js = bundle[jsChunk];
@@ -87,8 +87,38 @@ function buildTimestampPlugin(): Plugin {
   };
 }
 
+// Plugin to ensure files are in the correct output directory
+function fixOutputPathPlugin(): Plugin {
+  return {
+    name: 'fix-output-path-plugin',
+    enforce: 'post',
+    apply: 'build',
+    generateBundle(_, bundle) {
+      // Make sure all assets are in the root dist directory, not in subdirectories
+      const assetsToRename: Record<string, any> = {};
+
+      Object.keys(bundle).forEach(fileName => {
+        if (fileName.includes('/')) {
+          const newFileName = fileName.split('/').pop()!;
+          assetsToRename[fileName] = { ...bundle[fileName], fileName: newFileName };
+        }
+      });
+
+      Object.entries(assetsToRename).forEach(([oldName, asset]) => {
+        delete bundle[oldName];
+        this.emitFile(asset);
+      });
+    }
+  };
+}
+
 export default defineConfig({
-  plugins: [preact(), inlineStylesPlugin(), buildTimestampPlugin()],
+  plugins: [
+    preact(),
+    inlineStylesPlugin(),
+    buildTimestampPlugin(),
+    fixOutputPathPlugin()
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -107,15 +137,18 @@ export default defineConfig({
     cssCodeSplit: false, // Prevent CSS code splitting
     rollupOptions: {
       output: {
+        entryFileNames: 'now-widget.js',
+        chunkFileNames: 'now-widget.js',
+        assetFileNames: 'now-widget.[ext]',
+        format: 'iife',
         inlineDynamicImports: true,
-        manualChunks: undefined,
-        compact: true,
+        manualChunks: undefined, // Disable code splitting
       },
     },
   },
   css: {
     modules: {
-      generateScopedName: 'now-widget-[local]',
+      generateScopedName: 'nownownow-widget-[local]',
     },
   },
   server: {
@@ -125,5 +158,10 @@ export default defineConfig({
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
+    watch: {
+      usePolling: true,
+    },
   },
+  publicDir: 'public',
+  base: './',
 });

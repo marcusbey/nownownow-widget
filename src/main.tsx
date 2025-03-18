@@ -136,7 +136,7 @@ const panelStyles = `
     pointer-events: none;
   }
 
-  .overlay {
+  .nownownow-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -149,29 +149,39 @@ const panelStyles = `
     pointer-events: none;
   }
 
-  .overlay.open {
+  .nownownow-overlay.nownownow-open {
     opacity: 1;
     pointer-events: all;
   }
 
-  .panel {
+  .nownownow-panel {
     position: absolute;
     top: 0;
-    left: 0;
     bottom: 0;
     width: 100%;
     background: rgb(15, 23, 42);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
     pointer-events: all;
   }
 
-  .panel.open {
+  .nownownow-panel[data-position="left"] {
+    left: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(-100%);
+  }
+
+  .nownownow-panel[data-position="right"] {
+    right: 0;
+    left: auto;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    transform: translateX(100%);
+  }
+
+  .nownownow-panel.nownownow-open {
     transform: translateX(0);
   }
 
-  .panel-header {
+  .nownownow-panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -179,13 +189,13 @@ const panelStyles = `
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  .panel-title {
+  .nownownow-panel-title {
     color: rgb(226, 232, 240); /* slate-200 */
     font-weight: 600;
     font-size: 0.875rem;
   }
 
-  .close-button {
+  .nownownow-close-button {
     padding: 0.5rem;
     border: none;
     background: transparent;
@@ -195,17 +205,17 @@ const panelStyles = `
     transition: color 0.2s ease, background-color 0.2s ease;
   }
 
-  .close-button:hover {
+  .nownownow-close-button:hover {
     color: rgb(226, 232, 240); /* slate-200 */
     background: rgba(255, 255, 255, 0.1);
   }
 
-  .close-button svg {
+  .nownownow-close-button svg {
     width: 1rem;
     height: 1rem;
   }
 
-  .panel-content {
+  .nownownow-panel-content {
     padding: 1rem;
     color: rgb(226, 232, 240);
     overflow-y: auto;
@@ -213,7 +223,7 @@ const panelStyles = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .panel, .overlay {
+    .nownownow-panel, .nownownow-overlay {
       transition-duration: 0s;
     }
   }
@@ -250,7 +260,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Create a container for our widget elements
     const widgetContainer = document.createElement("div");
-    widgetContainer.id = "now-widget-container";
+    widgetContainer.id = "nownownow-widget-container";
     widgetContainer.style.cssText = `
       position: fixed;
       top: 0;
@@ -263,7 +273,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Create panel container with shadow DOM
     const panelContainer = document.createElement("div");
-    panelContainer.id = "now-widget-panel";
+    panelContainer.id = "nownownow-widget-panel";
     const panelShadow = panelContainer.attachShadow({ mode: "closed" });
 
     // Inject shared widget styles
@@ -275,41 +285,43 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Create overlay
     const overlay = document.createElement("div");
-    overlay.className = "overlay";
+    overlay.className = "nownownow-overlay";
     panelShadow.appendChild(overlay);
 
     // Create panel
     const panel = document.createElement("div");
-    panel.className = "panel";
+    panel.className = "nownownow-panel";
+    // Set the panel position attribute
+    panel.setAttribute("data-position", config.position || "right");
 
     // Create panel header
     const header = document.createElement("div");
-    header.className = "panel-header";
+    header.className = "nownownow-panel-header";
 
-    const title = document.createElement("span");
-    title.className = "panel-title";
-    title.textContent = "Latest Updates";
+    const title = document.createElement("div");
+    title.className = "nownownow-panel-title";
+    title.textContent = "Now";
+    header.appendChild(title);
 
     const closeButton = document.createElement("button");
-    closeButton.className = "close-button";
+    closeButton.className = "nownownow-close-button";
+    closeButton.setAttribute("aria-label", "Close Now Panel");
     closeButton.innerHTML =
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-    closeButton.setAttribute("aria-label", "Close panel");
-
-    header.appendChild(title);
     header.appendChild(closeButton);
+
     panel.appendChild(header);
 
     // Create panel content
     const content = document.createElement("div");
-    content.className = "panel-content";
+    content.className = "nownownow-panel-content";
     panel.appendChild(content);
 
     panelShadow.appendChild(panel);
 
     // Create button container with shadow DOM
     const buttonContainer = document.createElement("div");
-    buttonContainer.id = "now-widget-button-container";
+    buttonContainer.id = "nownownow-widget-button-container";
     const buttonShadow = buttonContainer.attachShadow({ mode: "closed" });
 
     // Inject shared widget styles
@@ -324,35 +336,34 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Create style tag for the main document
     const mainStyle = document.createElement("style");
+    mainStyle.dataset.nowWidget = "styles";
     mainStyle.textContent = `
-      html.now-widget-open,
-      html.now-widget-open body {
+      html.nownownow-widget-open {
         overflow: hidden;
       }
 
-      html.now-widget-open #__next,
-      html.now-widget-open [id="__next"],
-      html.now-widget-open main,
-      html.now-widget-open [role="main"],
-      html.now-widget-open #root,
-      html.now-widget-open [id="root"],
-      html.now-widget-open > body > div:not([id^="now-widget"]) {
+      html.nownownow-widget-open[data-panel-position="left"] #root,
+      html.nownownow-widget-open[data-panel-position="left"] [id="root"],
+      html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
+        transform: translateX(300px);
         transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
-        transform: translateX(min(600px, 80vw));
-        transform-origin: left top;
-        will-change: transform;
+        transform-origin: right top;
       }
 
-      html:not(.now-widget-open) #__next,
-      html:not(.now-widget-open) [id="__next"],
-      html:not(.now-widget-open) main,
-      html:not(.now-widget-open) [role="main"],
-      html:not(.now-widget-open) #root,
-      html:not(.now-widget-open) [id="root"],
-      html:not(.now-widget-open) > body > div:not([id^="now-widget"]) {
+      html.nownownow-widget-open[data-panel-position="right"] #root,
+      html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+      html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+        transform: translateX(-300px);
+        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transform-origin: left top;
+      }
+
+      html:not(.nownownow-widget-open) #root,
+      html:not(.nownownow-widget-open) [id="root"],
+      html:not(.nownownow-widget-open) > body > div:not([id^="nownownow-widget"]) {
         transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
         transform: translateX(0);
-        transform-origin: left top;
+        transform-origin: center top;
         will-change: transform;
       }
 
@@ -396,9 +407,23 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Define toggle panel function early
     const togglePanel = (forceClose = false) => {
       isOpen = forceClose ? false : !isOpen;
-      panel.classList.toggle("open", isOpen);
-      overlay.classList.toggle("open", isOpen);
-      document.documentElement.classList.toggle("now-widget-open", isOpen);
+      panel.classList.toggle("nownownow-open", isOpen);
+      overlay.classList.toggle("nownownow-open", isOpen);
+
+      // Set the panel position as a data attribute on the html element
+      if (isOpen) {
+        document.documentElement.setAttribute(
+          "data-panel-position",
+          config.position || "right"
+        );
+      } else {
+        document.documentElement.removeAttribute("data-panel-position");
+      }
+
+      document.documentElement.classList.toggle(
+        "nownownow-widget-open",
+        isOpen
+      );
       renderButton();
     };
 
@@ -566,7 +591,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
         render(null, buttonWrapper);
         widgetContainer.remove();
         mainStyle.remove();
-        document.documentElement.classList.remove("now-widget-open");
+        document.documentElement.classList.remove("nownownow-widget-open");
       },
     };
   } catch (error) {

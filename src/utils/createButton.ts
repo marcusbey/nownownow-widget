@@ -1,4 +1,5 @@
 import { ButtonConfig, defaultButtonConfig } from '@/types';
+import { h } from "preact";
 import { injectWidgetStyles } from './styleUtils';
 
 interface ButtonInstance {
@@ -11,7 +12,7 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
   const finalConfig = { ...defaultButtonConfig, ...config };
 
   const container = document.createElement('div');
-  container.id = 'now-widget-button-container';
+  container.id = 'nownownow-widget-button-container';
 
   Object.assign(container.style, {
     position: 'fixed',
@@ -36,7 +37,7 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
       z-index: 2147483647 !important;
     }
 
-    .now-widget-button {
+    .nownownow-widget-button {
       --button-size: ${finalConfig.size}px;
       position: absolute;
       bottom: 0;
@@ -68,7 +69,7 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
       to { transform: rotate(360deg); }
     }
 
-    .now-widget-button:hover .rotating-text {
+    .nownownow-widget-button:hover .rotating-text {
       animation-duration: 5s;
     }
 
@@ -82,7 +83,7 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
   shadow.appendChild(style);
 
   const button = document.createElement('button');
-  button.className = 'now-widget-button';
+  button.className = 'nownownow-widget-button';
   button.setAttribute('aria-label', 'Open Now Panel');
 
   const text = document.createElement('div');
@@ -99,4 +100,94 @@ export function createNowButton(config?: ButtonConfig): ButtonInstance {
       container.remove();
     },
   };
+}
+
+type ButtonPosition = "left" | "right";
+
+interface ButtonProps {
+  onClick: () => void;
+  isOpen: boolean;
+  isVisible: boolean;
+  size?: string;
+  color?: string;
+  position?: ButtonPosition;
+}
+
+export const createButtonContainer = (): HTMLDivElement => {
+  const container = document.createElement("div");
+  container.id = 'nownownow-widget-button-container';
+  return container;
+};
+
+export function SpinningButton({
+  onClick,
+  isOpen = false,
+  isVisible = true,
+  size = "48",
+  color = "#f59e0b",
+  position = "right",
+}: ButtonProps) {
+  // Convert size to number for calculations
+  const sizeNum = parseInt(size, 10);
+  const scaledFontSize = Math.max(10, Math.floor(sizeNum / 4));
+
+  const style = `
+    .nownownow-widget-button {
+      position: fixed;
+      ${position}: 20px;
+      bottom: 20px;
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      background-color: ${color};
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+      cursor: pointer;
+      border: none;
+      outline: none;
+      z-index: 999999;
+      transform: ${isVisible ? 'scale(1)' : 'scale(0)'};
+      transition: transform 0.3s ease-in-out, box-shadow 0.2s ease;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
+                   Helvetica, Arial, sans-serif;
+      overflow: hidden;
+    }
+    
+    .rotating-text {
+      font-size: ${scaledFontSize}px;
+      font-weight: bold;
+      transition: transform 0.3s ease;
+      transform: ${isOpen ? 'rotate(45deg)' : 'rotate(0)'};
+    }
+    
+    .nownownow-widget-button:hover {
+      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .nownownow-widget-button:hover .rotating-text {
+      transform: ${isOpen ? 'rotate(90deg)' : 'rotate(45deg)'};
+    }
+    
+    @media (prefers-reduced-motion: reduce) {
+      .nownownow-widget-button, .rotating-text {
+        transition: none !important;
+      }
+    }
+  `;
+
+  const styleElement = document.createElement('style');
+  styleElement.textContent = style;
+  document.head.appendChild(styleElement);
+
+  // Create the button element using h()
+  return h('button', {
+    className: 'nownownow-widget-button',
+    'aria-label': `${isOpen ? 'Close' : 'Open'} Now Panel`,
+    onClick: onClick
+  }, [
+    h('span', { className: 'rotating-text' }, '+')
+  ]);
 }

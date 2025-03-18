@@ -1,10 +1,12 @@
 import { Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
+import "./App.css";
 import { FeedbackPanel } from "./components/FeedbackPanel";
 import "./components/IntegrationTutorial.css";
 import { OrganizationProfile } from "./components/OrganizationProfile";
 import { PostCard } from "./components/PostCard";
 import { api } from "./services/apiService";
+import "./styles/nowWidgetStyles.css";
 import { type WidgetOrgInfo, type WidgetPost } from "./types/api";
 
 interface Props {
@@ -23,6 +25,9 @@ export default function App({ theme = "light", orgId, token }: Props) {
   const [activeTab, setActiveTab] = useState<"feed" | "feedback">("feed");
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
+
+  const isDark = theme === "dark";
+  const widgetThemeClass = isDark ? "nownownow-widget-dark" : "";
 
   useEffect(() => {
     async function fetchData() {
@@ -53,26 +58,26 @@ export default function App({ theme = "light", orgId, token }: Props) {
         // Extract posts from the response
         if (postsResponse.data) {
           console.log("Posts API Response Details:", {
-            postsCount: postsResponse.data.posts?.length || 0,
+            postsCount: postsResponse.data?.posts?.length || 0,
             firstPost:
-              postsResponse.data.posts?.length > 0
+              postsResponse.data?.posts && postsResponse.data?.posts.length > 0
                 ? {
-                    id: postsResponse.data.posts[0].id,
+                    id: postsResponse.data.posts[0]?.id,
                     content:
-                      postsResponse.data.posts[0].content.substring(0, 50) +
+                      postsResponse.data.posts[0]?.content?.substring(0, 50) +
                       "...", // Truncate for readability
                     authorInfo: {
-                      user: postsResponse.data.posts[0].user,
-                      author: postsResponse.data.posts[0].author,
-                      userId: postsResponse.data.posts[0].userId,
+                      user: postsResponse.data.posts[0]?.user,
+                      author: postsResponse.data.posts[0]?.author,
+                      userId: postsResponse.data.posts[0]?.userId,
                     },
-                    hasMedia: !!postsResponse.data.posts[0].media?.length,
+                    hasMedia: !!postsResponse.data.posts[0]?.media?.length,
                     hasAttachments:
-                      !!postsResponse.data.posts[0].attachments?.length,
+                      !!postsResponse.data.posts[0]?.attachments?.length,
                   }
                 : null,
-            nextCursor: postsResponse.data.nextCursor,
-            hasMore: postsResponse.data.hasMore,
+            nextCursor: postsResponse.data?.nextCursor,
+            hasMore: postsResponse.data?.hasMore,
           });
 
           setPosts(postsResponse.data.posts || []);
@@ -100,8 +105,6 @@ export default function App({ theme = "light", orgId, token }: Props) {
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const isDark = theme === "dark";
-
   // Set up intersection observer for infinite scrolling
   useEffect(() => {
     const loaderElement = loaderRef.current;
@@ -124,17 +127,17 @@ export default function App({ theme = "light", orgId, token }: Props) {
             firstNewPost:
               newPosts.length > 0
                 ? {
-                    id: newPosts[0].id,
-                    content: newPosts[0].content.substring(0, 50) + "...",
+                    id: newPosts[0]?.id,
+                    content: newPosts[0]?.content?.substring(0, 50) + "...",
                     authorInfo: {
-                      user: newPosts[0].user,
-                      author: newPosts[0].author,
-                      userId: newPosts[0].userId,
+                      user: newPosts[0]?.user,
+                      author: newPosts[0]?.author,
+                      userId: newPosts[0]?.userId,
                     },
                   }
                 : null,
-            nextCursor: response.data.nextCursor,
-            hasMore: response.data.hasMore,
+            nextCursor: response.data?.nextCursor,
+            hasMore: response.data?.hasMore,
           });
 
           setPosts((prev) => [...prev, ...newPosts]);
@@ -194,16 +197,16 @@ export default function App({ theme = "light", orgId, token }: Props) {
   if (isLoading) {
     return (
       <div
-        class={`w-full h-full flex flex-col items-center justify-center ${
+        class={`nownownow-widget-loading-container w-full h-full flex flex-col items-center justify-center ${
           isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
         }`}
       >
         <div
-          class={`w-8 h-8 border-2 rounded-full border-t-transparent animate-spin mb-4 ${
+          class={`nownownow-widget-loading-spinner w-8 h-8 border-2 rounded-full border-t-transparent animate-spin mb-4 ${
             isDark ? "border-slate-600" : "border-slate-300"
           }`}
         ></div>
-        <p class="text-sm">Loading...</p>
+        <p class="nownownow-widget-loading-text text-sm">Loading...</p>
       </div>
     );
   }
@@ -211,18 +214,20 @@ export default function App({ theme = "light", orgId, token }: Props) {
   if (error) {
     return (
       <div
-        class={`w-full h-full flex flex-col items-center justify-center p-6 ${
+        class={`nownownow-widget-error-container w-full h-full flex flex-col items-center justify-center p-6 ${
           isDark ? "bg-slate-900 text-slate-200" : "bg-slate-50 text-slate-700"
         }`}
       >
         <div
-          class={`mb-4 p-3 rounded-full ${
+          class={`nownownow-widget-error-icon mb-4 p-3 rounded-full ${
             isDark ? "bg-red-900/20" : "bg-red-100"
           }`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class={`w-6 h-6 ${isDark ? "text-red-400" : "text-red-500"}`}
+            class={`nownownow-widget-error-svg w-6 h-6 ${
+              isDark ? "text-red-400" : "text-red-500"
+            }`}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -235,20 +240,16 @@ export default function App({ theme = "light", orgId, token }: Props) {
             <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
         </div>
-        <p class="text-center">{error}</p>
+        <p class="nownownow-widget-error-message text-center">{error}</p>
       </div>
     );
   }
 
   return (
-    <div
-      className={`w-full h-full relative ${
-        isDark ? "bg-slate-900" : "bg-white"
-      }`}
-    >
-      <div className="flex border-b border-slate-200">
+    <div className={widgetThemeClass}>
+      <div className="nownownow-widget-tab-container flex border-b border-slate-200">
         <button
-          className={`px-4 py-2 text-xs font-medium transition-colors ${
+          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
             activeTab === "feed"
               ? isDark
                 ? "text-blue-400 border-b-2 border-blue-500"
@@ -262,7 +263,7 @@ export default function App({ theme = "light", orgId, token }: Props) {
           Feed
         </button>
         <button
-          className={`px-4 py-2 text-xs font-medium transition-colors ${
+          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
             activeTab === "feedback"
               ? isDark
                 ? "text-blue-400 border-b-2 border-blue-500"
@@ -282,10 +283,10 @@ export default function App({ theme = "light", orgId, token }: Props) {
           <OrganizationProfile orgInfo={orgInfo} theme={theme} />
 
           <div
-            className="overflow-auto h-[calc(100%-90px)]"
+            className="nownownow-widget-post-container overflow-auto h-[calc(100%-90px)]"
             ref={scrollAreaRef}
           >
-            <div className="px-4 py-3">
+            <div className="nownownow-widget-post-wrapper px-4 py-3">
               {posts.length > 0 ? (
                 <Fragment>
                   {posts.map((post) => (
@@ -301,22 +302,29 @@ export default function App({ theme = "light", orgId, token }: Props) {
                   ))}
 
                   {/* Infinite scroll loader */}
-                  <div ref={loaderRef} className="py-4 flex justify-center">
+                  <div
+                    ref={loaderRef}
+                    className="nownownow-widget-loader py-4 flex justify-center"
+                  >
                     {isLoadingMore && (
                       <div
-                        className={`w-6 h-6 border-2 rounded-full border-t-transparent animate-spin ${
+                        className={`nownownow-widget-loader-spinner w-6 h-6 border-2 rounded-full border-t-transparent animate-spin ${
                           isDark ? "border-slate-600" : "border-slate-300"
                         }`}
                       ></div>
                     )}
-                    {!isLoadingMore && hasMore && <div className="h-10"></div>}
+                    {!isLoadingMore && hasMore && (
+                      <div className="nownownow-widget-loader-spacer h-10"></div>
+                    )}
                     {!hasMore && posts.length > 10 && (
-                      <p className="text-xs text-slate-500">No more updates</p>
+                      <p className="nownownow-widget-no-more-posts text-xs text-slate-500">
+                        No more updates
+                      </p>
                     )}
                   </div>
                 </Fragment>
               ) : (
-                <p className="text-center py-6 text-sm text-slate-500">
+                <p className="nownownow-widget-no-posts text-center py-6 text-sm text-slate-500">
                   No updates yet
                 </p>
               )}
@@ -326,7 +334,7 @@ export default function App({ theme = "light", orgId, token }: Props) {
           {showScrollTop && (
             <button
               onClick={scrollToTop}
-              class={`absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
+              class={`nownownow-widget-scroll-top absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
                 isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
               }`}
               aria-label="Scroll to top"

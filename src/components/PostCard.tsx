@@ -57,7 +57,7 @@ function processHashtags(content: string): h.JSX.Element {
       {words.map((word, index) => {
         if (word.match(/^#[\w-]+/)) {
           return (
-            <a key={index} href="#" className="now-widget-hashtag">
+            <a key={index} href="#" className="nownownow-widget-hashtag">
               {word}
             </a>
           );
@@ -74,14 +74,16 @@ function renderContent(content: string): h.JSX.Element {
     return (
       <div
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
-        className="now-widget-post-content"
+        className="nownownow-widget-post-content"
       />
     );
   }
 
   // Otherwise, handle it as plain text with hashtag formatting
   return (
-    <div className="now-widget-post-content">{processHashtags(content)}</div>
+    <div className="nownownow-widget-post-content">
+      {processHashtags(content)}
+    </div>
   );
 }
 
@@ -142,45 +144,53 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   };
 
   return (
-    <div className={`now-widget-post ${isDark ? "now-widget-post-dark" : ""}`}>
-      <div className="now-widget-post-header">
-        <div className="now-widget-post-author">
-          <div className="now-widget-post-avatar">
+    <div
+      className={`nownownow-widget-post ${
+        isDark ? "nownownow-widget-post-dark" : ""
+      }`}
+    >
+      <div className="nownownow-widget-post-header">
+        <div className="nownownow-widget-post-author">
+          <div className="nownownow-widget-post-avatar">
             {authorImage ? (
               <img
                 src={authorImage}
                 alt={authorName}
-                className="now-widget-avatar-img"
+                className="nownownow-widget-avatar-img"
               />
             ) : (
               getInitial(authorName)
             )}
           </div>
-          <div className="now-widget-post-author-info">
-            <div className="now-widget-post-author-name">{authorName}</div>
-            <div className="now-widget-post-time">
+          <div className="nownownow-widget-post-author-info">
+            <div className="nownownow-widget-post-author-name">
+              {authorName}
+            </div>
+            <div className="nownownow-widget-post-time">
               {formatTimeAgo(createdAt)}
             </div>
           </div>
         </div>
       </div>
 
-      <div className="now-widget-post-body">
-        {post?.title && <h3 className="now-widget-post-title">{post.title}</h3>}
+      <div className="nownownow-widget-post-body">
+        {post?.title && (
+          <h3 className="nownownow-widget-post-title">{post.title}</h3>
+        )}
 
         {renderContent(content)}
 
         {/* If post has image */}
         {imageUrl && (
           <div
-            className="now-widget-post-image"
+            className="nownownow-widget-post-image"
             style={{ backgroundImage: `url(${imageUrl})` }}
           />
         )}
       </div>
 
-      <div className="now-widget-post-stats">
-        <div className="now-widget-post-stat now-widget-post-likes">
+      <div className="nownownow-widget-post-stats">
+        <div className="nownownow-widget-post-stat nownownow-widget-post-likes">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="16"
@@ -198,7 +208,7 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
         </div>
 
         <div
-          className="now-widget-post-stat now-widget-post-comments"
+          className="nownownow-widget-post-stat nownownow-widget-post-comments"
           onClick={handleCommentsToggle}
           style={{ cursor: "pointer" }}
         >
@@ -221,9 +231,9 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
       {/* Comments section (expanded when clicked) */}
       {showComments && (
-        <div className="now-widget-post-comments-section">
-          <h3 className="now-widget-comments-header">Comments</h3>
-          <div className="now-widget-comments-list">
+        <div className="nownownow-widget-post-comments-section">
+          <h3 className="nownownow-widget-comments-header">Comments</h3>
+          <div className="nownownow-widget-comments-list">
             {post?.comments && post.comments.length > 0 ? (
               post.comments.map((comment: any) => {
                 // Get comment author info - only use user field
@@ -231,34 +241,34 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
                 const commentAuthorImage = comment.user?.image || null;
 
                 return (
-                  <div key={comment.id} className="now-widget-comment">
-                    <div className="now-widget-comment-header">
-                      <div className="now-widget-comment-avatar">
+                  <div key={comment.id} className="nownownow-widget-comment">
+                    <div className="nownownow-widget-comment-header">
+                      <div className="nownownow-widget-comment-avatar">
                         {commentAuthorImage ? (
                           <img
                             src={commentAuthorImage}
                             alt={commentAuthorName}
-                            className="now-widget-avatar-img"
+                            className="nownownow-widget-avatar-img"
                           />
                         ) : (
                           commentAuthorName.charAt(0) || "U"
                         )}
                       </div>
-                      <div className="now-widget-comment-author">
+                      <div className="nownownow-widget-comment-author">
                         {commentAuthorName}
                       </div>
-                      <div className="now-widget-comment-time">
+                      <div className="nownownow-widget-comment-time">
                         {formatCommentDate(comment.createdAt)}
                       </div>
                     </div>
-                    <div className="now-widget-comment-content">
+                    <div className="nownownow-widget-comment-content">
                       {comment.content}
                     </div>
                   </div>
                 );
               })
             ) : (
-              <p className="now-widget-no-comments">No comments yet</p>
+              <p className="nownownow-widget-no-comments">No comments yet</p>
             )}
           </div>
         </div>
