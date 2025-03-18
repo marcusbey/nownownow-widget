@@ -247,13 +247,13 @@ export default function App({ theme = "light", orgId, token }: Props) {
 
   return (
     <div className={widgetThemeClass}>
-      <div className="nownownow-widget-tab-container flex border-b border-slate-200">
+      <div className="nownownow-widget-tab-container flex border-b border-slate-200 sticky top-0 z-20 bg-inherit shadow-sm">
         <button
-          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
+          className={`nownownow-widget-tab-button px-4 py-3 text-sm font-medium transition-colors flex-1 ${
             activeTab === "feed"
               ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500"
-                : "text-blue-600 border-b-2 border-blue-500"
+                ? "text-blue-400 border-b-2 border-blue-500 bg-slate-800/50"
+                : "text-blue-600 border-b-2 border-blue-500 bg-slate-50/50"
               : isDark
               ? "text-slate-400 hover:text-slate-300"
               : "text-slate-500 hover:text-slate-700"
@@ -263,11 +263,11 @@ export default function App({ theme = "light", orgId, token }: Props) {
           Feed
         </button>
         <button
-          className={`nownownow-widget-tab-button px-4 py-2 text-xs font-medium transition-colors ${
+          className={`nownownow-widget-tab-button px-4 py-3 text-sm font-medium transition-colors flex-1 ${
             activeTab === "feedback"
               ? isDark
-                ? "text-blue-400 border-b-2 border-blue-500"
-                : "text-blue-600 border-b-2 border-blue-500"
+                ? "text-blue-400 border-b-2 border-blue-500 bg-slate-800/50"
+                : "text-blue-600 border-b-2 border-blue-500 bg-slate-50/50"
               : isDark
               ? "text-slate-400 hover:text-slate-300"
               : "text-slate-500 hover:text-slate-700"
@@ -283,10 +283,10 @@ export default function App({ theme = "light", orgId, token }: Props) {
           <OrganizationProfile orgInfo={orgInfo} theme={theme} />
 
           <div
-            className="nownownow-widget-post-container overflow-auto h-[calc(100%-90px)]"
+            className="nownownow-widget-post-container overflow-auto h-[calc(100vh-160px)] relative"
             ref={scrollAreaRef}
           >
-            <div className="nownownow-widget-posts-container px-4 py-3">
+            <div className="nownownow-widget-posts-container px-4 py-3 pt-2">
               {posts.length > 0 ? (
                 <Fragment>
                   {posts.map((post) => (

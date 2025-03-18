@@ -192,9 +192,11 @@ const panelStyles = `
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: 20;
     width: 100%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
   }
 
   /* Add an overlay behind header to ensure no content shows through */

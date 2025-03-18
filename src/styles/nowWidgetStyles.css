@@ -9,15 +9,6 @@
     0;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   background-color: var(--nownownow-bg-color);
-  position: relative;
-  z-index: 1;
-}
-
-/* Add a container class for posts */
-.nownownow-widget-posts-container {
-  padding-top: 10px; /* Add some space between header and first post */
-  position: relative;
-  z-index: 1;
 }
 
 .nownownow-widget-post:hover {
@@ -195,11 +186,46 @@
   padding: 0;
   border-bottom: 1px solid var(--nownownow-border-color);
   background-color: var(--nownownow-bg-color);
-  position: relative;
+  position: sticky;
+  top: 44px; /* Match tab container height */
   z-index: 10;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
   margin-bottom: 16px;
+}
+
+/* Add styles for the tab container */
+.nownownow-widget-tab-container {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--nownownow-border-color);
+  height: 44px; /* Fixed height for consistent spacing */
+  display: flex;
+  align-items: stretch;
+}
+
+.nownownow-widget-dark .nownownow-widget-tab-container {
+  background-color: rgba(15, 23, 42, 0.92);
+}
+
+.nownownow-widget-tab-container:not(.nownownow-widget-dark) {
+  background-color: rgba(255, 255, 255, 0.92);
+}
+
+.nownownow-widget-tab-button {
+  position: relative;
+  transition: all 0.2s ease;
+  user-select: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.nownownow-widget-tab-button:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.nownownow-widget-dark .nownownow-widget-tab-button:hover {
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .nownownow-widget-org-banner {
@@ -242,19 +268,6 @@
   margin-top: -40px;
   position: relative;
   padding-bottom: 16px;
-  background-color: var(--nownownow-bg-color);
-}
-
-/* Add a solid background extension behind the profile */
-.nownownow-widget-org-profile::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -10px; /* Extend below the profile */
-  height: 10px;
-  background-color: var(--nownownow-bg-color);
-  z-index: 5;
 }
 
 .nownownow-widget-org-avatar {
@@ -863,4 +876,29 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Update the post container for better scroll behavior */
+.nownownow-widget-post-container {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--nownownow-secondary-text-color) transparent;
+}
+
+.nownownow-widget-post-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nownownow-widget-post-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nownownow-widget-post-container::-webkit-scrollbar-thumb {
+  background-color: var(--nownownow-secondary-text-color);
+  border-radius: 3px;
+}
+
+.nownownow-widget-dark
+  .nownownow-widget-post-container::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
 }
