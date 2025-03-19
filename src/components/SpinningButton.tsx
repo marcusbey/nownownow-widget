@@ -86,6 +86,7 @@ export function SpinningButton({
                   opacity 0.3s ease-in-out;
       transform: translateX(${isOpen ? (position === 'right' ? '-' : '') + 'min(600px, 80vw)' : '0'});
       opacity: ${isVisible ? '1' : '0'};
+      position: relative;
     }
 
     .button {
@@ -139,6 +140,19 @@ export function SpinningButton({
       transition: opacity 0.3s ease-in-out;
       pointer-events: none;
     }
+    
+    .spinning-ring {
+      position: absolute;
+      width: calc(${size}px + 12px);
+      height: calc(${size}px + 12px);
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top: 2px solid #ffffff;
+      animation: spin 1.5s linear infinite;
+      top: -6px;
+      left: -6px;
+      pointer-events: none;
+    }
 
     @media (max-width: 768px) {
       .button-wrapper {
@@ -160,6 +174,7 @@ export function SpinningButton({
   return (
     <div class="button-wrapper">
       <style>{buttonStyle}</style>
+      <div class="spinning-ring"></div>
       <button 
         ref={buttonRef}
         class="button"
