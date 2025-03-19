@@ -1,7 +1,7 @@
 import { signal } from "@preact/signals";
 import { h, render } from "preact";
 import App from "./App";
-import { SpinningButton } from "./components/SpinningButton";
+import { NowButton } from "./components/NowButton";
 import { apiStore as importedApiStore } from "./config/api";
 import "./index.css";
 import "./styles/nowWidgetStyles.css";
@@ -445,7 +445,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Render button - define this function before any code that uses it
     const renderButton = () => {
       render(
-        h(SpinningButton, {
+        h(NowButton, {
           size: String(config.buttonSize || 48),
           color: config.buttonColor || "#f59e0b",
           position: (config.position || "right") as WidgetPosition,

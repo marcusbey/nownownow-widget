@@ -39,7 +39,7 @@ export interface WidgetProps {
   onToggle?: () => void;
 }
 
-export interface SpinningButtonProps {
+export interface NowButtonProps {
   size: string;
   color: string;
   position: WidgetPosition;

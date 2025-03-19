@@ -1,6 +1,6 @@
 import { h, render } from 'preact';
 import App from './App';
-import { SpinningButton } from './components/SpinningButton';
+import { NowButton } from './components/NowButton';
 import './index.css';
 import './styles/nowWidgetStyles.css';
 import type { WidgetPosition } from './types/widget';
@@ -352,7 +352,7 @@ export class NowPanelElement extends HTMLElement {
   // Render button
   private renderButton() {
     render(
-      h(SpinningButton, {
+      h(NowButton, {
         size: this.getAttribute('button-size') || '60',
         color: this.getAttribute('button-color') || '#000000',
         position: (this.getAttribute('position') || 'right') as WidgetPosition,

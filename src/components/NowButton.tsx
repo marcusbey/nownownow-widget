@@ -1,23 +1,28 @@
 import { h } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
+import type { WidgetPosition } from '../types/widget';
 
-interface SpinningButtonProps {
+/**
+ * NowButton component props
+ * Used for both the panel and widget implementations
+ */
+export interface NowButtonProps {
   onClick: () => void;
   size?: string;
   color?: string;
-  position?: 'left' | 'right';
+  position?: WidgetPosition;
   isOpen?: boolean;
   isVisible?: boolean;
 }
 
-export function SpinningButton({ 
+export function NowButton({ 
   onClick, 
   size = '48', 
   color = '#f59e0b',
   position = 'right' as 'left' | 'right',
   isOpen = false,
   isVisible = true
-}: SpinningButtonProps) {
+}: NowButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isNear, setIsNear] = useState(false);
