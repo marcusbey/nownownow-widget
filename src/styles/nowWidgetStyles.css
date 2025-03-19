@@ -265,8 +265,9 @@
 .nownownow-widget-org-profile {
   padding: 0;
   background-color: var(--nownownow-bg-color);
-  position: relative;
-  z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 100;
   box-shadow: none;
   overflow: visible;
   margin-bottom: 0;
@@ -276,7 +277,14 @@
 .nownownow-widget-dark .nownownow-widget-org-header,
 .nownownow-widget-dark .nownownow-widget-content-container,
 .nownownow-widget-dark .nownownow-panel-header,
-.nownownow-widget-dark .nownownow-widget-post {
+.nownownow-widget-dark .nownownow-widget-post,
+.nownownow-widget-dark .nownownow-widget-org-info,
+.nownownow-widget-dark .nownownow-widget-tab-nav,
+.nownownow-widget-dark .nownownow-widget-posts,
+.nownownow-widget-dark .nownownow-widget-post-content,
+.nownownow-widget-dark .nownownow-widget-post-footer,
+.nownownow-widget-dark .nownownow-widget-comments,
+.nownownow-widget-dark .nownownow-widget-comment {
   background-color: #121212;
 }
 
@@ -307,7 +315,7 @@
   display: flex;
   align-items: center; /* Change from flex-end to center for vertical alignment */
   gap: 16px;
-  padding: 0 16px;
+  padding: 16px 16px;
   margin-top: -40px; /* Adjusted to match reference */
   position: relative;
   padding-bottom: 24px;
