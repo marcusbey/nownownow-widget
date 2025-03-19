@@ -265,10 +265,8 @@
 .nownownow-widget-org-profile {
   padding: 0;
   background-color: var(--nownownow-bg-color);
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 10;
   overflow: visible;
   margin-bottom: 0;
 }
@@ -313,15 +311,16 @@
 
 .nownownow-widget-org-header {
   display: flex;
-  align-items: center; /* Change from flex-end to center for vertical alignment */
+  align-items: center;
   gap: 16px;
   padding: 16px 16px;
-  margin-top: -40px; /* Adjusted to match reference */
-  position: relative;
-  padding-bottom: 24px;
+  position: sticky;
+  top: 0;
+  padding-bottom: 16px;
   margin-bottom: 16px;
   background-color: var(--nownownow-bg-color);
-  z-index: 5;
+  z-index: 20;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* Removed glassy background effect */
