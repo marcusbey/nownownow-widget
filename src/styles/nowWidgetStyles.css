@@ -267,24 +267,24 @@
   background-color: var(--nownownow-bg-color);
   position: sticky;
   top: 0;
-  z-index: 100;
-  box-shadow: none;
+  z-index: 20;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: visible;
   margin-bottom: 0;
 }
 
+/* Apply consistent background color to all dark theme elements */
 .nownownow-widget-dark .nownownow-widget-org-profile,
 .nownownow-widget-dark .nownownow-widget-org-header,
 .nownownow-widget-dark .nownownow-widget-content-container,
 .nownownow-widget-dark .nownownow-panel-header,
 .nownownow-widget-dark .nownownow-widget-post,
-.nownownow-widget-dark .nownownow-widget-org-info,
-.nownownow-widget-dark .nownownow-widget-tab-nav,
+.nownownow-widget-dark .nownownow-widget-tabs,
 .nownownow-widget-dark .nownownow-widget-posts,
 .nownownow-widget-dark .nownownow-widget-post-content,
-.nownownow-widget-dark .nownownow-widget-post-footer,
 .nownownow-widget-dark .nownownow-widget-comments,
-.nownownow-widget-dark .nownownow-widget-comment {
+.nownownow-widget-dark .nownownow-widget-comment,
+.nownownow-widget-dark .nownownow-panel {
   background-color: #121212;
 }
 
@@ -300,7 +300,7 @@
 }
 
 .nownownow-widget-dark .nownownow-widget-org-banner {
-  background-color: #1a1a1a; /* Darker background for dark mode */
+  background-color: #121212; /* Consistent dark background for dark mode */
 }
 
 .nownownow-widget-org-banner-overlay {
