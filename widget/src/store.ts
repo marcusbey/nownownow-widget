@@ -2,7 +2,7 @@ import { Signal, signal } from '@preact/signals';
 import type { Organization, Post, WidgetConfig } from './types';
 import { apiStore } from '../../src/config/api';
 
-class WidgetStore {
+export class WidgetStore {
   config: WidgetConfig;
   isOpen: Signal<boolean>;
   organization: Signal<Organization | null>;

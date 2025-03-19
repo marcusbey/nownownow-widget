@@ -1,4 +1,6 @@
-import { h } from 'preact';
+/** @jsx h */
+/** @jsxFrag Fragment */
+import { h, Fragment } from 'preact';
 import { useEffect } from 'preact/hooks';
 import { NowButton } from './components/NowButton';
 import { Panel } from './components/Panel';
@@ -29,11 +31,14 @@ export function Widget({ config }: Props) {
         color={config.buttonColor}
         onClick={() => store.togglePanel()}
         position={config.position}
+        size={config.buttonSize}
+        backgroundColor={config.buttonBackgroundColor}
+        updated={config.updated}
       />
       <Panel
         isOpen={store.isOpen.value}
         onClose={() => store.isOpen.value = false}
-        user={store.user.value}
+        user={store.organization.value}
         posts={store.posts.value}
         position={config.position}
         theme={config.theme}

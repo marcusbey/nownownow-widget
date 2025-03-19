@@ -3,6 +3,59 @@ import { h, FunctionComponent } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { cn } from '../utils/cn';
 import type { JSX } from 'preact';
+import '../styles/button.css';
+
+// Helper function to convert any color format to rgba values
+function parseColor(color: string): { r: number; g: number; b: number } {
+  // Default values
+  const defaultColor = { r: 0, g: 0, b: 0 };
+  
+  // Handle CSS variables
+  if (color.startsWith('hsl(var(') || color.startsWith('rgb(var(')) {
+    // For CSS variables, we'll use a default shadow color
+    return { r: 255, g: 69, b: 0 }; // Default to orange-red
+  }
+  
+  // Handle hex colors
+  if (color.startsWith('#')) {
+    try {
+      const hex = color.slice(1);
+      if (hex.length === 3) {
+        // Convert shorthand hex to full hex
+        const r = parseInt(hex[0] + hex[0], 16);
+        const g = parseInt(hex[1] + hex[1], 16);
+        const b = parseInt(hex[2] + hex[2], 16);
+        return { r, g, b };
+      } else if (hex.length === 6) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return { r, g, b };
+      }
+    } catch (e) {
+      console.error('Error parsing hex color:', e);
+      return defaultColor;
+    }
+  }
+  
+  // Handle rgb/rgba colors
+  if (color.startsWith('rgb')) {
+    try {
+      const rgbMatch = color.match(/\d+/g);
+      if (rgbMatch && rgbMatch.length >= 3) {
+        const r = parseInt(rgbMatch[0], 10);
+        const g = parseInt(rgbMatch[1], 10);
+        const b = parseInt(rgbMatch[2], 10);
+        return { r, g, b };
+      }
+    } catch (e) {
+      console.error('Error parsing rgb color:', e);
+      return defaultColor;
+    }
+  }
+  
+  return defaultColor;
+}
 
 interface NowButtonProps {
   updated?: boolean;
@@ -106,24 +159,30 @@ export const NowButton: FunctionComponent<NowButtonProps> = ({
     transition: "animation-duration 0.3s ease-in-out",
   };
 
-  const getCharStyle = (index: number): JSX.CSSProperties => ({
-    "--index": index,
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    fontSize: "1.1rem",
-    fontWeight: "bold",
-    background: `linear-gradient(45deg, ${color}, #FF4500)`,
-    WebkitBackgroundClip: "text",
-    WebkitTextFillColor: "transparent",
-    backgroundClip: "text",
-    color: "transparent",
-    transform: `
-      translate(-50%, -50%)
-      rotate(calc(var(--inner-angle) * var(--index)))
-      translateY(var(--radius, -4ch))
-    `,
-  });
+  const getCharStyle = (index: number): JSX.CSSProperties => {
+    // Create a gradient that works with any color format
+    const { r, g, b } = parseColor(color);
+    const gradientColor = `rgb(${r}, ${g}, ${b})`;
+    
+    return {
+      "--index": index,
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      fontSize: "1.1rem",
+      fontWeight: "bold",
+      background: `linear-gradient(45deg, ${gradientColor}, #FF4500)`,
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      backgroundClip: "text",
+      color: "transparent",
+      transform: `
+        translate(-50%, -50%)
+        rotate(calc(var(--inner-angle) * var(--index)))
+        translateY(var(--radius, -4ch))
+      `,
+    };
+  };
 
   return (
     <div className={cn(
@@ -135,8 +194,10 @@ export const NowButton: FunctionComponent<NowButtonProps> = ({
         ref={buttonRef}
         id="now-widget-button"
         className={cn(
-          "relative cursor-pointer overflow-hidden",
-          "transition-transform duration-300 ease-in-out hover:scale-110"
+          "relative cursor-pointer overflow-hidden rounded-full",
+          "transition-all duration-300 ease-in-out",
+          isHovered ? "hover:scale-110" : "",
+          isNear ? "hover:shadow-lg" : ""
         )}
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -148,8 +209,12 @@ export const NowButton: FunctionComponent<NowButtonProps> = ({
           border: "none",
           padding: 0,
           outline: "none",
-          boxShadow: "none",
+          boxShadow: isHovered ? (() => {
+            const { r, g, b } = parseColor(color);
+            return `0 0 15px rgba(${r}, ${g}, ${b}, 0.5)`;
+          })() : "none",
           position: "relative",
+          animation: isHovered ? "pulse 2s infinite" : "none"
         } as JSX.CSSProperties}
       >
         <div className="relative w-full h-full flex justify-center items-center">

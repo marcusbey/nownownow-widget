@@ -4,6 +4,9 @@ export interface WidgetConfig {
   theme: 'light' | 'dark';
   position: 'left' | 'right';
   buttonColor: string;
+  buttonSize?: number;
+  buttonBackgroundColor?: string;
+  updated?: boolean;
 }
 
 export interface Post {

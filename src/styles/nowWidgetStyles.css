@@ -141,6 +141,86 @@
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
 }
 
+/* Media Display Styles */
+.nownownow-widget-media-container {
+  margin-top: 12px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.nownownow-widget-media-grid {
+  display: grid;
+  grid-gap: 4px;
+  width: 100%;
+}
+
+/* Grid layouts based on number of images */
+.nownownow-widget-media-grid-single {
+  grid-template-columns: 1fr;
+}
+
+.nownownow-widget-media-grid-two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.nownownow-widget-media-grid-three {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.nownownow-widget-media-grid-three .nownownow-widget-media-item:first-child {
+  grid-row: span 2;
+}
+
+.nownownow-widget-media-grid-four,
+.nownownow-widget-media-grid-many {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.nownownow-widget-media-item {
+  position: relative;
+  cursor: pointer;
+  height: 0;
+  padding-bottom: 100%;
+  overflow: hidden;
+}
+
+.nownownow-widget-media-grid-single .nownownow-widget-media-item {
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+}
+
+.nownownow-widget-media-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.nownownow-widget-media-item:hover .nownownow-widget-media-image {
+  transform: scale(1.05);
+}
+
+.nownownow-widget-media-more {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Legacy post image style for backward compatibility */
 .nownownow-widget-post-image {
   width: 100%;
   height: 200px;
@@ -187,74 +267,60 @@
   background-color: var(--nownownow-bg-color);
   position: relative;
   z-index: 10;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   overflow: visible;
   margin-bottom: 0;
 }
 
-.nownownow-widget-dark .nownownow-widget-org-profile {
-  background-color: #0f172a;
+.nownownow-widget-dark .nownownow-widget-org-profile,
+.nownownow-widget-dark .nownownow-widget-org-header,
+.nownownow-widget-dark .nownownow-widget-content-container,
+.nownownow-widget-dark .nownownow-panel-header,
+.nownownow-widget-dark .nownownow-widget-post {
+  background-color: #121212;
 }
 
 .nownownow-widget-org-banner {
   width: 100%;
-  height: 140px;
+  height: 180px;
   background-color: var(--nownownow-primary-color-light);
   background-size: cover;
   background-position: center;
   position: relative;
+  border-radius: 0;
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.1); /* Subtle bottom border */
+}
+
+.nownownow-widget-dark .nownownow-widget-org-banner {
+  background-color: #1a1a1a; /* Darker background for dark mode */
 }
 
 .nownownow-widget-org-banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.3) 70%,
-    rgba(0, 0, 0, 0.5) 100%
-  );
+  display: none; /* Remove overlay completely to eliminate any gradient effect */
 }
 
 .nownownow-widget-dark .nownownow-widget-org-banner-overlay {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.4) 70%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
+  display: none; /* Remove overlay completely in dark mode as well */
 }
 
 .nownownow-widget-org-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center; /* Change from flex-end to center for vertical alignment */
   gap: 16px;
   padding: 0 16px;
-  margin-top: -40px;
+  margin-top: -40px; /* Adjusted to match reference */
   position: relative;
-  padding-bottom: 20px;
+  padding-bottom: 24px;
+  margin-bottom: 16px;
   background-color: var(--nownownow-bg-color);
+  z-index: 5;
 }
 
-/* Add glassy background effect for the sticky header */
-.nownownow-widget-org-header::before {
-  content: "";
-  position: absolute;
-  top: -30px;
-  left: 0;
-  right: 0;
-  height: 30px;
-  background: linear-gradient(to top, var(--nownownow-bg-color), transparent);
-  z-index: -1;
-  pointer-events: none;
-}
+/* Removed glassy background effect */
 
 .nownownow-widget-org-avatar {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background-color: var(--nownownow-avatar-bg);
   overflow: hidden;
@@ -264,10 +330,11 @@
   justify-content: center;
   font-weight: bold;
   color: var(--nownownow-text-color);
-  font-size: 32px;
-  border: 4px solid var(--nownownow-bg-color);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 1;
+  font-size: 24px;
+  border: 2px solid var(--nownownow-bg-color);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  position: relative;
 }
 
 .nownownow-widget-org-avatar img {
@@ -345,8 +412,15 @@
   background-color: var(--nownownow-bg-color);
   border-bottom: 1px solid var(--nownownow-border-color);
   padding: 0 16px;
-  position: relative;
-  z-index: 10;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  /* Ensure the tab menu stays fixed at the top */
+  position: sticky;
+  top: 0;
+  width: 100%;
+  height: 50px; /* Fixed height for consistency */
 }
 
 .nownownow-widget-dark .nownownow-widget-tab-nav {
@@ -365,6 +439,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  justify-content: center;
 }
 
 .nownownow-widget-tab.active {
@@ -403,7 +479,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -465,6 +541,68 @@
   width: 100%;
   border-radius: 8px;
   margin-bottom: 16px;
+}
+
+/* Image Modal Styles */
+.nownownow-widget-image-modal {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.nownownow-widget-image-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-height: 80vh;
+}
+
+.nownownow-widget-modal-image {
+  max-width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.nownownow-widget-image-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 16px 0;
+  color: white;
+}
+
+.nownownow-widget-image-nav-button {
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.nownownow-widget-image-nav-button:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.nownownow-widget-image-counter {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
 }
 
 .nownownow-widget-modal-post-stats {
@@ -924,14 +1062,16 @@
   overflow-y: auto;
   position: relative;
   background-color: var(--nownownow-bg-color);
+  padding-top: 0;
+  margin-top: 0;
+  z-index: 10; /* Ensure content is below the sticky tab nav */
 }
 
-.nownownow-widget-dark .nownownow-widget-content-container {
-  background-color: #0f172a;
-}
+/* Dark theme background already defined above */
 
 .nownownow-widget-posts {
   padding: 16px;
+  padding-top: 8px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -1017,7 +1157,6 @@
 }
 
 .nownownow-widget-dark .nownownow-panel-header {
-  background-color: rgba(15, 23, 42, 0.98);
   border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
