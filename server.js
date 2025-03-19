@@ -76,5 +76,5 @@ server.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}/`);
   console.log(`Widget is available at http://localhost:${PORT}/now-widget.js`);
   console.log(`To test the widget, create an HTML file with this script tag:`);
-  console.log(`<script src="http://localhost:${PORT}/now-widget.js" data-org-id="your-org-id" data-token="your-token"></script>`);
+  console.log(`<script src="http://localhost:${PORT}/now-widget.js" now-data-org-id="your-org-id" now-data-token="your-token"></script>`);
 }); 

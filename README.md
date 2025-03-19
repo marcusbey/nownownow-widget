@@ -76,11 +76,11 @@ npm install @your-org/now-widget
 <script
   defer
   src="path/to/now-widget.js"
-  data-org-id="org123"
-  data-token="your-jwt-token"
-  data-theme="light"
-  data-position="right"
-  data-button-color="#0066FF"
+  now-data-org-id="org123"
+  now-data-token="your-jwt-token"
+  now-data-theme="light"
+  now-data-position="right"
+  now-data-button-color="#0066FF"
 ></script>
 \`\`\`
 
@@ -90,11 +90,11 @@ The widget can be customized using data attributes:
 
 | Attribute | Type | Description | Default |
 |-----------|------|-------------|---------|
-| data-org-id | string | Organization ID to fetch posts for | Required |
-| data-token | string | JWT authentication token | Required |
-| data-theme | 'light' \| 'dark' | Widget theme | 'light' |
-| data-position | 'left' \| 'right' | Button and panel position | 'right' |
-| data-button-color | string | Button background color (hex/rgb) | '#0066FF' |
+| now-data-org-id | string | Organization ID to fetch posts for | Required |
+| now-data-token | string | JWT authentication token | Required |
+| now-data-theme | 'light' \| 'dark' | Widget theme | 'light' |
+| now-data-position | 'left' \| 'right' | Button and panel position | 'right' |
+| now-data-button-color | string | Button background color (hex/rgb) | '#0066FF' |
 
 ## Development
 

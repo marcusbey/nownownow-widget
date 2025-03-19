@@ -176,9 +176,9 @@
     <!-- Now Widget Script - Initially with left position -->
     <script
       id="now-widget-script"
-      src="http://localhost:3000/now-widget.js"
-      data-org-id="test-org-123"
-      data-token="test-token-456"
+      src="http://localhost:3000/nownownow-widget.js"
+      now-data-org-id="test-org-123"
+      now-data-token="test-token-456"
       data-theme="light"
       data-position="left"
     ></script>
@@ -186,7 +186,7 @@
     <script>
       // Display the configuration in the page
       document.getElementById("script-src").textContent =
-        "http://localhost:3000/now-widget.js";
+        "http://localhost:3000/nownownow-widget.js";
       document.getElementById("org-id").textContent = "test-org-123";
       document.getElementById("token").textContent = "test-token-456";
       document.getElementById("theme").textContent = "light";
@@ -223,9 +223,9 @@
         // Create new script with updated position
         const newScript = document.createElement("script");
         newScript.id = "now-widget-script";
-        newScript.src = "http://localhost:3000/now-widget.js";
-        newScript.setAttribute("data-org-id", "test-org-123");
-        newScript.setAttribute("data-token", "test-token-456");
+        newScript.src = "http://localhost:3000/nownownow-widget.js";
+        newScript.setAttribute("now-data-org-id", "test-org-123");
+        newScript.setAttribute("now-data-token", "test-token-456");
         newScript.setAttribute("data-theme", "light");
         newScript.setAttribute("data-position", position);
 

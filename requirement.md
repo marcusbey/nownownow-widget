@@ -65,12 +65,12 @@ CopyInsert
 <script 
   defer 
   src="https://nownownow.io/dist/now-widget.js" 
-  data-org-id="ORG_ID" 
-  data-token="TOKEN"
-  data-theme="dark"
-  data-position="left"
-  data-button-color="#1a73e8"
-  data-button-size="90">
+  now-data-org-id="ORG_ID" 
+  now-data-token="TOKEN"
+  now-data-theme="dark"
+  now-data-position="left"
+  now-data-button-color="#1a73e8"
+  now-data-button-size="90">
 </script>
 Security Features:
 JWT-based authentication

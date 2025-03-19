@@ -2,6 +2,7 @@ import type { FunctionComponent } from "preact";
 import { h } from "preact";
 import { useState } from "preact/hooks";
 import type { WidgetPost } from "../types/api";
+import { MediaDisplay, type MediaItem } from "./MediaDisplay";
 
 interface PostCardProps {
   post?: WidgetPost;
@@ -108,16 +109,22 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
     userImagePresent: !!post?.user?.image,
   });
 
-  // Check if the post has an image attachment
-  const hasImage =
-    post?.attachments?.some((att) => att.type === "image") ||
-    post?.media?.some((m) => m.type === "image");
-
-  // Try to get image URL from attachments or media
-  const imageUrl = hasImage
-    ? post?.attachments?.find((att) => att.type === "image")?.url ||
-      post?.media?.find((m) => m.type === "image")?.url
-    : undefined;
+  // Check if the post has media
+  const hasMedia = post?.media && post?.media.length > 0;
+  
+  // For backwards compatibility, also check attachments
+  const hasAttachments = post?.attachments && post?.attachments.length > 0;
+  
+  // Convert attachments to media format if needed
+  const mediaItems: MediaItem[] = hasMedia 
+    ? post.media as MediaItem[] 
+    : hasAttachments 
+      ? post.attachments?.map((att) => ({
+          id: att.url, // Use URL as ID if no ID is available
+          url: att.url,
+          type: att.type
+        })) as MediaItem[] || [] 
+      : [];
 
   const handleCommentsToggle = (e: MouseEvent) => {
     e.stopPropagation(); // Prevent the click from bubbling up
@@ -180,11 +187,11 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
         {renderContent(content)}
 
-        {/* If post has image */}
-        {imageUrl && (
-          <div
-            className="nownownow-widget-post-image"
-            style={{ backgroundImage: `url(${imageUrl})` }}
+        {/* If post has media */}
+        {(hasMedia || hasAttachments) && (
+          <MediaDisplay 
+            media={mediaItems} 
+            isDark={isDark} 
           />
         )}
       </div>

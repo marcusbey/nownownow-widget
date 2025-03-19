@@ -35,9 +35,10 @@ const formatBuildTime = (timestamp: string): string => {
 };
 
 console.log(
-  `Now Widget - Build timestamp: ${formatBuildTime(
+  `%c[ORIGINAL APPROACH] Now Widget - Build timestamp: ${formatBuildTime(
     BUILD_TIMESTAMP
-  )} (Montreal time)`
+  )} (Montreal time)`,
+  "background: #ff5722; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;"
 );
 
 // Use a safe reference to the API store with fallback
@@ -73,8 +74,8 @@ declare global {
 
 const isNowWidgetScript = (script: HTMLScriptElement): boolean =>
   script.src.includes("now-widget.js") &&
-  script.hasAttribute("data-org-id") &&
-  script.hasAttribute("data-token");
+  script.hasAttribute("now-data-org-id") &&
+  script.hasAttribute("now-data-token");
 
 const getCurrentScript = (): HTMLScriptElement => {
   const currentScript = document.currentScript as HTMLScriptElement;
@@ -87,7 +88,7 @@ const getCurrentScript = (): HTMLScriptElement => {
 
   if (!widgetScript) {
     throw new Error(
-      "Now Widget: Script element not found. Make sure to include data-org-id and data-token attributes."
+      "Now Widget: Script element not found. Make sure to include now-data-org-id and now-data-token attributes."
     );
   }
 
@@ -101,26 +102,26 @@ const parseButtonSize = (value: string | null): number => {
 
 const getScriptConfig = (): WidgetConfig => {
   const currentScript = getCurrentScript();
-  const orgId = currentScript.getAttribute("data-org-id");
-  const token = currentScript.getAttribute("data-token");
+  const orgId = currentScript.getAttribute("now-data-org-id");
+  const token = currentScript.getAttribute("now-data-token");
 
   if (!orgId || !token) {
     throw new Error(
-      "Now Widget: Missing required configuration (orgId and token). Make sure to include both data-org-id and data-token attributes."
+      "Now Widget: Missing required configuration (orgId and token). Make sure to include both now-data-org-id and now-data-token attributes."
     );
   }
 
   return {
     orgId,
     token,
-    theme: (currentScript.getAttribute("data-theme") || "light") as
+    theme: (currentScript.getAttribute("now-data-theme") || "light") as
       | "light"
       | "dark",
-    position: (currentScript.getAttribute("data-position") || "left") as
+    position: (currentScript.getAttribute("now-data-position") || "left") as
       | "right"
       | "left",
-    buttonColor: currentScript.getAttribute("data-button-color") || "#000000",
-    buttonSize: parseButtonSize(currentScript.getAttribute("data-button-size")),
+    buttonColor: currentScript.getAttribute("now-data-button-color") || "#000000",
+    buttonSize: parseButtonSize(currentScript.getAttribute("now-data-button-size")),
   };
 };
 
@@ -164,28 +165,28 @@ const panelStyles = `
     pointer-events: all;
   }
 
-  .nownownow-panel[data-theme="dark"] {
+  .nownownow-panel[now-data-theme="dark"] {
     background: rgb(15, 23, 42);
   }
 
-  .nownownow-panel[data-position="left"] {
+  .nownownow-panel[now-data-position="left"] {
     left: 0;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
     transform: translateX(-100%);
   }
 
-  .nownownow-panel[data-position="right"] {
+  .nownownow-panel[now-data-position="right"] {
     right: 0;
     left: auto;
     border-left: 1px solid rgba(0, 0, 0, 0.1);
     transform: translateX(100%);
   }
 
-  .nownownow-panel[data-theme="dark"][data-position="left"] {
+  .nownownow-panel[now-data-theme="dark"][now-data-position="left"] {
     border-right-color: rgba(255, 255, 255, 0.1);
   }
 
-  .nownownow-panel[data-theme="dark"][data-position="right"] {
+  .nownownow-panel[now-data-theme="dark"][now-data-position="right"] {
     border-left-color: rgba(255, 255, 255, 0.1);
   }
 
@@ -304,9 +305,9 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     const panel = document.createElement("div");
     panel.className = "nownownow-panel";
     // Set the panel position attribute
-    panel.setAttribute("data-position", config.position || "right");
+    panel.setAttribute("now-data-position", config.position || "right");
     // Set the panel theme attribute
-    panel.setAttribute("data-theme", config.theme || "light");
+    panel.setAttribute("now-data-theme", config.theme || "light");
 
     // Create panel header
     const header = document.createElement("div");

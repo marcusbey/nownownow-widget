@@ -17,12 +17,12 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_ORG_ID" 
-      data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
-      data-theme="dark" 
-      data-position="left" 
-      data-button-color="#1a73e8" 
-      data-button-size="90">
+      now-data-org-id="DEMO_ORG_ID" 
+      now-data-token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJERU1PX1VTRVIiLCJpYXQiOjE3MzAwMDAwMDAsImV4cCI6MTczMDAwMDAwMH0.DEMO_TOKEN_SIGNATURE" 
+      now-data-theme="dark" 
+      now-data-position="left" 
+      now-data-button-color="#1a73e8" 
+      now-data-button-size="90">
     </script>
 </head>
 <body>
@@ -41,9 +41,9 @@ const codeExamples = {
     <script 
       defer 
       src="https://nownownow.io/dist/now-widget.js" 
-      data-org-id="DEMO_ORG_ID" 
-      data-token="DEMO_TOKEN"
-      data-theme="dark">
+      now-data-org-id="DEMO_ORG_ID" 
+      now-data-token="DEMO_TOKEN"
+      now-data-theme="dark">
     </script>
 </body>
 </html>`
@@ -96,12 +96,12 @@ export function IntegrationTutorial({ theme = 'light', orgId = 'DEMO_ORG_ID', to
       <div class="configuration-options">
         <h3>Configuration Options</h3>
         <ul>
-          <li><code>data-org-id</code>: Your unique organization identifier (required)</li>
-          <li><code>data-token</code>: Authentication token (required)</li>
-          <li><code>data-theme</code>: Widget theme, either "light" or "dark" (default: "light")</li>
-          <li><code>data-position</code>: Button position, either "left" or "right" (default: "left")</li>
-          <li><code>data-button-color</code>: Custom color for the button (default: "#000000")</li>
-          <li><code>data-button-size</code>: Size of the button in pixels (default: 60)</li>
+          <li><code>now-data-org-id</code>: Your unique organization identifier (required)</li>
+          <li><code>now-data-token</code>: Authentication token (required)</li>
+          <li><code>now-data-theme</code>: Widget theme, either "light" or "dark" (default: "light")</li>
+          <li><code>now-data-position</code>: Button position, either "left" or "right" (default: "left")</li>
+          <li><code>now-data-button-color</code>: Custom color for the button (default: "#000000")</li>
+          <li><code>now-data-button-size</code>: Size of the button in pixels (default: 60)</li>
         </ul>
       </div>
     </div>
