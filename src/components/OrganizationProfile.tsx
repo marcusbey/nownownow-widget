@@ -77,12 +77,15 @@ export const OrganizationProfile: FunctionComponent<
         isDark ? "nownownow-widget-dark" : ""
       }`}
     >
+      {/* Banner with cleaner overlay style similar to reference */}
       <div
         className="nownownow-widget-org-banner"
         style={{ backgroundImage: `url(${bannerUrl})` }}
       >
         <div className="nownownow-widget-org-banner-overlay"></div>
       </div>
+      
+      {/* Profile header with improved layout */}
       <div className="nownownow-widget-org-header">
         <div className="nownownow-widget-org-avatar">
           {orgInfo.image ? (
@@ -143,6 +146,8 @@ export const OrganizationProfile: FunctionComponent<
           </div>
         </div>
       </div>
+      
+      {/* Sticky tab navigation */}
       <div className="nownownow-widget-tab-nav">
         <div
           className={`nownownow-widget-tab ${
