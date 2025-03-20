@@ -5,6 +5,7 @@ interface ApiConfig {
     readonly WIDGET: {
       readonly ORG_INFO: string;
       readonly ORG_POSTS: string;
+      readonly TRACK_VIEW: string;
     };
   };
 }
@@ -24,7 +25,8 @@ export const apiStore: ApiStore = {
     ENDPOINTS: {
       WIDGET: {
         ORG_INFO: '/widget/org-info',
-        ORG_POSTS: '/widget/org-posts'
+        ORG_POSTS: '/widget/org-posts',
+        TRACK_VIEW: '/widget/track-view'
       }
     }
   }

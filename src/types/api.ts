@@ -134,5 +134,6 @@ export interface VoteFeedbackRequest {
 export const API_ENDPOINTS = {
   ORG_INFO: '/api/v1/widget/org-info',
   ORG_POSTS: '/api/v1/widget/org-posts',
+  TRACK_VIEW: '/api/v1/widget/track-view',
   FEEDBACK: '/api/v1/widget/feedback'
 } as const;

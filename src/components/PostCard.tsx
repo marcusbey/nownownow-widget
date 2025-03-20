@@ -1,6 +1,7 @@
 import type { FunctionComponent } from "preact";
 import { h } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { api } from "../services/apiService";
 import type { WidgetPost } from "../types/api";
 import { MediaDisplay, type MediaItem } from "./MediaDisplay";
 
@@ -12,6 +13,7 @@ interface PostCardProps {
   comments?: number;
   theme?: "light" | "dark";
   onClick?: () => void;
+  token?: string;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -117,10 +119,50 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   likes = 0,
   comments = 0,
   theme = "light",
+  token,
 }) => {
   const [showComments, setShowComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
+  const [viewTracked, setViewTracked] = useState(false);
+  const postRef = useRef<HTMLDivElement>(null);
   const isDark = theme === "dark";
+
+  // Set up intersection observer to track when post is viewed
+  useEffect(() => {
+    if (!post?.id || viewTracked || !token) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // If post becomes visible and view hasn't been tracked yet
+        if (entries[0]?.isIntersecting && !viewTracked) {
+          // Track the post view
+          api
+            .trackPostView(token, post.id)
+            .then(() => {
+              console.log(`View tracked for post ${post.id}`);
+              setViewTracked(true);
+            })
+            .catch((error) => {
+              console.error("Failed to track post view:", error);
+            });
+        }
+      },
+      {
+        threshold: 0.5, // Consider post viewed when 50% visible
+        rootMargin: "0px",
+      }
+    );
+
+    // Start observing the post element
+    if (postRef.current) {
+      observer.observe(postRef.current);
+    }
+
+    // Clean up observer on unmount
+    return () => {
+      observer.disconnect();
+    };
+  }, [post?.id, viewTracked, token]);
 
   // Check if the post has media
   const hasMedia = post?.media && post?.media.length > 0;
@@ -170,6 +212,7 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
   return (
     <div
+      ref={postRef}
       className={`nownownow-widget-post ${
         isDark ? "nownownow-widget-post-dark" : ""
       }`}
@@ -379,6 +422,34 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
           </svg>
           <span style={{ fontSize: "14px" }}>{comments}</span>
         </button>
+
+        <div
+          className="nownownow-widget-post-stat nownownow-widget-post-views"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            color: isDark ? "#9ca3af" : "#6b7280",
+            padding: "6px 8px",
+            fontSize: "14px",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+          <span>{post?._count?.views || 0}</span>
+        </div>
 
         <button
           className="nownownow-widget-post-stat"

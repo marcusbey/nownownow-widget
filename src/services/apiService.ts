@@ -63,6 +63,13 @@ export const api = {
     return fetchWithAuth<{ posts: WidgetPost[], nextCursor?: string, hasMore: boolean }>(url, token);
   },
 
+  trackPostView: (token: string, postId: string, source: string = "widget"): Promise<ApiResponse<any>> => {
+    return fetchWithAuth<any>(`${apiStore.config.ENDPOINTS.WIDGET.TRACK_VIEW}`, token, {
+      method: 'POST',
+      body: JSON.stringify({ postId, source })
+    });
+  },
+
   async getFeedback(
     token: string,
     orgId: string,

@@ -248,6 +248,7 @@ export default function App({ theme = "light", orgId, token }: Props) {
                   likes={post._count?.likes ?? 0}
                   comments={post._count?.comments ?? 0}
                   theme={theme}
+                  token={token}
                 />
               ))
             ) : (
