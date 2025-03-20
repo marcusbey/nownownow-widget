@@ -3,6 +3,12 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      colors: {
+        'dark-bg': '#121212',
+        'dark-card': '#1e1e1e', 
+        'dark-surface': '#2a2a2a',
+        'dark-border': 'rgba(255, 255, 255, 0.1)'
+      },
       animation: {
         'text-spin': 'text-spin 60s linear infinite',
         'text-spin-fast': 'text-spin 5s linear infinite',

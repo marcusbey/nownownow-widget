@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import "./App.css";
 import { FeedbackPanel } from "./components/FeedbackPanel";
-import "./components/IntegrationTutorial.css";
 import { OrganizationProfile } from "./components/OrganizationProfile";
 import { PostCard } from "./components/PostCard";
 import { api } from "./services/apiService";
