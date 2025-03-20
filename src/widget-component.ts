@@ -20,7 +20,7 @@ export class NowPanelElement extends HTMLElement {
 
   // Define observed attributes
   static get observedAttributes() {
-    return ['org-id', 'token', 'theme', 'position', 'button-color', 'button-size'];
+    return ['org-id', 'token', 'theme', 'position', 'button-color', 'button-size', 'has-updates'];
   }
 
   constructor() {
@@ -351,14 +351,24 @@ export class NowPanelElement extends HTMLElement {
   
   // Render button
   private renderButton() {
+    // Check if there are new updates to show in the button
+    const hasUpdates = this.getAttribute('has-updates') === 'true';
+    
+    // Get button color from attribute or dataset
+    let buttonColor = this.getAttribute('button-color');
+    if (!buttonColor && this.dataset.buttonColor) {
+      buttonColor = this.dataset.buttonColor;
+    }
+    
     render(
       h(NowButton, {
         size: this.getAttribute('button-size') || '60',
-        color: this.getAttribute('button-color') || '#000000',
+        color: buttonColor || '#f59e0b', // Default to orange if no color specified
         position: (this.getAttribute('position') || 'right') as WidgetPosition,
         onClick: () => this.togglePanel(),
         isOpen: this.isOpen,
         isVisible: this.isButtonVisible,
+        updated: hasUpdates,
       }),
       this.buttonContainer
     );

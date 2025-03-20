@@ -46,4 +46,5 @@ export interface NowButtonProps {
   onClick: () => void;
   isOpen?: boolean;
   isVisible?: boolean;
+  updated?: boolean;
 }

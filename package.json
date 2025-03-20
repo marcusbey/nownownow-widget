@@ -13,7 +13,8 @@
   "dependencies": {
     "@preact/signals": "^2.0.1",
     "lucide-preact": "^0.344.0",
-    "preact": "^10.19.6"
+    "preact": "^10.19.6",
+    "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.8.1",
