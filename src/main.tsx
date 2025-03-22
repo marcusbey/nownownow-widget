@@ -128,7 +128,7 @@ const getScriptConfig = (): WidgetConfig => {
   };
 };
 
-const panelStyles = `
+const nowPanelStyles = `
   :host {
     display: block;
     position: fixed;
@@ -201,77 +201,29 @@ const panelStyles = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.25rem;
-    background: #1e1e1e;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  }
-
-  .nownownow-panel[now-data-theme="light"] .nownownow-panel-header {
-    background: white;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .nownownow-panel-title {
-    color: white;
+    color: rgb(226, 232, 240); /* slate-200 */
     font-weight: 600;
-    font-size: 1rem;
-    letter-spacing: 0.01em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .nownownow-panel[now-data-theme="light"] .nownownow-panel-title {
-    color: #111827;
-  }
-
-  .nownownow-panel-title::before {
-    content: "";
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    background: #3b82f6;
-    border-radius: 50%;
-    margin-right: 4px;
+    font-size: 0.875rem;
   }
 
   .nownownow-close-button {
     padding: 0.5rem;
     border: none;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.7);
+    background: transparent;
+    color: rgb(148, 163, 184); /* slate-400 */
     cursor: pointer;
     border-radius: 0.375rem;
-    transition: all 0.2s ease;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .nownownow-panel[now-data-theme="light"] .nownownow-close-button {
-    background: rgba(0, 0, 0, 0.05);
-    color: rgba(0, 0, 0, 0.6);
+    transition: color 0.2s ease, background-color 0.2s ease;
   }
 
   .nownownow-close-button:hover {
-    color: white;
+    color: rgb(226, 232, 240); /* slate-200 */
     background: rgba(255, 255, 255, 0.1);
-    transform: scale(1.05);
-  }
-
-  .nownownow-panel[now-data-theme="light"] .nownownow-close-button:hover {
-    color: #111827;
-    background: rgba(0, 0, 0, 0.1);
-  }
-
-  .nownownow-close-button:active {
-    transform: scale(0.95);
   }
 
   .nownownow-close-button svg {
@@ -283,13 +235,7 @@ const panelStyles = `
     padding: 1rem;
     color: rgb(226, 232, 240);
     overflow-y: auto;
-    height: calc(100% - 4.5rem);
-    background: #121212;
-  }
-
-  .nownownow-panel[now-data-theme="light"] .nownownow-panel-content {
-    background: white;
-    color: #4b5563;
+    height: calc(100% - 3.5rem);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -341,32 +287,32 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       z-index: 2147483646;
     `;
 
-    // Create panel container with shadow DOM
-    const panelContainer = document.createElement("div");
-    panelContainer.id = "nownownow-widget-panel";
-    const panelShadow = panelContainer.attachShadow({ mode: "closed" });
+    // Create nowPanel container with shadow DOM
+    const nowPanelContainer = document.createElement("div");
+    nowPanelContainer.id = "nownownow-widget-panel";
+    const nowPanelShadow = nowPanelContainer.attachShadow({ mode: "closed" });
 
     // Inject shared widget styles
-    injectWidgetStyles(panelShadow);
+    injectWidgetStyles(nowPanelShadow);
 
-    const panelStyle = document.createElement("style");
-    panelStyle.textContent = panelStyles;
-    panelShadow.appendChild(panelStyle);
+    const nowPanelStyle = document.createElement("style");
+    nowPanelStyle.textContent = nowPanelStyles;
+    nowPanelShadow.appendChild(nowPanelStyle);
 
     // Create overlay
     const overlay = document.createElement("div");
     overlay.className = "nownownow-overlay";
-    panelShadow.appendChild(overlay);
+    nowPanelShadow.appendChild(overlay);
 
-    // Create panel
-    const panel = document.createElement("div");
-    panel.className = "nownownow-panel";
-    // Set the panel position attribute
-    panel.setAttribute("now-data-position", config.position || "right");
-    // Set the panel theme attribute
-    panel.setAttribute("now-data-theme", config.theme || "light");
+    // Create nowPanel
+    const nowPanel = document.createElement("div");
+    nowPanel.className = "nownownow-panel";
+    // Set the nowPanel position attribute
+    nowPanel.setAttribute("now-data-position", config.position || "right");
+    // Set the nowPanel theme attribute
+    nowPanel.setAttribute("now-data-theme", config.theme || "light");
 
-    // Create panel header
+    // Create nowPanel header
     const header = document.createElement("div");
     header.className = "nownownow-panel-header";
 
@@ -382,14 +328,14 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
     header.appendChild(closeButton);
 
-    panel.appendChild(header);
+    nowPanel.appendChild(header);
 
-    // Create panel content
+    // Create nowPanel content
     const content = document.createElement("div");
     content.className = "nownownow-panel-content";
-    panel.appendChild(content);
+    nowPanel.appendChild(content);
 
-    panelShadow.appendChild(panel);
+    nowPanelShadow.appendChild(nowPanel);
 
     // Create button container with shadow DOM
     const buttonContainer = document.createElement("div");
@@ -450,7 +396,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     const init = () => {
       document.head.appendChild(mainStyle);
       document.body.appendChild(widgetContainer);
-      widgetContainer.appendChild(panelContainer);
+      widgetContainer.appendChild(nowPanelContainer);
       widgetContainer.appendChild(buttonContainer);
     };
 
@@ -460,30 +406,42 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       init();
     }
 
-    // Create state for panel
-    let isOpen = false;
+    // Create state for nowPanel
+    let isNowPanelOpen = false;
 
-    // Check if we're on homepage - exclude auth and other paths
-    const isHomePage = () => {
+    // Check if we're on homepage - exclude auth and other paths with a more robust check
+    const isLandingPage = () => {
       // Get the current path and remove trailing slash if present
       const path = window.location.pathname.replace(/\/$/, "");
+      const hostname = window.location.hostname;
+      const url = window.location.href;
 
-      // Only consider exact root path or index.html as homepage
-      // This ensures paths like /organization, /profile, etc. don't show the button
-      return path === "" || path === "/" || path === "/index.html";
+      // Only show on domain root - exclude any path segments
+      // Check if URL matches domain name with optional protocol and www prefix
+      // but no additional path segments beyond the root
+      const isExactDomainMatch = !!url.match(
+        new RegExp(`^https?://(www\\.)?${hostname.replace(/\./g, "\\.")}/?$`)
+      );
+
+      return (
+        path === "" ||
+        path === "/" ||
+        path === "/index.html" ||
+        isExactDomainMatch
+      );
     };
 
-    let isButtonVisible = isHomePage();
+    let isButtonVisible = isLandingPage();
     const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
-    // Define toggle panel function early
-    const togglePanel = (forceClose = false) => {
-      isOpen = forceClose ? false : !isOpen;
-      panel.classList.toggle("nownownow-open", isOpen);
-      overlay.classList.toggle("nownownow-open", isOpen);
+    // Define toggle nowPanel function early
+    const toggleNowPanel = (forceClose = false) => {
+      isNowPanelOpen = forceClose ? false : !isNowPanelOpen;
+      nowPanel.classList.toggle("nownownow-open", isNowPanelOpen);
+      overlay.classList.toggle("nownownow-open", isNowPanelOpen);
 
-      // Set the panel position as a data attribute on the html element
-      if (isOpen) {
+      // Set the nowPanel position as a data attribute on the html element
+      if (isNowPanelOpen) {
         document.documentElement.setAttribute(
           "data-panel-position",
           config.position || "right"
@@ -494,7 +452,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
       document.documentElement.classList.toggle(
         "nownownow-widget-open",
-        isOpen
+        isNowPanelOpen
       );
       renderButton();
     };
@@ -506,8 +464,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           size: String(config.buttonSize || 48),
           color: config.buttonColor || "#f59e0b",
           position: (config.position || "right") as WidgetPosition,
-          onClick: () => togglePanel(),
-          isOpen,
+          onClick: () => toggleNowPanel(),
+          isNowPanelOpen: isNowPanelOpen,
           isVisible: isButtonVisible,
         }),
         buttonWrapper
@@ -516,7 +474,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Handle scroll visibility using functional approach
     const handleScroll = () => {
-      if (isHomePage()) {
+      if (isLandingPage()) {
         const currentScrollY = window.scrollY;
         const viewportHeight = window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
@@ -539,25 +497,25 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Define handlePathChange function before using it
     function handlePathChange() {
-      const onHomePage = isHomePage();
+      const onLandingPage = isLandingPage();
 
       // Log for debugging
       console.debug("Now Widget: Path changed", {
         path: window.location.pathname,
-        isHomePage: onHomePage,
+        isLandingPage: onLandingPage,
       });
 
-      if (!onHomePage) {
-        // Not on homepage - hide button immediately
+      if (!onLandingPage) {
+        // Not on landing page - hide button immediately
         isButtonVisible = false;
         renderButton();
 
-        // If panel is open, close it when navigating away from homepage
-        if (isOpen) {
-          togglePanel(true);
+        // If nowPanel is open, close it when navigating away from landing page
+        if (isNowPanelOpen) {
+          toggleNowPanel(true);
         }
       } else {
-        // On homepage - check scroll position to determine visibility
+        // On landing page - check scroll position to determine visibility
         handleScroll();
       }
     }
@@ -624,16 +582,16 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     handlePathChange();
 
     // Add click handlers
-    closeButton.addEventListener("click", () => togglePanel(true));
-    overlay.addEventListener("click", () => togglePanel(true));
+    closeButton.addEventListener("click", () => toggleNowPanel(true));
+    overlay.addEventListener("click", () => toggleNowPanel(true));
 
-    // Render panel content
+    // Render nowPanel content
     render(
       h(App, {
         theme: config.theme || "light",
         orgId: config.orgId,
         token: config.token,
-        onToggle: () => togglePanel(),
+        onToggle: () => toggleNowPanel(),
       }),
       content
     );

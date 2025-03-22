@@ -1,6 +1,5 @@
-import { h } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
-import type { WidgetPosition } from '../types/widget';
+import { useEffect, useRef, useState } from "preact/hooks";
+import type { WidgetPosition } from "../types/widget";
 
 /**
  * NowButton component props
@@ -11,19 +10,19 @@ export interface NowButtonProps {
   size?: string;
   color?: string;
   position?: WidgetPosition;
-  isOpen?: boolean;
+  isNowPanelOpen?: boolean;
   isVisible?: boolean;
   updated?: boolean;
 }
 
-export function NowButton({ 
-  onClick, 
-  size = '48', 
-  color = '#f59e0b',
-  position = 'right' as 'left' | 'right',
-  isOpen = false,
+export function NowButton({
+  onClick,
+  size = "48",
+  color = "#f59e0b",
+  position = "right" as "left" | "right",
+  isNowPanelOpen = false,
   isVisible = true,
-  updated = false
+  updated = false,
 }: NowButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -56,14 +55,14 @@ export function NowButton({
         const buttonCenterY = rect.top + rect.height / 2;
         const distance = Math.sqrt(
           Math.pow(e.clientX - buttonCenterX, 2) +
-          Math.pow(e.clientY - buttonCenterY, 2)
+            Math.pow(e.clientY - buttonCenterY, 2)
         );
         setIsNear(distance < proximityThreshold);
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   // Animate text ring speed based on hover and proximity
@@ -76,14 +75,18 @@ export function NowButton({
         setTextRingSpeed((prevSpeed) => {
           const targetSpeed = 120; // Very slow rotation (120 seconds per rotation)
           const newSpeed = prevSpeed + (targetSpeed - prevSpeed) * 0.1;
-          return Math.abs(newSpeed - targetSpeed) < 0.1 ? targetSpeed : newSpeed;
+          return Math.abs(newSpeed - targetSpeed) < 0.1
+            ? targetSpeed
+            : newSpeed;
         });
       } else if (isNear) {
         // Slow down when mouse is near
         setTextRingSpeed((prevSpeed) => {
           const targetSpeed = 90; // Slower rotation (90 seconds per rotation)
           const newSpeed = prevSpeed + (targetSpeed - prevSpeed) * 0.1;
-          return Math.abs(newSpeed - targetSpeed) < 0.1 ? targetSpeed : newSpeed;
+          return Math.abs(newSpeed - targetSpeed) < 0.1
+            ? targetSpeed
+            : newSpeed;
         });
       } else {
         // Normal speed when mouse is far away
@@ -101,7 +104,9 @@ export function NowButton({
   }, [isNear, isHovered]);
 
   // Prepare text for the rotating ring
-  const nowText = updated ? "NOW.NEW.NOW.NEW.NOW.NEW." : "NOW.NOW.NOW.NOW.NOW.NOW.";
+  const nowText = updated
+    ? "NOW.NEW.NOW.NEW.NOW.NEW."
+    : "NOW.NOW.NOW.NOW.NOW.NOW.";
   const chars = nowText.split("");
   const totalChars = chars.length;
 
@@ -126,13 +131,17 @@ export function NowButton({
     .button-wrapper {
       position: fixed;
       bottom: 20vh;
-      ${position === 'right' ? 'right: 10vw;' : 'left: 10vw;'}
+      ${position === "right" ? "right: 10vw;" : "left: 10vw;"}
       z-index: 2147483647;
-      pointer-events: ${isVisible ? 'auto' : 'none'};
+      pointer-events: ${isVisible ? "auto" : "none"};
       transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1),
                   opacity 0.3s ease-in-out;
-      transform: translateX(${isOpen ? (position === 'right' ? '-' : '') + 'min(600px, 80vw)' : '0'});
-      opacity: ${isVisible ? '1' : '0'};
+      transform: translateX(${
+        isNowPanelOpen
+          ? (position === "right" ? "-" : "") + "min(600px, 80vw)"
+          : "0"
+      });
+      opacity: ${isVisible ? "1" : "0"};
       display: flex;
       justify-content: center;
       align-items: center;
@@ -169,9 +178,11 @@ export function NowButton({
       --total: ${totalChars};
       --character-width: 1;
       --inner-angle: calc((360 / var(--total)) * 1deg);
-      --radius: ${supportsTrig ? 
-        `calc((var(--character-width, 1) / sin(var(--inner-angle))) * -1.4ch)` : 
-        `-4ch`};
+      --radius: ${
+        supportsTrig
+          ? `calc((var(--character-width, 1) / sin(var(--inner-angle))) * -1.4ch)`
+          : `-4ch`
+      };
       position: absolute;
       top: 0;
       left: 0;
@@ -206,7 +217,7 @@ export function NowButton({
     @media (max-width: 768px) {
       .button-wrapper {
         bottom: 12px;
-        ${position === 'right' ? 'right: 12px;' : 'left: 12px;'}
+        ${position === "right" ? "right: 12px;" : "left: 12px;"}
       }
     }
 
@@ -221,18 +232,22 @@ export function NowButton({
   `;
 
   // Generate styles for each character in the rotating text
-  const charStyles = chars.map((_, index) => `
+  const charStyles = chars
+    .map(
+      (_, index) => `
     .now-char:nth-child(${index + 1}) {
       --index: ${index};
       transform: translate(-50%, -50%) rotate(calc(var(--inner-angle) * var(--index))) translateY(var(--radius, -4ch));
     }
-  `).join('');
+  `
+    )
+    .join("");
 
   return (
     <div class="button-wrapper">
       <style>{buttonStyle}</style>
       <style>{charStyles}</style>
-      <button 
+      <button
         ref={buttonRef}
         class="button"
         onClick={onClick}
@@ -244,11 +259,17 @@ export function NowButton({
         <div class="button-content">
           <div class="text-ring">
             {chars.map((char, index) => (
-              <span key={index} class="now-char">{char}</span>
+              <span key={index} class="now-char">
+                {char}
+              </span>
             ))}
           </div>
           <svg class="arrow-icon" viewBox="0 0 24 24">
-            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" />
+            <path
+              d="M5 12h14M12 5l7 7-7 7"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
           </svg>
         </div>
       </button>

@@ -64,7 +64,7 @@ export const api = {
   },
 
   trackPostView: (token: string, postId: string, source: string = "widget"): Promise<ApiResponse<any>> => {
-    return fetchWithAuth<any>(`${apiStore.config.ENDPOINTS.WIDGET.TRACK_VIEW}`, token, {
+    return fetchWithAuth<any>(`${apiStore.config.VERSION}/widget/track-view`, token, {
       method: 'POST',
       body: JSON.stringify({ postId, source })
     });

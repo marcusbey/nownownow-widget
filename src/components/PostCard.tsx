@@ -423,34 +423,6 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
           <span style={{ fontSize: "14px" }}>{comments}</span>
         </button>
 
-        <div
-          className="nownownow-widget-post-stat nownownow-widget-post-views"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            color: isDark ? "#9ca3af" : "#6b7280",
-            padding: "6px 8px",
-            fontSize: "14px",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>
-          <span>{post?._count?.views || 0}</span>
-        </div>
-
         <button
           className="nownownow-widget-post-stat"
           style={{

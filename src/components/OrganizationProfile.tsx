@@ -106,7 +106,7 @@ export const OrganizationProfile: FunctionComponent<
             right: 0,
             bottom: 0,
             background: isDark
-              ? "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(18, 18, 18, 0.85))"
+              ? "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(17, 24, 39, 0.85))"
               : "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.7))",
             backdropFilter: "blur(2px)",
           }}
@@ -121,7 +121,6 @@ export const OrganizationProfile: FunctionComponent<
           marginTop: "-60px",
           position: "relative",
           zIndex: 2,
-          background: isDark ? "#121212" : "white",
         }}
       >
         <div
@@ -133,11 +132,11 @@ export const OrganizationProfile: FunctionComponent<
             overflow: "hidden",
             marginBottom: "12px",
             boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            background: isDark ? "#1e1e1e" : "#f3f4f6",
+            background: isDark ? "#374151" : "#f3f4f6",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            border: isDark ? "3px solid #121212" : "3px solid white",
+            border: isDark ? "3px solid #1f2937" : "3px solid white",
             transition: "transform 0.2s ease",
           }}
         >
@@ -270,7 +269,7 @@ export const OrganizationProfile: FunctionComponent<
           borderTop: isDark
             ? "1px solid rgba(255,255,255,0.1)"
             : "1px solid rgba(0,0,0,0.05)",
-          background: isDark ? "#121212" : "white",
+          background: isDark ? "#111827" : "white",
         }}
       >
         <div
