@@ -12,6 +12,8 @@ interface OrgInfo {
   websiteUrl?: string | null;
   _count?: {
     followers: number;
+    posts?: number;
+    following?: number;
   } | null;
 }
 
@@ -137,11 +139,10 @@ export const OrganizationProfile: FunctionComponent<
           leftPadding: "120px",
         };
 
-  // Use real data from organization instead of hardcoded values
+  // Get all stats directly from the API data
   const stats = {
-    posts: 0, // This should come from API when available
+    posts: orgInfo._count?.posts || 0,
     followers: followerCount,
-    following: 0, // This should come from API when available
   };
 
   return (
@@ -387,33 +388,6 @@ export const OrganizationProfile: FunctionComponent<
               }}
             >
               Followers
-            </span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-            }}
-          >
-            <span
-              style={{
-                fontWeight: "600",
-                color: "white",
-                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
-              }}
-            >
-              {stats.following}
-            </span>
-            <span
-              style={{
-                fontSize: "12px",
-                color: "#9ca3af",
-                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
-              }}
-            >
-              Following
             </span>
           </div>
         </div>
