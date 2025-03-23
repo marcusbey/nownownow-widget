@@ -36,12 +36,40 @@ const DEFAULT_BANNERS = [
   "https://images.unsplash.com/photo-1604147706283-d7119b5b822c?q=80&w=2000&auto=format&fit=crop",
 ];
 
+// Noise texture SVG for background
+const noiseSvgUrl = `data:image/svg+xml;base64,${btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">
+  <filter id="noise" x="0" y="0">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0"/>
+  </filter>
+  <rect width="200" height="200" filter="url(#noise)" opacity="0.3"/>
+</svg>
+`)}`;
+
+// Journal-themed decorative icons as SVG data URLs
+const decorativeIcons = {
+  paperclip: `data:image/svg+xml;base64,${btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>`
+  )}`,
+  pen: `data:image/svg+xml;base64,${btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle></svg>`
+  )}`,
+  bookmark: `data:image/svg+xml;base64,${btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`
+  )}`,
+  notebook: `data:image/svg+xml;base64,${btoa(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>`
+  )}`,
+};
+
 export const OrganizationProfile: FunctionComponent<
   OrganizationProfileProps
 > = ({ orgInfo, theme = "light", activeTab = "feed", onTabChange }) => {
   if (!orgInfo) return null;
 
-  const isDark = theme === "dark";
+  // Force dark theme
+  const isDark = true;
   const initials = orgInfo.name
     .split(" ")
     .map((n) => n[0])
@@ -72,72 +100,160 @@ export const OrganizationProfile: FunctionComponent<
     }
   };
 
+  // Helper to detect mobile viewport for responsive design
+  const getMobileStyles = () => {
+    const mobileStyles = {
+      bannerHeight: "80px",
+      avatarSize: "60px",
+      nameSize: "18px",
+      bioSize: "13px",
+      padding: "16px",
+      leftPadding: "100px",
+    };
+
+    const desktopStyles = {
+      bannerHeight: "100px",
+      avatarSize: "70px",
+      nameSize: "20px",
+      bioSize: "14px",
+      padding: "20px",
+      leftPadding: "120px",
+    };
+
+    const mediaQuery = window.matchMedia("(max-width: 480px)");
+    return mediaQuery.matches ? mobileStyles : desktopStyles;
+  };
+
+  // Get styles based on viewport
+  const styles =
+    typeof window !== "undefined"
+      ? getMobileStyles()
+      : {
+          bannerHeight: "100px",
+          avatarSize: "70px",
+          nameSize: "20px",
+          bioSize: "14px",
+          padding: "20px",
+          leftPadding: "120px",
+        };
+
+  // Use real data from organization instead of hardcoded values
+  const stats = {
+    posts: 0, // This should come from API when available
+    followers: followerCount,
+    following: 0, // This should come from API when available
+  };
+
   return (
     <div
-      className={`nownownow-widget-org-profile ${
-        isDark ? "nownownow-widget-dark" : ""
-      }`}
+      className={`nownownow-widget-org-profile nownownow-widget-dark`}
       style={{
-        borderRadius: "16px 16px 0 0",
         overflow: "hidden",
-        boxShadow: isDark
-          ? "0 4px 20px rgba(0, 0, 0, 0.2)"
-          : "0 4px 20px rgba(0, 0, 0, 0.08)",
+        background: "#111827",
+        backgroundImage: `url(${noiseSvgUrl})`,
+        fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+        position: "relative",
       }}
     >
-      {/* Gradient banner with subtle animation */}
+      {/* Decorative icons */}
       <div
-        className="nownownow-widget-org-banner"
         style={{
-          backgroundImage: `url(${bannerUrl})`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-          height: "160px",
-          position: "relative",
-          transition: "transform 0.3s ease-out",
+          position: "absolute",
+          right: "5%",
+          top: "15%",
+          width: "24px",
+          height: "24px",
+          opacity: 0.2,
+          backgroundImage: `url(${decorativeIcons.paperclip})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          zIndex: 1,
+          pointerEvents: "none",
         }}
-      >
-        <div
-          className="nownownow-widget-org-banner-overlay"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: isDark
-              ? "linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(17, 24, 39, 0.85))"
-              : "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.7))",
-            backdropFilter: "blur(2px)",
-          }}
-        ></div>
-      </div>
+      />
+      <div
+        style={{
+          position: "absolute",
+          right: "15%",
+          bottom: "25%",
+          width: "32px",
+          height: "32px",
+          opacity: 0.15,
+          backgroundImage: `url(${decorativeIcons.pen})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          zIndex: 1,
+          pointerEvents: "none",
+          transform: "rotate(15deg)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: "10%",
+          bottom: "15%",
+          width: "28px",
+          height: "28px",
+          opacity: 0.2,
+          backgroundImage: `url(${decorativeIcons.bookmark})`,
+          backgroundSize: "contain",
+          backgroundRepeat: "no-repeat",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
 
-      {/* Profile header with improved layout */}
+      {/* Banner container */}
       <div
-        className="nownownow-widget-org-header"
+        className="nownownow-widget-banner-container"
         style={{
-          padding: "0 20px 20px",
-          marginTop: "-60px",
           position: "relative",
-          zIndex: 2,
         }}
       >
+        {/* Banner with overlay to ensure content visibility */}
+        <div
+          className="nownownow-widget-org-banner"
+          style={{
+            backgroundImage: `url(${bannerUrl})`,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+            height: styles.bannerHeight,
+            position: "relative",
+          }}
+        >
+          <div
+            className="nownownow-widget-org-banner-overlay"
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                "linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(17, 24, 39, 0.98))",
+              backdropFilter: "blur(1px)",
+            }}
+          ></div>
+        </div>
+
+        {/* Avatar - positioned to overlap banner and content */}
         <div
           className="nownownow-widget-org-avatar"
           style={{
-            width: "90px",
-            height: "90px",
-            borderRadius: "16px",
+            width: styles.avatarSize,
+            height: styles.avatarSize,
+            borderRadius: "12px",
             overflow: "hidden",
-            marginBottom: "12px",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-            background: isDark ? "#374151" : "#f3f4f6",
+            boxShadow: "0 2px 6px rgba(0, 0, 0, 0.2)",
+            background: "#1f2937",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            border: isDark ? "3px solid #1f2937" : "3px solid white",
-            transition: "transform 0.2s ease",
+            border: "2px solid #111827",
+            position: "absolute",
+            left: "20px",
+            bottom: `calc(-${styles.avatarSize} / 2)`,
+            zIndex: 2,
           }}
         >
           {orgInfo.image ? (
@@ -153,123 +269,209 @@ export const OrganizationProfile: FunctionComponent<
           ) : (
             <span
               style={{
-                fontSize: "32px",
+                fontSize: styles.avatarSize === "60px" ? "22px" : "26px",
                 fontWeight: "bold",
-                color: isDark ? "#e5e7eb" : "#4b5563",
+                color: "#e5e7eb",
               }}
             >
               {initials}
             </span>
           )}
         </div>
-        <div className="nownownow-widget-org-info">
-          <h2
-            className="nownownow-widget-org-name"
+      </div>
+
+      {/* Profile content - below banner with name/bio pushed right */}
+      <div
+        className="nownownow-widget-profile-content"
+        style={{
+          padding: styles.padding,
+          paddingLeft: styles.leftPadding,
+          background: "#111827",
+          backgroundImage: `url(${noiseSvgUrl})`,
+        }}
+      >
+        <h2
+          className="nownownow-widget-org-name"
+          style={{
+            fontSize: styles.nameSize,
+            fontWeight: "600",
+            margin: "0 0 4px 0",
+            color: "white",
+            fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+            letterSpacing: "0.5px",
+          }}
+        >
+          {orgInfo.name}
+        </h2>
+
+        {/* Bio with max height and overflow handling */}
+        {orgInfo.bio && (
+          <p
+            className="nownownow-widget-org-bio"
             style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              marginBottom: "4px",
-              color: isDark ? "white" : "black",
+              fontSize: styles.bioSize,
+              lineHeight: "1.5",
+              margin: "4px 0 10px 0",
+              color: "#a3aebf",
+              maxHeight: "60px",
+              overflow: "auto",
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "thin",
+              msOverflowStyle: "-ms-autohiding-scrollbar",
+              fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              fontStyle: "italic",
             }}
           >
-            {orgInfo.name}
-          </h2>
-          {orgInfo.bio && (
-            <p
-              className="nownownow-widget-org-bio"
-              style={{
-                fontSize: "14px",
-                lineHeight: "1.4",
-                marginBottom: "12px",
-                color: isDark ? "#9ca3af" : "#4b5563",
-              }}
-            >
-              {orgInfo.bio}
-            </p>
-          )}
+            {orgInfo.bio}
+          </p>
+        )}
 
+        {/* Interaction stats */}
+        <div
+          className="nownownow-widget-org-stats"
+          style={{
+            display: "flex",
+            gap: "16px",
+            fontSize: "13px",
+            margin: "12px 0 8px 0",
+          }}
+        >
           <div
-            className="nownownow-widget-org-meta"
             style={{
               display: "flex",
-              flexWrap: "wrap",
-              gap: "12px",
-              fontSize: "13px",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            {orgInfo.websiteUrl && (
-              <a
-                href={orgInfo.websiteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="nownownow-widget-org-website"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  color: isDark ? "#60a5fa" : "#2563eb",
-                  textDecoration: "none",
-                  transition: "color 0.2s ease",
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ width: "14px", height: "14px" }}
-                >
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                </svg>
-                {formatWebsiteUrl(orgInfo.websiteUrl)}
-              </a>
-            )}
-
-            {followerCount > 0 && (
-              <div
-                className="nownownow-widget-org-followers"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  color: isDark ? "#9ca3af" : "#6b7280",
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ width: "14px", height: "14px" }}
-                >
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                {followerCount.toLocaleString()} followers
-              </div>
-            )}
+            <span
+              style={{
+                fontWeight: "600",
+                color: "white",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              {stats.posts}
+            </span>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#9ca3af",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              Posts
+            </span>
           </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontWeight: "600",
+                color: "white",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              {stats.followers}
+            </span>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#9ca3af",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              Followers
+            </span>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontWeight: "600",
+                color: "white",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              {stats.following}
+            </span>
+            <span
+              style={{
+                fontSize: "12px",
+                color: "#9ca3af",
+                fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+              }}
+            >
+              Following
+            </span>
+          </div>
+        </div>
+
+        {/* Website/URL and any other meta info */}
+        <div
+          className="nownownow-widget-org-meta"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "12px",
+            fontSize: "13px",
+            alignItems: "center",
+            marginTop: "8px",
+            fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
+          }}
+        >
+          {orgInfo.websiteUrl && (
+            <a
+              href={orgInfo.websiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="nownownow-widget-org-website"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                color: "#60a5fa",
+                textDecoration: "none",
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                style={{ width: "13px", height: "13px" }}
+              >
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+              </svg>
+              {formatWebsiteUrl(orgInfo.websiteUrl)}
+            </a>
+          )}
         </div>
       </div>
 
-      {/* Redesigned tab navigation */}
+      {/* Modern minimal tab navigation */}
       <div
         className="nownownow-widget-tab-nav"
         style={{
           display: "flex",
-          borderTop: isDark
-            ? "1px solid rgba(255,255,255,0.1)"
-            : "1px solid rgba(0,0,0,0.05)",
-          background: isDark ? "#111827" : "white",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
+          background: "#111827",
+          backgroundImage: `url(${noiseSvgUrl})`,
         }}
       >
         <div
@@ -279,29 +481,20 @@ export const OrganizationProfile: FunctionComponent<
           onClick={() => handleTabChange("feed")}
           style={{
             flex: 1,
-            padding: "14px 0",
+            padding: "12px 0",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
+            gap: "6px",
             fontSize: "14px",
             fontWeight: activeTab === "feed" ? "600" : "500",
-            color:
-              activeTab === "feed"
-                ? isDark
-                  ? "white"
-                  : "black"
-                : isDark
-                ? "#9ca3af"
-                : "#6b7280",
+            color: activeTab === "feed" ? "white" : "#9ca3af",
             borderBottom:
               activeTab === "feed"
-                ? isDark
-                  ? "2px solid #60a5fa"
-                  : "2px solid #3b82f6"
+                ? "2px solid #60a5fa"
                 : "2px solid transparent",
-            transition: "all 0.2s ease",
             cursor: "pointer",
+            fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
           }}
         >
           <svg
@@ -312,7 +505,7 @@ export const OrganizationProfile: FunctionComponent<
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ width: "16px", height: "16px" }}
+            style={{ width: "14px", height: "14px" }}
           >
             <line x1="8" y1="6" x2="21" y2="6"></line>
             <line x1="8" y1="12" x2="21" y2="12"></line>
@@ -330,29 +523,20 @@ export const OrganizationProfile: FunctionComponent<
           onClick={() => handleTabChange("feedback")}
           style={{
             flex: 1,
-            padding: "14px 0",
+            padding: "12px 0",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            gap: "8px",
+            gap: "6px",
             fontSize: "14px",
             fontWeight: activeTab === "feedback" ? "600" : "500",
-            color:
-              activeTab === "feedback"
-                ? isDark
-                  ? "white"
-                  : "black"
-                : isDark
-                ? "#9ca3af"
-                : "#6b7280",
+            color: activeTab === "feedback" ? "white" : "#9ca3af",
             borderBottom:
               activeTab === "feedback"
-                ? isDark
-                  ? "2px solid #60a5fa"
-                  : "2px solid #3b82f6"
+                ? "2px solid #60a5fa"
                 : "2px solid transparent",
-            transition: "all 0.2s ease",
             cursor: "pointer",
+            fontFamily: "'Crimson Text', 'Noto Serif', Georgia, serif",
           }}
         >
           <svg
@@ -363,7 +547,7 @@ export const OrganizationProfile: FunctionComponent<
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ width: "16px", height: "16px" }}
+            style={{ width: "14px", height: "14px" }}
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
           </svg>

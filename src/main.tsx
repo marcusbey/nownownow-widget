@@ -129,15 +129,42 @@ const getScriptConfig = (): WidgetConfig => {
 };
 
 const nowPanelStyles = `
+  /* Load the Crimson Text font for journal aesthetics */
+  @import url('https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+
   :host {
     display: block;
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: min(600px, 80%);
+    width: min(95%, 480px);
     z-index: 2147483646;
     pointer-events: none;
+  }
+
+  @media (max-width: 480px) {
+    :host {
+      width: calc(100% - 24px);
+    }
+  }
+
+  @media (min-width: 481px) and (max-width: 767px) {
+    :host {
+      width: min(95%, 450px);
+    }
+  }
+
+  @media (min-width: 768px) {
+    :host {
+      width: min(90%, 520px);
+    }
+  }
+
+  @media (min-width: 1200px) {
+    :host {
+      width: min(90%, 580px);
+    }
   }
 
   .nownownow-overlay {
@@ -146,10 +173,10 @@ const nowPanelStyles = `
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(3px);
     opacity: 0;
-    transition: opacity 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: opacity 0.3s ease;
     pointer-events: none;
   }
 
@@ -164,12 +191,15 @@ const nowPanelStyles = `
     bottom: 0;
     width: 100%;
     background: rgb(255, 255, 255);
-    transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+    transition: transform 0.3s ease;
     pointer-events: all;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   .nownownow-panel[now-data-theme="dark"] {
-    background: #121212;
+    background: #111827;
   }
 
   .nownownow-panel[now-data-position="left"] {
@@ -197,45 +227,29 @@ const nowPanelStyles = `
     transform: translateX(0);
   }
 
-  .nownownow-panel-header {
+  .nownownow-close-button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    border: none;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .nownownow-panel-title {
-    color: rgb(226, 232, 240); /* slate-200 */
-    font-weight: 600;
-    font-size: 0.875rem;
-  }
-
-  .nownownow-close-button {
-    padding: 0.5rem;
-    border: none;
-    background: transparent;
-    color: rgb(148, 163, 184); /* slate-400 */
+    justify-content: center;
     cursor: pointer;
-    border-radius: 0.375rem;
-    transition: color 0.2s ease, background-color 0.2s ease;
+    transition: background-color 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .nownownow-close-button:hover {
-    color: rgb(226, 232, 240); /* slate-200 */
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  .nownownow-close-button svg {
-    width: 1rem;
-    height: 1rem;
+    background: rgba(0, 0, 0, 0.5);
   }
 
   .nownownow-panel-content {
-    padding: 1rem;
-    color: rgb(226, 232, 240);
+    flex: 1;
     overflow-y: auto;
-    height: calc(100% - 3.5rem);
+    position: relative;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -312,27 +326,46 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Set the nowPanel theme attribute
     nowPanel.setAttribute("now-data-theme", config.theme || "light");
 
-    // Create nowPanel header
-    const header = document.createElement("div");
-    header.className = "nownownow-panel-header";
-
-    const title = document.createElement("div");
-    title.className = "nownownow-panel-title";
-    title.textContent = "Now";
-    header.appendChild(title);
+    // Create close button container for the absolute positioned close button
+    const closeButtonContainer = document.createElement("div");
+    closeButtonContainer.className = "nownownow-close-button-container";
+    closeButtonContainer.style.cssText = `
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    `;
 
     const closeButton = document.createElement("button");
     closeButton.className = "nownownow-close-button";
     closeButton.setAttribute("aria-label", "Close Now Panel");
+    closeButton.style.cssText = `
+      padding: 8px;
+      border: none;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      width: 32px;
+      height: 32px;
+    `;
     closeButton.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-    header.appendChild(closeButton);
+      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
 
-    nowPanel.appendChild(header);
+    closeButtonContainer.appendChild(closeButton);
+    nowPanel.appendChild(closeButtonContainer);
 
     // Create nowPanel content
     const content = document.createElement("div");
     content.className = "nownownow-panel-content";
+    content.style.cssText = `
+      height: 100%;
+      overflow-y: auto;
+    `;
     nowPanel.appendChild(content);
 
     nowPanelShadow.appendChild(nowPanel);
@@ -363,23 +396,87 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       html.nownownow-widget-open[data-panel-position="left"] #root,
       html.nownownow-widget-open[data-panel-position="left"] [id="root"],
       html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-        transform: translateX(300px);
-        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transform: translateX(min(95%, 480px));
+        transition: transform 0.3s ease;
         transform-origin: right top;
+      }
+
+      @media (max-width: 480px) {
+        html.nownownow-widget-open[data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(calc(100% - 24px));
+        }
+      }
+
+      @media (min-width: 481px) and (max-width: 767px) {
+        html.nownownow-widget-open[data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(95%, 450px));
+        }
+      }
+
+      @media (min-width: 768px) {
+        html.nownownow-widget-open[data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(90%, 520px));
+        }
+      }
+
+      @media (min-width: 1200px) {
+        html.nownownow-widget-open[data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(90%, 580px));
+        }
       }
 
       html.nownownow-widget-open[data-panel-position="right"] #root,
       html.nownownow-widget-open[data-panel-position="right"] [id="root"],
       html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-        transform: translateX(-300px);
-        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transform: translateX(min(-95%, -480px));
+        transition: transform 0.3s ease;
         transform-origin: left top;
+      }
+
+      @media (max-width: 480px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(calc(-100% + 24px));
+        }
+      }
+
+      @media (min-width: 481px) and (max-width: 767px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-95%, -450px));
+        }
+      }
+
+      @media (min-width: 768px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-90%, -520px));
+        }
+      }
+
+      @media (min-width: 1200px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-90%, -580px));
+        }
       }
 
       html:not(.nownownow-widget-open) #root,
       html:not(.nownownow-widget-open) [id="root"],
       html:not(.nownownow-widget-open) > body > div:not([id^="nownownow-widget"]) {
-        transition: transform 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transition: transform 0.3s ease;
         transform: translateX(0);
         transform-origin: center top;
         will-change: transform;
@@ -584,6 +681,14 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Add click handlers
     closeButton.addEventListener("click", () => toggleNowPanel(true));
     overlay.addEventListener("click", () => toggleNowPanel(true));
+
+    // Update close button for better hover effect
+    closeButton.addEventListener("mouseover", () => {
+      closeButton.style.background = "rgba(0, 0, 0, 0.5)";
+    });
+    closeButton.addEventListener("mouseout", () => {
+      closeButton.style.background = "rgba(0, 0, 0, 0.3)";
+    });
 
     // Render nowPanel content
     render(
