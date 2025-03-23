@@ -690,13 +690,14 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       closeButton.style.background = "rgba(0, 0, 0, 0.3)";
     });
 
-    // Render nowPanel content
+    // Render nowPanel content with preload flag to indicate data should be loaded immediately
     render(
       h(App, {
         theme: config.theme || "light",
         orgId: config.orgId,
         token: config.token,
         onToggle: () => toggleNowPanel(),
+        preloadData: true, // Add preload flag to load data immediately
       }),
       content
     );

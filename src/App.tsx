@@ -11,9 +11,11 @@ interface Props {
   theme?: "light" | "dark";
   orgId: string;
   token: string;
+  preloadData?: boolean;
+  onToggle?: () => void;
 }
 
-export default function App({ theme = "light", orgId, token }: Props) {
+export default function App({ theme = "light", orgId, token, preloadData = false, onToggle }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
@@ -23,80 +25,101 @@ export default function App({ theme = "light", orgId, token }: Props) {
   const [activeTab, setActiveTab] = useState<"feed" | "feedback">("feed");
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(false);
-
   const isDark = theme === "dark";
+  // This class is applied to the main container in the JSX
   const widgetThemeClass = isDark ? "nownownow-widget-dark" : "";
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [userResponse, postsResponse] = await Promise.all([
-          api.getOrgInfo(token, orgId),
-          api.getOrgPosts(token, orgId),
-        ]);
+  // Function to fetch data - extracted to be reusable
+  const fetchData = async (isInitialLoad = true) => {
+    try {
+      if (isInitialLoad) {
+        setIsLoading(true);
+      }
 
-        // Log the API responses for debugging
-        console.log("Organization Info API Response:", userResponse);
-        console.log("Posts API Response:", postsResponse);
+      const [userResponse, postsResponse] = await Promise.all([
+        api.getOrgInfo(token, orgId),
+        api.getOrgPosts(token, orgId, undefined, 10), // Fetch first 10 posts
+      ]);
 
-        if (!userResponse.success) {
-          throw new Error(userResponse.error || "Failed to fetch user info");
-        }
+      // Log the API responses for debugging
+      console.log("Organization Info API Response:", userResponse);
+      console.log("Posts API Response:", postsResponse);
 
-        if (!postsResponse.success) {
-          throw new Error(postsResponse.error || "Failed to fetch posts");
-        }
+      if (!userResponse.success) {
+        throw new Error(userResponse.error || "Failed to fetch user info");
+      }
 
-        // Extract organization info from the response
-        if (userResponse.data) {
-          setOrgInfo(userResponse.data.organization);
-          setUserData(userResponse.data); // Store the full response
-        }
+      if (!postsResponse.success) {
+        throw new Error(postsResponse.error || "Failed to fetch posts");
+      }
 
-        // Extract posts from the response
-        if (postsResponse.data) {
-          console.log("Posts API Response Details:", {
-            postsCount: postsResponse.data?.posts?.length || 0,
-            firstPost:
-              postsResponse.data?.posts && postsResponse.data?.posts.length > 0
-                ? {
-                    id: postsResponse.data.posts[0]?.id,
-                    content:
-                      postsResponse.data.posts[0]?.content?.substring(0, 50) +
-                      "...", // Truncate for readability
-                    authorInfo: {
-                      user: postsResponse.data.posts[0]?.user,
-                      author: postsResponse.data.posts[0]?.author,
-                      userId: postsResponse.data.posts[0]?.userId,
-                    },
-                    hasMedia: !!postsResponse.data.posts[0]?.media?.length,
-                    hasAttachments:
-                      !!postsResponse.data.posts[0]?.attachments?.length,
-                  }
-                : null,
-            nextCursor: postsResponse.data?.nextCursor,
-            hasMore: postsResponse.data?.hasMore,
-          });
+      // Extract organization info from the response
+      if (userResponse.data) {
+        setOrgInfo(userResponse.data.organization);
+        setUserData(userResponse.data); // Store the full response
+      }
 
-          setPosts(postsResponse.data.posts || []);
-          setNextCursor(postsResponse.data.nextCursor);
-          setHasMore(postsResponse.data.hasMore || false);
-        } else {
-          setPosts([]);
-          setHasMore(false);
-        }
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to load user data";
-        setError(errorMessage);
-        console.error("Error fetching data:", err);
-      } finally {
+      // Extract posts from the response
+      if (postsResponse.data) {
+        console.log("Posts API Response Details:", {
+          postsCount: postsResponse.data?.posts?.length || 0,
+          firstPost:
+            postsResponse.data?.posts && postsResponse.data?.posts.length > 0
+              ? {
+                  id: postsResponse.data.posts[0]?.id,
+                  content:
+                    postsResponse.data.posts[0]?.content?.substring(0, 50) +
+                    "...", // Truncate for readability
+                  authorInfo: {
+                    user: postsResponse.data.posts[0]?.user,
+                    author: postsResponse.data.posts[0]?.author,
+                    userId: postsResponse.data.posts[0]?.userId,
+                  },
+                  hasMedia: !!postsResponse.data.posts[0]?.media?.length,
+                  hasAttachments:
+                    !!postsResponse.data.posts[0]?.attachments?.length
+                }
+              : null,
+          nextCursor: postsResponse.data?.nextCursor,
+          hasMore: postsResponse.data?.hasMore,
+        });
+
+        setPosts(postsResponse.data.posts || []);
+        setNextCursor(postsResponse.data.nextCursor);
+        setHasMore(postsResponse.data.hasMore || false);
+      } else {
+        setPosts([]);
+        setHasMore(false);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load user data";
+      setError(errorMessage);
+      console.error("Error fetching data:", err);
+    } finally {
+      if (isInitialLoad) {
         setIsLoading(false);
       }
     }
+  };
 
-    fetchData();
-  }, [orgId, token]);
+  // Handle initial data loading
+  useEffect(() => {
+    // Only load on mount if preloadData is true
+    if (preloadData) {
+      console.log("Preloading data for Now panel...");
+      // Use a self-invoking function to handle async operations
+      (async function initialLoad() {
+        try {
+          // Explicitly call the fetchData function from the component scope
+          await fetchData();
+        } catch (err) {
+          console.error("Error in preloading data:", err);
+        }
+      })();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this only runs once on mount
 
   // Reference for scroll area and loader using useRef
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
