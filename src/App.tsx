@@ -4,6 +4,7 @@ import { FeedbackPanel } from "./components/FeedbackPanel";
 import { OrganizationProfile } from "./components/OrganizationProfile";
 import { PostCard } from "./components/PostCard";
 import { api } from "./services/apiService";
+import "./styles/markdown.css";
 import "./styles/nowWidgetStyles.css";
 import { type WidgetOrgInfo, type WidgetPost } from "./types/api";
 
@@ -15,7 +16,13 @@ interface Props {
   onToggle?: () => void;
 }
 
-export default function App({ theme = "light", orgId, token, preloadData = false, onToggle }: Props) {
+export default function App({
+  theme = "light",
+  orgId,
+  token,
+  preloadData = false,
+  onToggle,
+}: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
@@ -77,7 +84,7 @@ export default function App({ theme = "light", orgId, token, preloadData = false
                   },
                   hasMedia: !!postsResponse.data.posts[0]?.media?.length,
                   hasAttachments:
-                    !!postsResponse.data.posts[0]?.attachments?.length
+                    !!postsResponse.data.posts[0]?.attachments?.length,
                 }
               : null,
           nextCursor: postsResponse.data?.nextCursor,
@@ -118,7 +125,7 @@ export default function App({ theme = "light", orgId, token, preloadData = false
         }
       })();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array ensures this only runs once on mount
 
   // Reference for scroll area and loader using useRef

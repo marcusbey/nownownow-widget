@@ -1,9 +1,20 @@
+import DOMPurify from "dompurify";
+import * as markedLibrary from "marked";
 import type { FunctionComponent } from "preact";
 import { h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
 import type { WidgetPost } from "../types/api";
 import { MediaDisplay, type MediaItem } from "./MediaDisplay";
+
+// Use synchronous version of marked
+const { marked } = markedLibrary;
+
+// Initialize marked with options
+markedLibrary.marked.setOptions({
+  gfm: true,
+  breaks: true,
+});
 
 interface PostCardProps {
   post?: WidgetPost;
@@ -45,11 +56,34 @@ function formatTimeAgo(dateString: string): string {
 }
 
 function sanitizeHtml(html: string): string {
-  // Simple sanitization to prevent script injection
-  return html.replace(
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-    ""
-  );
+  // Use DOMPurify for more comprehensive sanitization
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "p",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "em",
+      "strong",
+      "b",
+      "i",
+      "code",
+      "pre",
+      "blockquote",
+      "span",
+      "div",
+      "img",
+      "br",
+    ],
+    ALLOWED_ATTR: ["href", "class", "target", "src", "alt", "style"],
+  });
 }
 
 function processHashtags(content: string): h.JSX.Element {
@@ -82,12 +116,39 @@ function processHashtags(content: string): h.JSX.Element {
 }
 
 function renderContent(content: string, isDark: boolean): h.JSX.Element {
-  // If the content appears to be HTML, render it as HTML
-  if (content.includes("<") && content.includes(">")) {
+  // First, check if the content is definitely HTML (contains HTML tags)
+  // More robust HTML detection using a regex to find HTML tags
+  const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(content);
+
+  // If the content appears to be HTML (from the server API), render it directly
+  if (hasHtmlTags) {
     return (
       <div
         dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
-        className="nownownow-widget-post-content"
+        className="nownownow-widget-post-content html-content"
+        style={{
+          fontSize: "15px",
+          lineHeight: "1.5",
+          color: isDark ? "white" : "black",
+        }}
+      />
+    );
+  }
+  
+  // Check if content appears to be markdown (contains markdown syntax)
+  const hasMarkdownSyntax =
+    /(\#{1,6}\s.+)|(\*\*.+\*\*)|(\*.+\*)|(\[.+\]\(.+\))|(\`\`\`.+\`\`\`)|(\`[^\`]+\`)|(\>\s.+)|(^\s*[\*\-\+]\s+.+)|(^\s*\d+\.\s+.+)|(^\s*\-{3,})/m.test(
+      content
+    );
+
+  // If content appears to be markdown, convert it to HTML
+  if (hasMarkdownSyntax) {
+    // Cast to string to ensure it's treated as synchronous
+    const htmlContent = marked(content) as string;
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }}
+        className="nownownow-widget-post-content markdown-content"
         style={{
           fontSize: "15px",
           lineHeight: "1.5",
@@ -110,6 +171,7 @@ function renderContent(content: string, isDark: boolean): h.JSX.Element {
       {processHashtags(content)}
     </div>
   );
+}
 }
 
 export const PostCard: FunctionComponent<PostCardProps> = ({
