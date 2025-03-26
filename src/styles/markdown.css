@@ -1,0 +1,288 @@
+/* Markdown content styles */
+.markdown-content {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: inherit;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Headings */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  line-height: 1.25;
+  color: inherit;
+  opacity: 1;
+}
+
+.markdown-content h1 {
+  font-size: 1.5em;
+  line-height: 1.2;
+}
+.markdown-content h2 {
+  font-size: 1.4em;
+  line-height: 1.3;
+}
+.markdown-content h3 {
+  font-size: 1.3em;
+  line-height: 1.4;
+}
+.markdown-content h4 {
+  font-size: 1.2em;
+  line-height: 1.5;
+}
+.markdown-content h5 {
+  font-size: 1.1em;
+}
+.markdown-content h6 {
+  font-size: 1em;
+}
+
+/* Paragraphs and spacing */
+.markdown-content p {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Lists */
+.markdown-content ul,
+.markdown-content ol {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.markdown-content ul {
+  list-style-type: disc;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+}
+
+.markdown-content ul ul,
+.markdown-content ol ul {
+  list-style-type: circle;
+}
+
+.markdown-content ul ul ul,
+.markdown-content ol ul ul {
+  list-style-type: square;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5em;
+  display: list-item;
+}
+
+.markdown-content li > p {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.markdown-content li + li {
+  margin-top: 0.15em;
+}
+
+/* Code blocks */
+.markdown-content pre {
+  margin: 1em 0;
+  padding: 1em;
+  overflow: auto;
+  background-color: #1e1e1e;
+  border-radius: 4px;
+  font-size: 0.9em;
+  color: #e5e7eb;
+}
+
+.markdown-content code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 0.9em;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.markdown-content pre code {
+  padding: 0;
+  margin: 0;
+  font-size: 0.9em;
+  word-break: normal;
+  white-space: pre;
+  background: transparent;
+  border: 0;
+  color: inherit;
+}
+
+/* Blockquotes */
+.markdown-content blockquote {
+  margin: 0.5em 0;
+  padding: 0 1em;
+  color: #6b7280;
+  border-left: 4px solid #d1d5db;
+  font-style: italic;
+}
+
+.markdown-content blockquote > :first-child {
+  margin-top: 0;
+}
+
+.markdown-content blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* Links */
+.markdown-content a {
+  color: #3b82f6;
+  text-decoration: underline;
+}
+
+.markdown-content a:hover {
+  text-decoration: none;
+}
+
+/* Images */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0;
+  border-radius: 4px;
+}
+
+/* Tables */
+.markdown-content table {
+  margin: 1em 0;
+  border-collapse: collapse;
+  width: 100%;
+  overflow: auto;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+  padding: 0.5em;
+  border: 1px solid #d1d5db;
+  text-align: left;
+}
+
+.markdown-content table th {
+  background: #f3f4f6;
+}
+
+.markdown-content table tr {
+  background-color: transparent;
+  border-top: 1px solid #c6cbd1;
+}
+
+.markdown-content table tr:nth-child(2n) {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Horizontal Rule */
+.markdown-content hr {
+  margin-top: 2em;
+  margin-bottom: 2em;
+  border: none;
+  border-top: 1px solid #d1d5db;
+}
+
+/* Dark theme adjustments */
+.nownownow-widget-post-dark .markdown-content {
+  color: #e5e7eb;
+}
+
+.nownownow-widget-post-dark .markdown-content code {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.nownownow-widget-post-dark .markdown-content pre {
+  background-color: #0d1117;
+}
+
+.nownownow-widget-post-dark .markdown-content blockquote {
+  color: #9ca3af;
+  border-left-color: #4b5563;
+}
+
+.nownownow-widget-post-dark .markdown-content table th,
+.nownownow-widget-post-dark .markdown-content table td {
+  border-color: #374151;
+}
+
+.nownownow-widget-post-dark .markdown-content table th {
+  background: #1f2937;
+}
+
+.nownownow-widget-post-dark .markdown-content table tr {
+  background-color: transparent;
+  border-color: #374151;
+}
+
+.nownownow-widget-post-dark .markdown-content table tr:nth-child(2n) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.nownownow-widget-post-dark .markdown-content a {
+  color: #60a5fa;
+}
+
+.nownownow-widget-post-dark .markdown-content hr {
+  border-top-color: #374151;
+}
+
+/* Callout support - similar to what's in the main app */
+.markdown-content .callout {
+  margin: 0.5em 0;
+  padding: 0.75em 1em;
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #3b82f6;
+}
+
+.nownownow-widget-post-dark .markdown-content .callout {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-left-color: #60a5fa;
+}
+
+/* Dark mode overrides */
+:root[data-theme="dark"] .markdown-content a {
+  color: #60a5fa;
+}
+
+:root[data-theme="dark"] .markdown-content blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
+
+:root[data-theme="dark"] .markdown-content code {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+:root[data-theme="dark"] .markdown-content pre {
+  background: #0d1117;
+}
+
+:root[data-theme="dark"] .markdown-content th,
+:root[data-theme="dark"] .markdown-content td {
+  border-color: #374151;
+}
+
+:root[data-theme="dark"] .markdown-content th {
+  background: #1f2937;
+}
+
+:root[data-theme="dark"] .markdown-content hr {
+  border-top-color: #374151;
+}

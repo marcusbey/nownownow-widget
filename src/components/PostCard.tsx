@@ -7,13 +7,12 @@ import { api } from "../services/apiService";
 import type { WidgetPost } from "../types/api";
 import { MediaDisplay, type MediaItem } from "./MediaDisplay";
 
-// Use synchronous version of marked
-const { marked } = markedLibrary;
-
 // Initialize marked with options
 markedLibrary.marked.setOptions({
-  gfm: true,
-  breaks: true,
+  gfm: true, // GitHub Flavored Markdown
+  breaks: true, // Add <br> on line breaks
+  async: false, // Always use synchronous operation
+  pedantic: false, // Conform to markdown.pl (false = better specs)
 });
 
 interface PostCardProps {
@@ -66,6 +65,8 @@ function sanitizeHtml(html: string): string {
       "h5",
       "h6",
       "p",
+      "br",
+      "hr",
       "ul",
       "ol",
       "li",
@@ -74,15 +75,50 @@ function sanitizeHtml(html: string): string {
       "strong",
       "b",
       "i",
+      "s",
+      "strike",
+      "del",
       "code",
       "pre",
       "blockquote",
       "span",
       "div",
       "img",
-      "br",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "th",
+      "td",
     ],
-    ALLOWED_ATTR: ["href", "class", "target", "src", "alt", "style"],
+    ALLOWED_ATTR: [
+      "href",
+      "src",
+      "alt",
+      "target",
+      "rel",
+      "class",
+      "style",
+      "id",
+      "title",
+      "width",
+      "height",
+      "type", // Allow type attribute for lists (ol type="1", etc.)
+    ],
+    ADD_ATTR: ["target"], // Add target="_blank" to links
+    FORBID_ATTR: ["onclick", "onload", "onerror"],
+    FORBID_TAGS: [
+      "script",
+      "style",
+      "iframe",
+      "canvas",
+      "form",
+      "input",
+      "textarea",
+    ],
+    USE_PROFILES: {
+      html: true, // Use HTML profile which includes list elements
+    },
   });
 }
 
@@ -116,62 +152,39 @@ function processHashtags(content: string): h.JSX.Element {
 }
 
 function renderContent(content: string, isDark: boolean): h.JSX.Element {
-  // First, check if the content is definitely HTML (contains HTML tags)
-  // More robust HTML detection using a regex to find HTML tags
-  const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(content);
+  // Configure marked options for better consistency with the main app
+  markedLibrary.marked.setOptions({
+    gfm: true,
+    breaks: true,
+    async: false,
+  });
 
-  // If the content appears to be HTML (from the server API), render it directly
-  if (hasHtmlTags) {
-    return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }}
-        className="nownownow-widget-post-content html-content"
-        style={{
-          fontSize: "15px",
-          lineHeight: "1.5",
-          color: isDark ? "white" : "black",
-        }}
-      />
-    );
-  }
-  
-  // Check if content appears to be markdown (contains markdown syntax)
-  const hasMarkdownSyntax =
-    /(\#{1,6}\s.+)|(\*\*.+\*\*)|(\*.+\*)|(\[.+\]\(.+\))|(\`\`\`.+\`\`\`)|(\`[^\`]+\`)|(\>\s.+)|(^\s*[\*\-\+]\s+.+)|(^\s*\d+\.\s+.+)|(^\s*\-{3,})/m.test(
-      content
-    );
+  // Convert markdown to HTML
+  const htmlContent = markedLibrary.marked.parse(content);
 
-  // If content appears to be markdown, convert it to HTML
-  if (hasMarkdownSyntax) {
-    // Cast to string to ensure it's treated as synchronous
-    const htmlContent = marked(content) as string;
-    return (
-      <div
-        dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlContent) }}
-        className="nownownow-widget-post-content markdown-content"
-        style={{
-          fontSize: "15px",
-          lineHeight: "1.5",
-          color: isDark ? "white" : "black",
-        }}
-      />
-    );
-  }
+  // Log the HTML for debugging
+  console.log("Raw HTML from marked:", htmlContent);
 
-  // Otherwise, handle it as plain text with hashtag formatting
+  // Enhanced sanitization with class preservation for styling
+  const sanitizedHtml = sanitizeHtml(htmlContent as string);
+
+  // Log after sanitization
+  console.log("Sanitized HTML:", sanitizedHtml);
+
   return (
     <div
-      className="nownownow-widget-post-content"
+      className="nownownow-widget-post-content markdown-content"
       style={{
         fontSize: "15px",
-        lineHeight: "1.5",
-        color: isDark ? "white" : "black",
+        lineHeight: "1.6",
+        color: isDark ? "#e5e7eb" : "#1f2937",
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+        maxWidth: "100%", // Ensure content doesn't overflow
       }}
-    >
-      {processHashtags(content)}
-    </div>
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+    />
   );
-}
 }
 
 export const PostCard: FunctionComponent<PostCardProps> = ({

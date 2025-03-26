@@ -148,6 +148,7 @@ export function NowButton({
       box-shadow: none;
       border: none;
       background: transparent;
+      cursor: pointer;
     }
 
     .button {
@@ -172,6 +173,7 @@ export function NowButton({
       display: flex;
       justify-content: center;
       align-items: center;
+      cursor: pointer;
     }
 
     .text-ring {
@@ -190,6 +192,7 @@ export function NowButton({
       height: 100%;
       animation: spin ${textRingSpeed}s linear infinite;
       transition: animation-duration 0.3s ease-in-out;
+      cursor: pointer;
     }
 
     .now-char {
@@ -204,6 +207,7 @@ export function NowButton({
       background-clip: text;
       color: transparent;
       text-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
     }
 
     .arrow-icon {
@@ -212,6 +216,7 @@ export function NowButton({
       stroke: ${color};
       stroke-width: 2;
       fill: none;
+      cursor: pointer;
     }
 
     @media (max-width: 768px) {

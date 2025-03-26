@@ -14,6 +14,7 @@
     "@preact/signals": "^2.0.1",
     "dompurify": "^3.2.4",
     "lucide-preact": "^0.344.0",
+    "marked": "^15.0.7",
     "preact": "^10.19.6",
     "react-icons": "^5.5.0"
   },
