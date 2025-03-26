@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import "./App.css";
-import { FeedbackPanel } from "./components/FeedbackPanel";
-import { OrganizationProfile } from "./components/OrganizationProfile";
-import { PostCard } from "./components/PostCard";
+import { LastUpdatesSidePanel } from "./components/LastUpdatesSidePanel";
 import { api } from "./services/apiService";
 import "./styles/markdown.css";
 import "./styles/nowWidgetStyles.css";
@@ -26,206 +24,142 @@ export default function App({
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);
-  const [userData, setUserData] = useState<any>(null);
   const [posts, setPosts] = useState<WidgetPost[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"feed" | "feedback">("feed");
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
-  const [hasMore, setHasMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
   const isDark = theme === "dark";
-  // This class is applied to the main container in the JSX
   const widgetThemeClass = isDark ? "nownownow-widget-dark" : "";
+  const containerRef = useRef<HTMLDivElement>(null);
+  const INITIAL_PAGE_SIZE = 5; // Smaller initial page size for faster loading
+  const SUBSEQUENT_PAGE_SIZE = 10;
 
-  // Function to fetch data - extracted to be reusable
-  const fetchData = async (isInitialLoad = true) => {
+  // Function to fetch organization info
+  const fetchOrgInfo = async () => {
     try {
-      if (isInitialLoad) {
-        setIsLoading(true);
-      }
-
-      const [userResponse, postsResponse] = await Promise.all([
-        api.getOrgInfo(token, orgId),
-        api.getOrgPosts(token, orgId, undefined, 10), // Fetch first 10 posts
-      ]);
-
-      // Log the API responses for debugging
-      console.log("Organization Info API Response:", userResponse);
-      console.log("Posts API Response:", postsResponse);
+      const userResponse = await api.getOrgInfo(token, orgId);
 
       if (!userResponse.success) {
         throw new Error(userResponse.error || "Failed to fetch user info");
       }
 
+      // Extract organization info from the response
+      if (userResponse.data) {
+        setOrgInfo(userResponse.data.organization);
+      }
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to load organization data";
+      setError(errorMessage);
+      console.error("Error fetching organization data:", err);
+    }
+  };
+
+  // Function to fetch posts with pagination
+  const fetchPosts = async (
+    cursor?: string,
+    limit: number = SUBSEQUENT_PAGE_SIZE
+  ) => {
+    if (cursor) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
+
+    try {
+      const postsResponse = await api.getOrgPosts(token, orgId, cursor, limit);
+
       if (!postsResponse.success) {
         throw new Error(postsResponse.error || "Failed to fetch posts");
       }
 
-      // Extract organization info from the response
-      if (userResponse.data) {
-        setOrgInfo(userResponse.data.organization);
-        setUserData(userResponse.data); // Store the full response
-      }
-
-      // Extract posts from the response
+      // Extract posts and pagination info from the response
       if (postsResponse.data) {
-        console.log("Posts API Response Details:", {
-          postsCount: postsResponse.data?.posts?.length || 0,
-          firstPost:
-            postsResponse.data?.posts && postsResponse.data?.posts.length > 0
-              ? {
-                  id: postsResponse.data.posts[0]?.id,
-                  content:
-                    postsResponse.data.posts[0]?.content?.substring(0, 50) +
-                    "...", // Truncate for readability
-                  authorInfo: {
-                    user: postsResponse.data.posts[0]?.user,
-                    author: postsResponse.data.posts[0]?.author,
-                    userId: postsResponse.data.posts[0]?.userId,
-                  },
-                  hasMedia: !!postsResponse.data.posts[0]?.media?.length,
-                  hasAttachments:
-                    !!postsResponse.data.posts[0]?.attachments?.length,
-                }
-              : null,
-          nextCursor: postsResponse.data?.nextCursor,
-          hasMore: postsResponse.data?.hasMore,
-        });
+        const responseData = postsResponse.data;
 
-        setPosts(postsResponse.data.posts || []);
-        setNextCursor(postsResponse.data.nextCursor);
-        setHasMore(postsResponse.data.hasMore || false);
+        if (cursor) {
+          // Append new posts to existing ones
+          setPosts((prev) => [...prev, ...(responseData.posts || [])]);
+        } else {
+          // Replace posts on initial load
+          setPosts(responseData.posts || []);
+        }
+
+        setNextCursor(responseData.nextCursor);
+        setHasMore(responseData.hasMore);
       } else {
-        setPosts([]);
+        if (!cursor) {
+          setPosts([]);
+        }
         setHasMore(false);
       }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to load user data";
+        err instanceof Error ? err.message : "Failed to load posts";
       setError(errorMessage);
-      console.error("Error fetching data:", err);
+      console.error("Error fetching posts:", err);
     } finally {
-      if (isInitialLoad) {
+      if (cursor) {
+        setIsLoadingMore(false);
+      } else {
         setIsLoading(false);
       }
+      if (!initialLoadComplete) {
+        setInitialLoadComplete(true);
+      }
+    }
+  };
+
+  // Handle scroll events for infinite loading
+  const handleScroll = (e: Event) => {
+    const target = e.target as HTMLDivElement;
+
+    // Check if we're near the bottom and not already loading more posts
+    const isNearBottom =
+      target.scrollHeight - target.scrollTop <= target.clientHeight * 1.5;
+
+    if (isNearBottom && !isLoadingMore && hasMore && nextCursor) {
+      loadMorePosts();
+    }
+  };
+
+  // Function to load more posts
+  const loadMorePosts = () => {
+    if (hasMore && nextCursor && !isLoadingMore) {
+      fetchPosts(nextCursor);
     }
   };
 
   // Handle initial data loading
   useEffect(() => {
-    // Only load on mount if preloadData is true
-    if (preloadData) {
-      console.log("Preloading data for Now panel...");
-      // Use a self-invoking function to handle async operations
-      (async function initialLoad() {
-        try {
-          // Explicitly call the fetchData function from the component scope
-          await fetchData();
-        } catch (err) {
-          console.error("Error in preloading data:", err);
-        }
-      })();
+    if (preloadData || initialLoadComplete) {
+      console.log("Loading data for Now panel...");
+
+      // Fetch org info and initial posts in parallel
+      Promise.all([
+        fetchOrgInfo(),
+        fetchPosts(undefined, INITIAL_PAGE_SIZE),
+      ]).catch((err) => {
+        console.error("Error initializing widget:", err);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this only runs once on mount
+  }, [orgId, token]); // Re-fetch when org or token changes
 
-  // Reference for scroll area and loader using useRef
-  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
-  const loaderRef = useRef<HTMLDivElement | null>(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  // Extract the loadMore function from the useEffect so it can be used directly
-  const loadMore = async (): Promise<void> => {
-    if (!hasMore || isLoadingMore) return;
-
-    try {
-      setIsLoadingMore(true);
-      const response = await api.getOrgPosts(token, orgId, nextCursor);
-      console.log("Loading more posts - API Response:", response);
-
-      if (response.success && response.data) {
-        const newPosts = response.data.posts || [];
-
-        // Log detailed information about the newly loaded posts
-        console.log("Loading more posts - Detailed Response:", {
-          newPostsCount: newPosts.length,
-          firstNewPost:
-            newPosts.length > 0
-              ? {
-                  id: newPosts[0]?.id,
-                  content: newPosts[0]?.content?.substring(0, 50) + "...",
-                  authorInfo: {
-                    user: newPosts[0]?.user,
-                    author: newPosts[0]?.author,
-                    userId: newPosts[0]?.userId,
-                  },
-                }
-              : null,
-          nextCursor: response.data?.nextCursor,
-          hasMore: response.data?.hasMore,
-        });
-
-        setPosts((prev) => [...prev, ...newPosts]);
-        setNextCursor(response.data.nextCursor);
-        setHasMore(
-          response.data.hasMore !== undefined
-            ? Boolean(response.data.hasMore)
-            : false
-        );
-      }
-    } catch (err) {
-      console.error("Error loading more posts:", err);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
-
-  // Set up intersection observer for infinite scrolling
+  // Set up scroll event listener
   useEffect(() => {
-    const loaderElement = loaderRef.current;
-    if (!loaderElement || activeTab !== "feed") return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0]?.isIntersecting && hasMore && !isLoadingMore) {
-          void loadMore();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(loaderElement);
-
-    return () => {
-      observer.unobserve(loaderElement);
-    };
-  }, [hasMore, isLoadingMore, nextCursor, activeTab, token, orgId]);
-
-  // Handle scroll event to show/hide scroll to top button
-  const handleScroll = (e: Event) => {
-    const target = e.target as HTMLDivElement;
-    setShowScrollTop(target.scrollTop > 300);
-  };
-
-  // Scroll to top function
-  const scrollToTop = () => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+      return () => {
+        container.removeEventListener("scroll", handleScroll);
+      };
     }
-  };
+  }, [nextCursor, isLoadingMore, hasMore]);
 
-  // Add scroll event listener
-  useEffect(() => {
-    const scrollArea = scrollAreaRef.current;
-    if (scrollArea) {
-      scrollArea.addEventListener("scroll", handleScroll);
-      return () => scrollArea.removeEventListener("scroll", handleScroll);
-    }
-    return undefined; // Explicit return for when scrollArea is null
-  }, [activeTab]); // Re-add listener when tab changes
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  if (isLoading) {
+  if (isLoading && !initialLoadComplete) {
     return (
       <div
         ref={containerRef}
@@ -239,7 +173,7 @@ export default function App({
     );
   }
 
-  if (error) {
+  if (error && !initialLoadComplete) {
     return (
       <div
         ref={containerRef}
@@ -258,78 +192,17 @@ export default function App({
       ref={containerRef}
       className={`nownownow-widget-container ${widgetThemeClass}`}
     >
-      <OrganizationProfile
+      <LastUpdatesSidePanel
+        posts={posts}
         orgInfo={orgInfo}
         theme={theme}
-        activeTab={activeTab}
-        onTabChange={(tab) => setActiveTab(tab)}
+        onClose={onToggle || (() => {})}
+        token={token}
+        orgId={orgId}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        onLoadMore={loadMorePosts}
       />
-
-      <div className="nownownow-widget-content-container">
-        {activeTab === "feed" && (
-          <div className="nownownow-widget-posts">
-            {posts.length > 0 ? (
-              posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  content={post.content}
-                  createdAt={post.createdAt}
-                  likes={post._count?.likes ?? 0}
-                  comments={post._count?.comments ?? 0}
-                  theme={theme}
-                />
-              ))
-            ) : (
-              <div className="nownownow-widget-no-posts">
-                <p>No posts available.</p>
-              </div>
-            )}
-            {isLoadingMore && (
-              <div className="nownownow-widget-loading-more">
-                <div className="nownownow-widget-spinner"></div>
-                <p>Loading more posts...</p>
-              </div>
-            )}
-            {hasMore && !isLoadingMore && (
-              <button
-                className="nownownow-widget-load-more"
-                onClick={loadMore}
-                disabled={isLoadingMore}
-              >
-                Load More
-              </button>
-            )}
-          </div>
-        )}
-
-        {activeTab === "feedback" && (
-          <FeedbackPanel orgId={orgId} token={token} theme={theme} />
-        )}
-      </div>
-
-      {showScrollTop && (
-        <button
-          onClick={scrollToTop}
-          class={`nownownow-widget-scroll-top absolute bottom-2 right-2 rounded-full p-1.5 shadow-sm transition-opacity duration-300 hover:opacity-80 ${
-            isDark ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
-          }`}
-          aria-label="Scroll to top"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-3 h-3"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 19V5M5 12l7-7 7 7" />
-          </svg>
-        </button>
-      )}
     </div>
   );
 }

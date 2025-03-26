@@ -63,39 +63,24 @@ export interface OrgInfoResponse {
 
 export interface WidgetPost {
   id: string;
-  content: string;
   title?: string;
+  content: string;
   createdAt: string;
-  isPinned?: boolean;
-  scheduledAt?: string;
-  image?: string;
-  author?: {
+  media?: any[];
+  attachments?: any[];
+  commentCount?: number;
+  likeCount?: number;
+  viewCount?: number;
+  hasLiked?: boolean;
+  user?: {
     id?: string;
     name?: string;
-    image?: string;
-  };
-  user?: {
-    id: string;
-    name: string;
     image?: string | null;
-    bio?: string | null;
   };
-  userId?: string;
-  organizationId?: string;
-  attachments?: {
-    type: string;
-    url: string;
-  }[];
-  media?: {
-    id: string;
-    url: string;
-    type: string;
-  }[];
-  comments?: any[];
   _count?: {
     comments: number;
     likes: number;
-    views?: number;
+    views: number;
   };
 }
 
@@ -132,7 +117,15 @@ export interface VoteFeedbackRequest {
 }
 
 export const API_ENDPOINTS = {
-  ORG_INFO: '/api/v1/widget/org-info',
-  ORG_POSTS: '/api/v1/widget/org-posts',
-  FEEDBACK: '/api/v1/widget/feedback'
+  ORG_INFO: '/api/v1/organization/info',
+  USER_ORG_LIST: '/api/v1/user/organizations',
+  FEEDBACK: '/api/v1/widget/feedback',
+  WIDGET: {
+    ORG_INFO: '/api/v1/widget/org-info',
+    ORG_POSTS: '/api/v1/widget/org-posts',
+    POST_COMMENTS: '/api/v1/widget/post-comments',
+    ADD_COMMENT: '/api/v1/widget/add-comment',
+    TOGGLE_LIKE: '/api/v1/widget/toggle-like',
+    TRACK_VIEW: '/api/v1/widget/track-view'
+  }
 } as const;

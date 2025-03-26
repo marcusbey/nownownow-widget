@@ -63,11 +63,70 @@ export const api = {
     return fetchWithAuth<{ posts: WidgetPost[], nextCursor?: string, hasMore: boolean }>(url, token);
   },
 
-  trackPostView: (token: string, postId: string, source: string = "widget"): Promise<ApiResponse<any>> => {
-    return fetchWithAuth<any>(`${apiStore.config.VERSION}/widget/track-view`, token, {
-      method: 'POST',
-      body: JSON.stringify({ postId, source })
-    });
+  trackPostView: async (token: string, postId: string) => {
+    return await fetchWithAuth(
+      apiStore.config.ENDPOINTS.WIDGET.TRACK_VIEW,
+      token,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId })
+      }
+    );
+  },
+
+  getPostComments: async (token: string, postId: string) => {
+    try {
+      const response = await fetchWithAuth(
+        apiStore.config.ENDPOINTS.WIDGET.POST_COMMENTS,
+        token,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId })
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      return { success: false, data: [] };
+    }
+  },
+
+  addComment: async (token: string, postId: string, comment: string) => {
+    try {
+      const response = await fetchWithAuth(
+        apiStore.config.ENDPOINTS.WIDGET.ADD_COMMENT,
+        token,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId, comment })
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      throw error;
+    }
+  },
+
+  toggleLike: async (token: string, postId: string, isLiked: boolean) => {
+    try {
+      const response = await fetchWithAuth(
+        apiStore.config.ENDPOINTS.WIDGET.TOGGLE_LIKE,
+        token,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId, isLiked })
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      throw error;
+    }
   },
 
   async getFeedback(
