@@ -6,6 +6,7 @@ import type { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
 import type { WidgetOrgInfo, WidgetPost } from "../types/api";
+import { PostCard } from "./PostCard";
 
 // Initialize marked with options
 markedLibrary.marked.setOptions({
@@ -144,21 +145,7 @@ function renderContent(content: string, isDark: boolean) {
     '<a href="$2" target="_blank" rel="noopener noreferrer"'
   );
 
-  return (
-    <div
-      className="nownownow-widget-post-content markdown-content"
-      style={{
-        fontSize: "14px",
-        lineHeight: "1.6",
-        color: isDark ? "#e5e7eb" : "#1f2937",
-        whiteSpace: "pre-wrap",
-        wordBreak: "break-word",
-        maxWidth: "100%", // Ensure content doesn't overflow
-        marginBottom: "16px", // Add some space below content
-      }}
-      dangerouslySetInnerHTML={{ __html: processedHtml }}
-    />
-  );
+  return processedHtml;
 }
 
 // Define comment interface for better type safety
@@ -569,7 +556,9 @@ export const LastUpdatesSidePanel: FunctionComponent<
       style={{
         width: "100%",
         height: "100vh",
-        background: isDark ? "#121212" : "white",
+        background: isDark
+          ? "linear-gradient(135deg, #0f172a, #1e293b)"
+          : "linear-gradient(135deg, #ffffff, #f8fafc)",
         position: "relative",
         display: "flex",
         flexDirection: "column",
@@ -587,7 +576,10 @@ export const LastUpdatesSidePanel: FunctionComponent<
           justifyContent: "space-between",
           position: "sticky",
           top: 0,
-          background: isDark ? "#121212" : "white",
+          background: isDark
+            ? "linear-gradient(to bottom, #0f172a, #0f172a)"
+            : "linear-gradient(to bottom, #ffffff, #ffffff)",
+          backdropFilter: "blur(8px)",
           zIndex: 10,
         }}
       >
@@ -639,425 +631,26 @@ export const LastUpdatesSidePanel: FunctionComponent<
         style={{
           flex: 1,
           overflow: "auto",
+          padding: "24px 16px", // Increased padding
         }}
+        ref={mainRef}
       >
-        <div
-          style={{
-            padding: "16px",
-          }}
-        >
+        <div>
           {posts.length > 0 ? (
             posts.map((post) => {
-              const author = getAuthorInfo(post);
-              const postImage = getPostImage(post);
               const isLiked = likedPosts[post.id] || false;
 
               return (
-                <div
+                <PostCard
                   key={post.id}
-                  className="nownownow-widget-post-item"
-                  data-post-id={post.id}
-                  style={{
-                    marginBottom: "24px",
-                    paddingBottom: "16px",
-                    borderBottom: isDark
-                      ? "1px solid rgba(255,255,255,0.05)"
-                      : "1px solid rgba(0,0,0,0.05)",
-                  }}
-                >
-                  {/* Author and timestamp */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                      marginBottom: "12px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "20px",
-                        height: "20px",
-                        borderRadius: "50%",
-                        overflow: "hidden",
-                        background: isDark ? "#1e1e1e" : "#f3f4f6",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: isDark ? "#e5e7eb" : "#4b5563",
-                        fontSize: "10px",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {author.image ? (
-                        <img
-                          src={author.image}
-                          alt={author.name}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        getAvatarFallback(author.name)
-                      )}
-                    </div>
-                    <span
-                      style={{
-                        fontSize: "12px",
-                        fontWeight: 500,
-                        color: isDark ? "white" : "black",
-                      }}
-                    >
-                      {author.name}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: "10px",
-                        color: isDark ? "#9ca3af" : "#6b7280",
-                      }}
-                    >
-                      • {formatTimeAgo(post.createdAt)}
-                    </span>
-                  </div>
-
-                  {/* Post content */}
-                  {post.title && (
-                    <h3
-                      style={{
-                        fontSize: "14px",
-                        fontWeight: 500,
-                        margin: "0 0 8px 0",
-                        color: isDark ? "white" : "black",
-                      }}
-                    >
-                      {post.title}
-                    </h3>
-                  )}
-
-                  {/* Use renderContent for proper markdown rendering */}
-                  {renderContent(post.content, isDark)}
-
-                  {/* Post image if available */}
-                  {postImage && (
-                    <img
-                      src={postImage}
-                      alt="Post media"
-                      style={{
-                        width: "100%",
-                        borderRadius: "8px",
-                        marginBottom: "12px",
-                      }}
-                    />
-                  )}
-
-                  {/* Post engagement section */}
-                  <div
-                    style={{
-                      marginTop: "12px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <div style={{ display: "flex", gap: "16px" }}>
-                      {/* Comment button */}
-                      <button
-                        onClick={() => toggleComments(post.id)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          background: "none",
-                          border: "none",
-                          padding: "0",
-                          cursor: "pointer",
-                          color: showComments[post.id]
-                            ? "#3b82f6"
-                            : isDark
-                            ? "#9ca3af"
-                            : "#6b7280",
-                          fontSize: "12px",
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill={
-                            showComments[post.id]
-                              ? "rgba(59, 130, 246, 0.1)"
-                              : "none"
-                          }
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 13.4876 3.36074 14.891 4 16.1272V21L8.87279 20C9.99849 20.6177 10.9607 21 12 21Z" />
-                        </svg>
-                        {post._count?.comments || 0}
-                      </button>
-
-                      {/* Like button */}
-                      <button
-                        onClick={() => handleLikeToggle(post.id)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          background: "none",
-                          border: "none",
-                          padding: "0",
-                          cursor: "pointer",
-                          color: likedPosts[post.id]
-                            ? "#f43f5e"
-                            : isDark
-                            ? "#9ca3af"
-                            : "#6b7280",
-                          fontSize: "12px",
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill={likedPosts[post.id] ? "currentColor" : "none"}
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                        </svg>
-                        {post._count?.likes || 0}
-                      </button>
-
-                      {/* View counter (not a button) */}
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "4px",
-                          color: isDark ? "#9ca3af" : "#6b7280",
-                          fontSize: "12px",
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                          <circle cx="12" cy="12" r="3"></circle>
-                        </svg>
-                        {post._count?.views || 0}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Comments section */}
-                  {showComments[post.id] && (
-                    <div
-                      style={{
-                        marginTop: "16px",
-                        padding: "12px",
-                        background: isDark
-                          ? "rgba(255,255,255,0.05)"
-                          : "rgba(0,0,0,0.02)",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <h4
-                        style={{
-                          fontSize: "14px",
-                          fontWeight: 500,
-                          margin: "0 0 12px 0",
-                          color: isDark ? "#e5e7eb" : "#4b5563",
-                        }}
-                      >
-                        Comments
-                      </h4>
-
-                      {/* Comments list */}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "8px",
-                          marginBottom: "12px",
-                        }}
-                      >
-                        {loadingComments[post.id] ? (
-                          <div
-                            style={{
-                              padding: "12px",
-                              textAlign: "center",
-                              color: isDark ? "#9ca3af" : "#6b7280",
-                            }}
-                          >
-                            Loading comments...
-                          </div>
-                        ) : getComments(post.id).length > 0 ? (
-                          getComments(post.id).map((comment: PostComment) => {
-                            const commentAuthor = comment.user?.name || "User";
-                            const commentAuthorImage =
-                              comment.user?.image || null;
-
-                            return (
-                              <div
-                                key={comment.id}
-                                style={{
-                                  padding: "8px",
-                                  borderRadius: "6px",
-                                  background: isDark
-                                    ? "rgba(255,255,255,0.05)"
-                                    : "white",
-                                  border: isDark
-                                    ? "1px solid rgba(255,255,255,0.03)"
-                                    : "1px solid rgba(0,0,0,0.05)",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "8px",
-                                    marginBottom: "6px",
-                                  }}
-                                >
-                                  <div
-                                    style={{
-                                      width: "18px",
-                                      height: "18px",
-                                      borderRadius: "50%",
-                                      overflow: "hidden",
-                                      background: isDark
-                                        ? "#1e1e1e"
-                                        : "#f3f4f6",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      color: isDark ? "#e5e7eb" : "#4b5563",
-                                      fontSize: "8px",
-                                      fontWeight: "bold",
-                                    }}
-                                  >
-                                    {commentAuthorImage ? (
-                                      <img
-                                        src={commentAuthorImage}
-                                        alt={commentAuthor}
-                                        style={{
-                                          width: "100%",
-                                          height: "100%",
-                                          objectFit: "cover",
-                                        }}
-                                      />
-                                    ) : (
-                                      getAvatarFallback(commentAuthor)
-                                    )}
-                                  </div>
-                                  <span
-                                    style={{
-                                      fontSize: "11px",
-                                      fontWeight: 500,
-                                      color: isDark ? "white" : "black",
-                                    }}
-                                  >
-                                    {commentAuthor}
-                                  </span>
-                                  <span
-                                    style={{
-                                      fontSize: "10px",
-                                      color: isDark ? "#9ca3af" : "#6b7280",
-                                    }}
-                                  >
-                                    {formatCommentDate(comment.createdAt)}
-                                  </span>
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: "12px",
-                                    color: isDark ? "#e5e7eb" : "#4b5563",
-                                    lineHeight: "1.4",
-                                  }}
-                                >
-                                  {comment.content}
-                                </div>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div
-                            style={{
-                              padding: "12px",
-                              textAlign: "center",
-                              color: isDark ? "#9ca3af" : "#6b7280",
-                            }}
-                          >
-                            No comments yet. Be the first to comment!
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Comment input */}
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "8px",
-                        }}
-                      >
-                        <input
-                          type="text"
-                          value={getCommentInput(post.id)}
-                          onChange={(e) =>
-                            handleCommentInputChange(
-                              post.id,
-                              e.currentTarget.value
-                            )
-                          }
-                          placeholder="Add a comment..."
-                          style={{
-                            flex: 1,
-                            padding: "8px 12px",
-                            borderRadius: "6px",
-                            border: isDark
-                              ? "1px solid rgba(255,255,255,0.1)"
-                              : "1px solid rgba(0,0,0,0.1)",
-                            background: isDark
-                              ? "rgba(255,255,255,0.05)"
-                              : "white",
-                            color: isDark ? "white" : "black",
-                            fontSize: "12px",
-                          }}
-                        />
-                        <button
-                          onClick={() => submitComment(post.id)}
-                          disabled={isCommentButtonDisabled(post.id)}
-                          style={{
-                            padding: "4px 10px",
-                            borderRadius: "6px",
-                            border: "none",
-                            background: "#3b82f6",
-                            color: "white",
-                            fontSize: "12px",
-                            cursor: isCommentButtonDisabled(post.id)
-                              ? "not-allowed"
-                              : "pointer",
-                            opacity: isCommentButtonDisabled(post.id) ? 0.5 : 1,
-                          }}
-                        >
-                          {isSubmittingComment(post.id) ? "Posting..." : "Post"}
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  post={post}
+                  content={post.content}
+                  createdAt={post.createdAt}
+                  likes={post._count?.likes || 0}
+                  comments={post._count?.comments || 0}
+                  theme={theme}
+                  token={token}
+                />
               );
             })
           ) : (
@@ -1077,11 +670,14 @@ export const LastUpdatesSidePanel: FunctionComponent<
       {/* Footer with feedback form */}
       <div
         style={{
-          padding: "12px",
+          padding: "16px",
           borderTop: isDark
             ? "1px solid rgba(255,255,255,0.05)"
             : "1px solid rgba(0,0,0,0.05)",
-          background: isDark ? "#121212" : "white",
+          background: isDark
+            ? "linear-gradient(to top, #0f172a, rgba(15, 23, 42, 0.9))"
+            : "linear-gradient(to top, #ffffff, rgba(255, 255, 255, 0.9))",
+          position: "relative",
         }}
       >
         <div
@@ -1100,8 +696,8 @@ export const LastUpdatesSidePanel: FunctionComponent<
           >
             <div
               style={{
-                width: "24px",
-                height: "24px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "50%",
                 overflow: "hidden",
                 background: isDark ? "#1e1e1e" : "#f3f4f6",
@@ -1109,8 +705,11 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 alignItems: "center",
                 justifyContent: "center",
                 color: isDark ? "#e5e7eb" : "#4b5563",
-                fontSize: "12px",
+                fontSize: "14px",
                 fontWeight: "bold",
+                border: isDark
+                  ? "1px solid rgba(255,255,255,0.1)"
+                  : "1px solid rgba(0,0,0,0.05)",
               }}
             >
               {orgInfo?.image ? (
@@ -1127,74 +726,83 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 getAvatarFallback(orgInfo?.name || "")
               )}
             </div>
-            <span
-              style={{
-                fontSize: "12px",
-                color: isDark ? "white" : "black",
-              }}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "2px" }}
             >
-              {orgInfo?.name || "Organization"}
-            </span>
+              <span
+                style={{
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  color: isDark ? "white" : "black",
+                }}
+              >
+                {orgInfo?.name || "Organization"}
+              </span>
+              <span
+                style={{
+                  fontSize: "12px",
+                  color: isDark ? "#9ca3af" : "#6b7280",
+                }}
+              >
+                {(orgInfo as any)?._count?.followers || 0} followers
+              </span>
+            </div>
           </div>
-          <div
+          <button
+            onClick={() => setExpandedFeedback(!expandedFeedback)}
             style={{
               display: "flex",
               alignItems: "center",
-              gap: "8px",
+              background: "transparent",
+              border: "none",
+              fontSize: "14px",
+              color: "#3b82f6",
+              cursor: "pointer",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              transition: "background-color 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.backgroundColor = isDark
+                ? "rgba(59, 130, 246, 0.1)"
+                : "rgba(59, 130, 246, 0.05)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
             }}
           >
-            <div
-              style={{
-                fontSize: "12px",
-                color: isDark ? "#9ca3af" : "#6b7280",
-              }}
+            Feedback
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ marginLeft: "4px" }}
             >
-              {(orgInfo as any)?._count?.followers || 0} followers
-            </div>
-            <button
-              onClick={() => setExpandedFeedback(!expandedFeedback)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                background: "transparent",
-                border: "none",
-                fontSize: "12px",
-                color: "#3b82f6",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            >
-              Feedback
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ marginLeft: "4px" }}
-              >
-                {expandedFeedback ? (
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                ) : (
-                  <polyline points="9 18 15 12 9 6"></polyline>
-                )}
-              </svg>
-            </button>
-          </div>
+              {expandedFeedback ? (
+                <polyline points="6 9 12 15 18 9"></polyline>
+              ) : (
+                <polyline points="9 18 15 12 9 6"></polyline>
+              )}
+            </svg>
+          </button>
         </div>
 
         {/* Feedback form */}
         {expandedFeedback && (
           <div
             style={{
-              marginTop: "12px",
-              padding: "12px",
-              background: isDark ? "#1e1e1e" : "rgba(0,0,0,0.02)",
-              borderRadius: "8px",
+              marginTop: "16px",
+              padding: "16px",
+              background: isDark
+                ? "linear-gradient(150deg, #1a2436, #18202f)"
+                : "linear-gradient(150deg, #f9fafb, #f5f7fa)",
+              borderRadius: "10px",
             }}
           >
             <form
@@ -1202,7 +810,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "8px",
+                gap: "12px",
               }}
             >
               <textarea
@@ -1213,14 +821,14 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 placeholder="Share your thoughts or suggestions..."
                 style={{
                   width: "100%",
-                  padding: "8px",
-                  borderRadius: "6px",
+                  padding: "12px",
+                  borderRadius: "8px",
                   border: isDark
-                    ? "1px solid rgba(255,255,255,0.1)"
-                    : "1px solid rgba(0,0,0,0.1)",
-                  background: isDark ? "#2a2a2a" : "white",
-                  color: isDark ? "white" : "black",
-                  fontSize: "12px",
+                    ? "1px solid rgba(255,255,255,0.08)"
+                    : "1px solid rgba(0,0,0,0.08)",
+                  background: isDark ? "#1e293b" : "#ffffff",
+                  color: isDark ? "#e5e7eb" : "#1f2937",
+                  fontSize: "14px",
                   resize: "none",
                   minHeight: "80px",
                 }}
@@ -1238,13 +846,14 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "4px",
+                    gap: "6px",
                     background: "#3b82f6",
                     color: "white",
                     border: "none",
-                    borderRadius: "6px",
-                    padding: "6px 12px",
-                    fontSize: "12px",
+                    borderRadius: "8px",
+                    padding: "8px 16px",
+                    fontSize: "14px",
+                    fontWeight: "500",
                     cursor: "pointer",
                     opacity: isSubmitting || !feedback.trim() ? 0.5 : 1,
                   }}
@@ -1252,8 +861,8 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   {isSubmitting ? "Sending..." : "Send"}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
+                    width="14"
+                    height="14"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -1267,6 +876,48 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* Powered by sticker - only show when user is not basic or promember */}
+        {(!orgInfo?.subscription ||
+          (orgInfo.subscription !== "basic" &&
+            orgInfo.subscription !== "promember")) && (
+          <div
+            style={{
+              position: "absolute",
+              bottom: "8px",
+              right: "8px",
+              fontSize: "12px",
+              color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)",
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+          >
+            <span>powered by</span>
+            <a
+              href="https://nownownow.io"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)",
+                textDecoration: "none",
+                fontWeight: "500",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.color = isDark
+                  ? "rgba(255,255,255,0.8)"
+                  : "rgba(0,0,0,0.8)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.color = isDark
+                  ? "rgba(255,255,255,0.6)"
+                  : "rgba(0,0,0,0.6)";
+              }}
+            >
+              nownownow.io
+            </a>
           </div>
         )}
       </div>

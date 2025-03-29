@@ -45,6 +45,7 @@ export interface WidgetOrgInfo {
   image?: string | null;
   bio?: string | null;
   websiteUrl?: string | null;
+  subscription?: string | null;
 }
 
 export interface WidgetUser {
