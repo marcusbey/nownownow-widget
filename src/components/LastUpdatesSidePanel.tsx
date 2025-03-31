@@ -1,54 +1,10 @@
 "use client";
 
-import DOMPurify from "dompurify";
-import * as markedLibrary from "marked";
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
 import type { WidgetOrgInfo, WidgetPost } from "../types/api";
 import { PostCard } from "./PostCard";
-
-// Initialize marked with options
-markedLibrary.marked.setOptions({
-  gfm: true, // GitHub Flavored Markdown
-  breaks: true, // Add <br> on line breaks
-  async: false, // Always use synchronous operation
-  pedantic: false, // Conform to markdown.pl (false = better specs)
-});
-
-// Helper function to format time ago
-function formatTimeAgo(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffInSeconds < 60) {
-    return "Just now";
-  }
-
-  const diffInMinutes = Math.floor(diffInSeconds / 60);
-  if (diffInMinutes < 60) {
-    return diffInMinutes === 1 ? "1m" : `${diffInMinutes}m`;
-  }
-
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) {
-    return diffInHours === 1 ? "1h" : `${diffInHours}h`;
-  }
-
-  const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays === 1) return "1d";
-  if (diffInDays < 7) return `${diffInDays}d`;
-  if (diffInDays < 30) return `${Math.floor(diffInDays / 7)}w`;
-
-  const diffInMonths = Math.floor(diffInDays / 30);
-  if (diffInMonths < 12) {
-    return diffInMonths === 1 ? "1mo" : `${diffInMonths}mo`;
-  }
-
-  const diffInYears = Math.floor(diffInDays / 365);
-  return diffInYears === 1 ? "1y" : `${diffInYears}y`;
-}
 
 interface LastUpdatesSidePanelProps {
   posts: WidgetPost[];
@@ -62,103 +18,11 @@ interface LastUpdatesSidePanelProps {
   onLoadMore?: () => void;
 }
 
-// Helper function to sanitize HTML
-function sanitizeHtml(html: string): string {
-  // Use DOMPurify for comprehensive sanitization
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "p",
-      "br",
-      "hr",
-      "ul",
-      "ol",
-      "li",
-      "a",
-      "em",
-      "strong",
-      "b",
-      "i",
-      "s",
-      "strike",
-      "del",
-      "code",
-      "pre",
-      "blockquote",
-      "span",
-      "div",
-      "img",
-      "table",
-      "thead",
-      "tbody",
-      "tr",
-      "th",
-      "td",
-    ],
-    ALLOWED_ATTR: [
-      "href",
-      "src",
-      "alt",
-      "target",
-      "rel",
-      "class",
-      "style",
-      "id",
-      "title",
-      "width",
-      "height",
-      "type",
-    ],
-    ADD_ATTR: ["target"], // Add target="_blank" to links
-    FORBID_ATTR: ["onclick", "onload", "onerror"],
-    FORBID_TAGS: [
-      "script",
-      "style",
-      "iframe",
-      "canvas",
-      "form",
-      "input",
-      "textarea",
-    ],
-    USE_PROFILES: {
-      html: true, // Use HTML profile which includes list elements
-    },
-  });
-}
+// Note: sanitizeHtml function removed as it's now handled by PostCard component
 
-// Function to render markdown content
-function renderContent(content: string, isDark: boolean) {
-  // Convert markdown to HTML
-  const htmlContent = markedLibrary.marked.parse(content);
+// Note: renderContent function removed as it's now handled by PostCard component
 
-  // Sanitize HTML for security
-  const sanitizedHtml = sanitizeHtml(htmlContent as string);
-
-  // Process links to open in new tab (since we can't control marked renderer easily with types)
-  const processedHtml = sanitizedHtml.replace(
-    /<a\s+(?:[^>]*?\s+)?href=(["'])(https?:\/\/[^"']+)\1/gi,
-    '<a href="$2" target="_blank" rel="noopener noreferrer"'
-  );
-
-  return processedHtml;
-}
-
-// Define comment interface for better type safety
-interface PostComment {
-  id: string;
-  content: string;
-  createdAt: string;
-  user?: {
-    id?: string;
-    name?: string;
-    image?: string | null;
-  };
-}
+// Note: PostComment interface removed as it's now handled by PostCard component
 
 export const LastUpdatesSidePanel: FunctionComponent<
   LastUpdatesSidePanelProps
@@ -180,41 +44,12 @@ export const LastUpdatesSidePanel: FunctionComponent<
   const [isSubmitting, setIsSubmitting] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
 
-  // Comments related state
-  const [showComments, setShowComments] = useState<Record<string, boolean>>({});
-  const [commentsLoaded, setCommentsLoaded] = useState<Record<string, boolean>>(
-    {}
-  );
-  const [postComments, setPostComments] = useState<
-    Record<string, PostComment[]>
-  >({});
-  const [loadingComments, setLoadingComments] = useState<
-    Record<string, boolean>
-  >({});
-  const [commentInputs, setCommentInputs] = useState<Record<string, string>>(
-    {}
-  );
-  const [submittingComment, setSubmittingComment] = useState<
-    Record<string, boolean>
-  >({});
-
   // Post interaction state
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [viewedPosts, setViewedPosts] = useState<Record<string, boolean>>({});
 
   const isDark = theme === "dark";
 
-  // Initialize likes from posts data
-  useEffect(() => {
-    const initialLiked: Record<string, boolean> = {};
-
-    posts.forEach((post) => {
-      // Check if user has liked the post
-      initialLiked[post.id] = post.hasLiked || false;
-    });
-
-    setLikedPosts(initialLiked);
-  }, [posts]);
+  // Note: Removed initialization of likes as it's now handled by PostCard component
 
   // Set up intersection observer to track post views
   useEffect(() => {
@@ -265,7 +100,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
   }, [posts, token, viewedPosts]);
 
   // Handle feedback submission
-  const handleFeedbackSubmit = async (e: Event) => {
+  const handleFeedbackSubmit = async (e: Event): Promise<void> => {
     e.preventDefault();
 
     if (!feedback.trim()) return;
@@ -292,212 +127,37 @@ export const LastUpdatesSidePanel: FunctionComponent<
     } finally {
       setIsSubmitting(false);
     }
+    return;
   };
 
-  // Helper to highlight hashtags
-  const highlightHashtags = (content: string) => {
-    const words = content.split(/(\s+)/);
+  // Note: highlightHashtags function removed as it's now handled by PostCard component
 
-    return (
-      <span>
-        {words.map((word, index) => {
-          if (word.match(/^#[\w-]+/)) {
-            return (
-              <a
-                key={index}
-                href="#"
-                style={{
-                  color: "#3b82f6",
-                  textDecoration: "none",
-                  fontWeight: 500,
-                }}
-              >
-                {word}
-              </a>
-            );
-          }
-          return <span key={index}>{word}</span>;
-        })}
-      </span>
-    );
-  };
-
-  // Helper to get author info
-  const getAuthorInfo = (post: WidgetPost) => {
-    return {
-      name: post.user?.name || "User",
-      image: post.user?.image || null,
-    };
-  };
+  // Note: getAuthorInfo function removed as it's now handled by PostCard component
 
   // Helper to get avatar fallback (first letter of name)
   const getAvatarFallback = (name: string): string => {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
 
-  // Helper to determine if post has image
-  const hasImage = (post: WidgetPost) => {
-    return (
-      post.media &&
-      post.media.length > 0 &&
-      post.media.some((item) => item.type.toLowerCase() === "image")
-    );
-  };
+  // Note: hasImage and getPostImage functions removed as they're now handled by PostCard component
 
-  // Helper to get first image from post media
-  const getPostImage = (post: WidgetPost) => {
-    if (!post.media) return null;
-    const imageMedia = post.media.find(
-      (item) => item.type.toLowerCase() === "image"
-    );
-    return imageMedia?.url || null;
-  };
+  // Note: toggleComments function removed as it's now handled by PostCard component
 
-  // Function to toggle comments visibility
-  const toggleComments = (postId: string) => {
-    setShowComments((prev) => {
-      const newState = { ...prev, [postId]: !prev[postId] };
+  // Note: loadComments function removed as it's now handled by PostCard component
 
-      // Load comments when showing them for the first time
-      if (newState[postId] && !commentsLoaded[postId]) {
-        loadComments(postId);
-      }
+  // Note: handleCommentInputChange function removed as it's now handled by PostCard component
 
-      return newState;
-    });
-  };
+  // Note: submitComment function removed as it's now handled by PostCard component
 
-  // Load comments for a post
-  const loadComments = async (postId: string) => {
-    if (
-      showComments[postId] &&
-      !commentsLoaded[postId] &&
-      !loadingComments[postId]
-    ) {
-      setLoadingComments((prev) => ({ ...prev, [postId]: true }));
+  // Note: handleLikeToggle function removed as it's now handled by PostCard component
 
-      if (token) {
-        try {
-          const response = await api.getPostComments(token, postId);
+  // Note: formatCommentDate function removed as it's now handled by PostCard component
 
-          if (response.success && response.data) {
-            // Type assertion for response.data
-            const responseData = response.data as { comments: PostComment[] };
-            setPostComments((prev) => ({
-              ...prev,
-              [postId]: responseData.comments || [],
-            }));
-          } else {
-            console.error("Failed to load comments:", response.error);
-          }
-        } catch (error) {
-          console.error("Error loading comments:", error);
-        }
-      }
+  // Note: isCommentButtonDisabled function removed as it's now handled by PostCard component
 
-      setCommentsLoaded((prev) => ({ ...prev, [postId]: true }));
-      setLoadingComments((prev) => ({ ...prev, [postId]: false }));
-    }
-  };
+  // Note: Helper functions for comments removed as they're now handled by PostCard component
 
-  // Handle comment input change
-  const handleCommentInputChange = (postId: string, value: string) => {
-    setCommentInputs((prev) => ({
-      ...prev,
-      [postId]: value,
-    }));
-  };
-
-  // Submit a new comment
-  const submitComment = async (postId: string) => {
-    const commentText = getCommentInput(postId);
-    if (!commentText.trim() || isSubmittingComment(postId) || !token || !orgId)
-      return;
-
-    setSubmittingComment((prev) => ({ ...prev, [postId]: true }));
-
-    try {
-      const response = await api.addComment(token, postId, commentText);
-
-      if (response.success && response.data) {
-        // Type assertion for response.data
-        const responseData = response.data as { comment: PostComment };
-        const newComment = responseData.comment;
-        setPostComments((prev) => ({
-          ...prev,
-          [postId]: [...getComments(postId), newComment],
-        }));
-
-        // Clear the input field
-        setCommentInputs((prev) => ({ ...prev, [postId]: "" }));
-      } else {
-        console.error("Failed to add comment:", response.error);
-      }
-    } catch (error) {
-      console.error("Error submitting comment:", error);
-    }
-
-    setSubmittingComment((prev) => ({ ...prev, [postId]: false }));
-  };
-
-  // Handle like toggling
-  const handleLikeToggle = async (postId: string) => {
-    if (!token || !orgId) return;
-
-    // Optimistic update
-    const isCurrentlyLiked = likedPosts[postId] || false;
-    setLikedPosts((prev) => ({ ...prev, [postId]: !isCurrentlyLiked }));
-
-    try {
-      const response = await api.toggleLike(token, postId, !isCurrentlyLiked);
-
-      if (!response.success) {
-        // Revert on failure
-        console.error("Failed to toggle like:", response.error);
-        setLikedPosts((prev) => ({ ...prev, [postId]: isCurrentlyLiked }));
-      }
-    } catch (error) {
-      console.error("Error toggling like:", error);
-      // Revert on exception
-      setLikedPosts((prev) => ({ ...prev, [postId]: isCurrentlyLiked }));
-    }
-  };
-
-  // Format date for comments
-  const formatCommentDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
-  // Calculate if the comment button should be disabled
-  const isCommentButtonDisabled = (postId: string): boolean => {
-    const input = getCommentInput(postId);
-    return isSubmittingComment(postId) || input.trim() === "";
-  };
-
-  // Helper function to safely get comments for a post
-  const getComments = (postId: string): PostComment[] => {
-    if (!postComments[postId]) {
-      return [];
-    }
-    return postComments[postId];
-  };
-
-  // Helper function to safely get comment input for a post
-  const getCommentInput = (postId: string): string => {
-    return commentInputs[postId] || "";
-  };
-
-  // Helper function to check if a post's comment submission is in progress
-  const isSubmittingComment = (postId: string): boolean => {
-    return submittingComment[postId] || false;
-  };
-
-  const handleScroll = (e: Event) => {
+  const handleScroll = (e: Event): void => {
     const target = e.target as HTMLDivElement;
     setShowScrollToTop(target.scrollTop > 300);
   };
@@ -530,17 +190,18 @@ export const LastUpdatesSidePanel: FunctionComponent<
       >
         <svg
           className="nownownow-widget-spinner"
-          width="16"
-          height="16"
+          width="12"
+          height="12"
           viewBox="0 0 24 24"
+          style={{ opacity: 0.8 }}
         >
           <circle
             cx="12"
             cy="12"
-            r="10"
+            r="8"
             fill="none"
             stroke="currentColor"
-            strokeWidth="3"
+            strokeWidth="2"
             strokeDasharray="40"
             strokeDashoffset="0"
           />
@@ -556,9 +217,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
       style={{
         width: "100%",
         height: "100vh",
-        background: isDark
-          ? "linear-gradient(135deg, #0f172a, #1e293b)"
-          : "linear-gradient(135deg, #ffffff, #f8fafc)",
+        background: isDark ? "#121212" : "white",
         position: "relative",
         display: "flex",
         flexDirection: "column",
@@ -576,9 +235,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
           justifyContent: "space-between",
           position: "sticky",
           top: 0,
-          background: isDark
-            ? "linear-gradient(to bottom, #0f172a, #0f172a)"
-            : "linear-gradient(to bottom, #ffffff, #ffffff)",
+          background: isDark ? "#121212" : "white",
           backdropFilter: "blur(8px)",
           zIndex: 10,
         }}
@@ -611,8 +268,8 @@ export const LastUpdatesSidePanel: FunctionComponent<
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -638,19 +295,22 @@ export const LastUpdatesSidePanel: FunctionComponent<
         <div>
           {posts.length > 0 ? (
             posts.map((post) => {
-              const isLiked = likedPosts[post.id] || false;
-
               return (
-                <PostCard
+                <div
                   key={post.id}
-                  post={post}
-                  content={post.content}
-                  createdAt={post.createdAt}
-                  likes={post._count?.likes || 0}
-                  comments={post._count?.comments || 0}
-                  theme={theme}
-                  token={token}
-                />
+                  data-post-id={post.id}
+                  className="nownownow-widget-post-item"
+                >
+                  <PostCard
+                    post={post}
+                    content={post.content}
+                    createdAt={post.createdAt}
+                    likes={post._count?.likes || 0}
+                    comments={post._count?.comments || 0}
+                    theme={theme}
+                    token={token}
+                  />
+                </div>
               );
             })
           ) : (
@@ -674,9 +334,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
           borderTop: isDark
             ? "1px solid rgba(255,255,255,0.05)"
             : "1px solid rgba(0,0,0,0.05)",
-          background: isDark
-            ? "linear-gradient(to top, #0f172a, rgba(15, 23, 42, 0.9))"
-            : "linear-gradient(to top, #ffffff, rgba(255, 255, 255, 0.9))",
+          background: isDark ? "#121212" : "white",
           position: "relative",
         }}
       >
@@ -774,8 +432,8 @@ export const LastUpdatesSidePanel: FunctionComponent<
             Feedback
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -799,9 +457,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
             style={{
               marginTop: "16px",
               padding: "16px",
-              background: isDark
-                ? "linear-gradient(150deg, #1a2436, #18202f)"
-                : "linear-gradient(150deg, #f9fafb, #f5f7fa)",
+              background: isDark ? "#1e1e1e" : "#f8fafc",
               borderRadius: "10px",
             }}
           >
@@ -826,7 +482,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   border: isDark
                     ? "1px solid rgba(255,255,255,0.08)"
                     : "1px solid rgba(0,0,0,0.08)",
-                  background: isDark ? "#1e293b" : "#ffffff",
+                  background: isDark ? "#2a2a2a" : "white",
                   color: isDark ? "#e5e7eb" : "#1f2937",
                   fontSize: "14px",
                   resize: "none",

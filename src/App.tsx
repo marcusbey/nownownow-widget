@@ -57,7 +57,19 @@ export default function App({
     }
   };
 
-  // Function to fetch posts with pagination
+  // Helper function to determine which posts should include comments
+  const determineCommentLoadingStrategy = (cursor?: string) => {
+    // If this is the initial load (no cursor), include comments for the first few posts
+    if (!cursor) {
+      return { includeComments: true }; // For initial posts, include comments
+    }
+    
+    // For subsequent loads, don't include comments by default
+    // They will be loaded on demand when a user expands the comments section
+    return {};
+  };
+
+  // Function to fetch posts with pagination using hybrid comment loading
   const fetchPosts = async (
     cursor?: string,
     limit: number = SUBSEQUENT_PAGE_SIZE
@@ -69,7 +81,11 @@ export default function App({
     }
 
     try {
-      const postsResponse = await api.getOrgPosts(token, orgId, cursor, limit);
+      // Determine which posts should include comments
+      const options = determineCommentLoadingStrategy(cursor);
+      
+      // Fetch posts with the appropriate comment loading strategy
+      const postsResponse = await api.getOrgPosts(token, orgId, cursor, limit, options);
 
       if (!postsResponse.success) {
         throw new Error(postsResponse.error || "Failed to fetch posts");

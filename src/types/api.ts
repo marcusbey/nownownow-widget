@@ -62,6 +62,17 @@ export interface OrgInfoResponse {
   user: WidgetUser;
 }
 
+export interface WidgetComment {
+  id: string;
+  content: string;
+  createdAt: string;
+  user?: {
+    id?: string;
+    name?: string;
+    image?: string | null;
+  };
+}
+
 export interface WidgetPost {
   id: string;
   title?: string;
@@ -83,6 +94,7 @@ export interface WidgetPost {
     likes: number;
     views: number;
   };
+  comments?: WidgetComment[];
 }
 
 export interface FeedbackItem {
