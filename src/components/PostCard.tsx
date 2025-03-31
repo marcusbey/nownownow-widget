@@ -4,7 +4,7 @@ import type { FunctionComponent } from "preact";
 import { h } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
-import type { WidgetPost } from "../types/api";
+import type { WidgetComment, WidgetPost } from "../types/api";
 import { MediaDisplay, type MediaItem } from "./MediaDisplay";
 
 // Initialize marked with options
@@ -31,27 +31,49 @@ function formatTimeAgo(dateString: string): string {
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
+  // Less than a minute
   if (diffInSeconds < 60) {
     return "Just now";
   }
 
+  // Minutes
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) {
-    return diffInMinutes === 1
-      ? "1 minute ago"
-      : `${diffInMinutes} minutes ago`;
+    return diffInMinutes === 1 ? "1m" : `${diffInMinutes}m`;
   }
 
+  // Hours
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) {
-    return diffInHours === 1 ? "1 hour ago" : `${diffInHours} hours ago`;
+    return diffInHours === 1 ? "1h" : `${diffInHours}h`;
   }
 
+  // Days
   const diffInDays = Math.floor(diffInHours / 24);
-  if (diffInDays === 1) return "Yesterday";
-  if (diffInDays < 7) return `${diffInDays} days ago`;
-
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  if (diffInDays === 1) return "1d";
+  if (diffInDays < 7) return `${diffInDays}d`;
+  
+  // Weeks
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) {
+    return diffInWeeks === 1 ? "1w" : `${diffInWeeks}w`;
+  }
+  
+  // Months
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) {
+    return diffInMonths === 1 ? "1mo" : `${diffInMonths}mo`;
+  }
+  
+  // Years and weeks
+  const diffInYears = Math.floor(diffInDays / 365);
+  const remainingWeeks = Math.floor((diffInDays % 365) / 7);
+  
+  if (diffInYears === 1) {
+    return remainingWeeks > 0 ? `1y ${remainingWeeks}w` : "1y";
+  }
+  
+  return `${diffInYears}y`;
 }
 
 function sanitizeHtml(html: string): string {
@@ -151,6 +173,7 @@ function processHashtags(content: string): h.JSX.Element {
   );
 }
 
+
 function renderContent(content: string, isDark: boolean): h.JSX.Element {
   // Configure marked options for better consistency with the main app
   markedLibrary.marked.setOptions({
@@ -199,6 +222,10 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [viewTracked, setViewTracked] = useState(false);
+  const [postComments, setPostComments] = useState<WidgetComment[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const [hasPreloadedComments, setHasPreloadedComments] = useState(false);
   const postRef = useRef<HTMLDivElement>(null);
   const isDark = theme === "dark";
 
@@ -213,9 +240,13 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
           // Track the post view
           api
             .trackPostView(token, post.id)
-            .then(() => {
-              console.log(`View tracked for post ${post.id}`);
-              setViewTracked(true);
+            .then((response) => {
+              if (response.success) {
+                console.log(`View tracked for post ${post.id}`);
+                setViewTracked(true);
+                // If we want to update the view count in real-time, we could do it here
+                // But for now we'll just mark it as viewed
+              }
             })
             .catch((error) => {
               console.error("Failed to track post view:", error);
@@ -256,10 +287,138 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
       })) as MediaItem[]) || []
     : [];
 
+  // Check for preloaded comments on component mount
+  useEffect(() => {
+    // If post has comments property with data, preload them
+    if (post?.comments && Array.isArray(post.comments) && post.comments.length > 0) {
+      console.log(`Post ${post.id} has ${post.comments.length} preloaded comments`);
+      setHasPreloadedComments(true); // Mark that we have preloaded comments
+    }
+  }, [post?.id, post?.comments]);
+  
   const handleCommentsToggle = (e: MouseEvent) => {
     e.stopPropagation(); // Prevent the click from bubbling up
-    setShowComments(!showComments);
+    
+    // Toggle comments section
+    const newShowComments = !showComments;
+    setShowComments(newShowComments);
+    
+    // Only load comments if they haven't been loaded yet
+    if (newShowComments && post?.id && postComments.length === 0) {
+      console.log(`Toggling comments for post ${post.id}`);
+      loadCommentsFromPostData();
+    }
   };
+  
+  // Function to load comments with optimized approach
+  const loadCommentsFromPostData = () => {
+    if (!post?.id) {
+      console.error('Cannot load comments: missing post ID');
+      setCommentError('Unable to identify the post');
+      return;
+    }
+    
+    setIsLoadingComments(true);
+    setCommentError(null);
+    
+    try {
+      // Priority 1: Use preloaded comments from post data if available
+      if (post.comments && Array.isArray(post.comments) && post.comments.length > 0) {
+        console.log(`Using ${post.comments.length} preloaded comments for post ${post.id}`);
+        
+        // Format comments according to our expected structure
+        const formattedComments = post.comments.map(comment => ({
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          user: {
+            id: comment.user?.id || '',
+            name: comment.user?.name || 'Anonymous',
+            image: formatImageUrl(comment.user?.image)
+          }
+        }));
+        
+        setPostComments(formattedComments);
+      } 
+      // Priority 2: If we know there are no comments, show empty array
+      else if (post._count?.comments === 0) {
+        console.log(`Post ${post.id} has no comments according to count`);
+        setPostComments([]);
+      }
+      // Priority 3: If token is missing but we still need to show comments
+      else if (!token) {
+        console.log('No authentication token available for comments');
+        setPostComments([]);
+        setCommentError('No comments available');
+      }
+      // Priority 4: Last resort - fetch from API if we have everything we need
+      else {
+        console.log(`Fetching comments for post: ${post.id} with token available`);
+        fetchCommentsFromApi();
+        return; // Early return to avoid setting isLoadingComments to false
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error loading comments from post data:', errorMessage);
+      setCommentError('Unable to load comments');
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+  
+  // Fallback function to fetch comments from the API if needed
+  const fetchCommentsFromApi = async () => {
+    if (!token || !post?.id) return;
+    
+    try {
+      console.log(`Making API request for comments for post ${post.id}`);
+      const response = await api.getPostComments(token, post.id);
+      
+      if (response.success && response.data) {
+        // Handle the nested data structure from the API response
+        const responseData = response.data as any;
+        
+        // Check different possible response formats
+        let commentsData;
+        if (Array.isArray(responseData)) {
+          commentsData = responseData;
+        } else if (responseData.data && Array.isArray(responseData.data)) {
+          // This matches the API response structure from the post-comments endpoint
+          commentsData = responseData.data;
+        } else if (responseData.comments && Array.isArray(responseData.comments)) {
+          commentsData = responseData.comments;
+        } else {
+          commentsData = [];
+        }
+        
+        // Format the comments to match our expected structure
+        const formattedComments = commentsData.map((comment: any) => ({
+          id: comment.id,
+          content: comment.content,
+          createdAt: comment.createdAt,
+          user: {
+            id: comment.user?.id || '',
+            name: comment.user?.name || 'Anonymous',
+            image: formatImageUrl(comment.user?.image)
+          }
+        }));
+        
+        console.log(`Received ${formattedComments.length} comments from API for post ${post.id}`);
+        setPostComments(formattedComments);
+      } else {
+        console.error('API returned error:', response.error);
+        setCommentError('No comments available');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('Error fetching comments from API:', errorMessage);
+      setCommentError('Unable to load comments');
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+  
+
 
   const handleLikeToggle = (e: MouseEvent) => {
     e.stopPropagation(); // Prevent the click from bubbling up
@@ -278,7 +437,46 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
   // Get author info - only use user field since author field doesn't exist in the database
   const authorName = post?.user?.name || "User";
-  const authorImage = post?.user?.image || null;
+  
+  // Properly format the image URL to ensure it loads correctly
+  const formatImageUrl = (imageUrl: string | null | undefined): string | null => {
+    if (!imageUrl) return null;
+    
+    // For empty strings or placeholder values, return null
+    if (imageUrl === '' || imageUrl === 'null' || imageUrl === 'undefined') {
+      return null;
+    }
+    
+    // If it's already an absolute URL, return it as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+    
+    // Handle special case for data URLs (base64 encoded images)
+    if (imageUrl.startsWith('data:')) {
+      return imageUrl;
+    }
+    
+    // For avatar URLs that might be from an external service
+    if (imageUrl.includes('gravatar.com') || imageUrl.includes('avatar')) {
+      return imageUrl;
+    }
+    
+    // Get the API base URL from the config
+    const apiBaseUrl = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000' 
+      : 'https://nownownow.io';
+    
+    // If it's a relative URL starting with /, append the base URL
+    if (imageUrl.startsWith('/')) {
+      return `${apiBaseUrl}${imageUrl}`;
+    }
+    
+    // For other formats, ensure we have a leading slash
+    return `${apiBaseUrl}/${imageUrl}`;
+  };
+  
+  const authorImage = formatImageUrl(post?.user?.image);
 
   // Default avatar letter if no image is available
   const getInitial = (name?: string): string => {
@@ -344,11 +542,90 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
               <img
                 src={authorImage}
                 alt={authorName}
+                crossOrigin="anonymous"
                 className="nownownow-widget-avatar-img"
                 style={{
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
+                }}
+                onError={(e) => {
+                  // Hide the image
+                  const imgElement = e.currentTarget as HTMLImageElement;
+                  imgElement.style.display = 'none';
+                  
+                  // Try multiple approaches if we haven't already
+                  if (!imgElement.dataset.retried && post?.user?.image) {
+                    const originalImage = post.user.image;
+                    const retryCount = parseInt(imgElement.dataset.retryCount || '0');
+                    imgElement.dataset.retryCount = (retryCount + 1).toString();
+                    
+                    // Try different approaches based on retry count
+                    let newSrc = '';
+                    
+                    if (retryCount === 0) {
+                      // First retry: Try with nownownow.io domain
+                      const baseUrl = 'https://nownownow.io';
+                      newSrc = originalImage.startsWith('http') 
+                        ? originalImage 
+                        : `${baseUrl}${originalImage.startsWith('/') ? originalImage : `/${originalImage}`}`;
+                    } else if (retryCount === 1) {
+                      // Second retry: Try with app.nownownow.io domain
+                      const baseUrl = 'https://app.nownownow.io';
+                      newSrc = originalImage.startsWith('http') 
+                        ? originalImage 
+                        : `${baseUrl}${originalImage.startsWith('/') ? originalImage : `/${originalImage}`}`;
+                    } else if (retryCount === 2 && originalImage.includes('/')) {
+                      // Third retry: Try with just the filename
+                      const fileName = originalImage.split('/').pop() || '';
+                      newSrc = `https://nownownow.io/uploads/${fileName}`;
+                    } else {
+                      // Mark as fully retried if we've tried all approaches
+                      imgElement.dataset.retried = 'true';
+                      showInitials();
+                      return;
+                    }
+                    
+                    // Try the new source
+                    imgElement.src = newSrc;
+                    imgElement.style.display = 'block';
+                    return;
+                  }
+                  
+                  // If all retries failed, show initials
+                  showInitials();
+                  
+                  // Helper function to show initials
+                  function showInitials() {
+                    const parent = imgElement.parentElement;
+                    if (!parent) return;
+                    
+                    // Create initials element
+                    const initialSpan = document.createElement('span');
+                    initialSpan.textContent = getInitial(authorName);
+                    initialSpan.className = 'avatar-initials';
+                    
+                    // Apply styles
+                    Object.assign(initialSpan.style, {
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '100%',
+                      height: '100%',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      backgroundColor: '#4f46e5',
+                      color: '#ffffff',
+                      borderRadius: '50%'
+                    });
+                    
+                    // Clear existing fallback content
+                    Array.from(parent.children)
+                      .filter(child => child !== imgElement && child.tagName.toLowerCase() === 'span')
+                      .forEach(child => parent.removeChild(child));
+                    
+                    parent.appendChild(initialSpan);
+                  }
                 }}
               />
             ) : (
@@ -446,22 +723,23 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
-            fill={isLiked ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
+            fill={isLiked ? "rgba(239, 68, 68, 0.2)" : "none"}
+            stroke={isLiked ? "#ef4444" : "currentColor"}
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
             style={{
               transition: "transform 0.2s ease",
               transform: isLiked ? "scale(1.15)" : "scale(1)",
+              opacity: 0.9
             }}
           >
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
           </svg>
-          <span style={{ fontSize: "14px" }}>
+          <span style={{ fontSize: "13px" }}>
             {isLiked ? likes + 1 : likes}
           </span>
         </button>
@@ -484,53 +762,54 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill={showComments ? "rgba(59, 130, 246, 0.1)" : "none"}
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ opacity: 0.9 }}
+          >
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+          </svg>
+          <span style={{ fontSize: "13px" }}>{comments}</span>
+        </button>
+
+        <div
+          className="nownownow-widget-post-stat nownownow-widget-post-views"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            marginLeft: "auto",
+            color: isDark ? "#9ca3af" : "#6b7280",
+            padding: "6px 8px",
+            fontSize: "13px",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
           </svg>
-          <span style={{ fontSize: "14px" }}>{comments}</span>
-        </button>
-
-        <button
-          className="nownownow-widget-post-stat"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            marginLeft: "auto",
-            color: isDark ? "#9ca3af" : "#6b7280",
-            background: "transparent",
-            border: "none",
-            padding: "6px 8px",
-            borderRadius: "6px",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-        </button>
+          <span>
+            {viewTracked 
+              ? (post?._count?.views 
+                ? `${post._count.views} ${post._count.views === 1 ? 'view' : 'views'}` 
+                : "Viewed")
+              : ""}
+          </span>
+        </div>
       </div>
 
       {/* Comments section (expanded when clicked) */}
@@ -557,101 +836,146 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
           </h3>
 
           <div className="nownownow-widget-comments-list">
-            {post?.comments && post.comments.length > 0 ? (
-              post.comments.map((comment: any) => {
-                // Get comment author info - only use user field
-                const commentAuthorName = comment.user?.name || "User";
-                const commentAuthorImage = comment.user?.image || null;
-
-                return (
+            {isLoadingComments ? (
+              // Loading state
+              <div
+                style={{
+                  padding: "16px",
+                  textAlign: "center",
+                  color: isDark ? "#9ca3af" : "#6b7280",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+              >
+                <svg
+                  className="nownownow-widget-spinner"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  style={{ opacity: 0.8 }}
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="8"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeDasharray="40"
+                    strokeDashoffset="0"
+                  />
+                </svg>
+                Loading comments...
+              </div>
+            ) : commentError ? (
+              // Error state
+              <div
+                style={{
+                  padding: "12px",
+                  textAlign: "center",
+                  fontSize: "14px",
+                }}
+              >
+                <p style={{
+                  color: isDark ? "#9ca3af" : "#6b7280"
+                }}>
+                  {commentError.includes('Sign in') ? 'No comments available' : commentError}
+                </p>
+              </div>
+            ) : postComments.length > 0 ? (
+              // Comments loaded successfully
+              postComments.map((comment: WidgetComment) => (
+                <div
+                  key={comment.id}
+                  className="nownownow-widget-comment"
+                  style={{
+                    padding: "10px",
+                    marginBottom: "8px",
+                    borderRadius: "8px",
+                    background: isDark ? "#2a2a2a" : "white",
+                    border: isDark
+                      ? "1px solid rgba(255,255,255,0.03)"
+                      : "1px solid rgba(0,0,0,0.05)",
+                  }}
+                >
                   <div
-                    key={comment.id}
-                    className="nownownow-widget-comment"
+                    className="nownownow-widget-comment-header"
                     style={{
-                      padding: "10px",
-                      marginBottom: "8px",
-                      borderRadius: "8px",
-                      background: isDark ? "#2a2a2a" : "white",
-                      border: isDark
-                        ? "1px solid rgba(255,255,255,0.03)"
-                        : "1px solid rgba(0,0,0,0.05)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      marginBottom: "6px",
                     }}
                   >
                     <div
-                      className="nownownow-widget-comment-header"
+                      className="nownownow-widget-comment-avatar"
                       style={{
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "8px",
+                        overflow: "hidden",
                         display: "flex",
                         alignItems: "center",
-                        gap: "8px",
-                        marginBottom: "6px",
+                        justifyContent: "center",
+                        background: isDark ? "#1e1e1e" : "#f3f4f6",
+                        color: isDark ? "#e5e7eb" : "#4b5563",
+                        fontWeight: "bold",
+                        fontSize: "14px",
                       }}
                     >
+                      {comment.user?.image ? (
+                        <img
+                          src={comment.user.image}
+                          alt={comment.user.name || 'User'}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <span>{getInitial(comment.user?.name || 'User')}</span>
+                      )}
+                    </div>
+                    <div>
                       <div
-                        className="nownownow-widget-comment-avatar"
+                        className="nownownow-widget-comment-author"
                         style={{
-                          width: "28px",
-                          height: "28px",
-                          borderRadius: "8px",
-                          overflow: "hidden",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          background: isDark ? "#1e1e1e" : "#f3f4f6",
-                          color: isDark ? "#e5e7eb" : "#4b5563",
-                          fontWeight: "bold",
+                          fontWeight: "600",
                           fontSize: "14px",
+                          color: isDark ? "white" : "black",
                         }}
                       >
-                        {commentAuthorImage ? (
-                          <img
-                            src={commentAuthorImage}
-                            alt={commentAuthorName}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                            }}
-                          />
-                        ) : (
-                          getInitial(commentAuthorName)
-                        )}
+                        {comment.user?.name || 'User'}
                       </div>
-                      <div>
-                        <div
-                          className="nownownow-widget-comment-author"
-                          style={{
-                            fontWeight: "600",
-                            fontSize: "14px",
-                            color: isDark ? "white" : "black",
-                          }}
-                        >
-                          {commentAuthorName}
-                        </div>
-                        <div
-                          className="nownownow-widget-comment-time"
-                          style={{
-                            fontSize: "12px",
-                            color: isDark ? "#9ca3af" : "#6b7280",
-                          }}
-                        >
-                          {formatCommentDate(comment.createdAt)}
-                        </div>
+                      <div
+                        className="nownownow-widget-comment-time"
+                        style={{
+                          fontSize: "12px",
+                          color: isDark ? "#9ca3af" : "#6b7280",
+                        }}
+                      >
+                        {formatCommentDate(comment.createdAt)}
                       </div>
-                    </div>
-                    <div
-                      className="nownownow-widget-comment-content"
-                      style={{
-                        fontSize: "14px",
-                        lineHeight: "1.4",
-                        color: isDark ? "#e5e7eb" : "#4b5563",
-                      }}
-                    >
-                      {comment.content}
                     </div>
                   </div>
-                );
-              })
+                  <div
+                    className="nownownow-widget-comment-content"
+                    style={{
+                      fontSize: "14px",
+                      lineHeight: "1.4",
+                      color: isDark ? "#e5e7eb" : "#4b5563",
+                    }}
+                  >
+                    {comment.content}
+                  </div>
+                </div>
+              ))
             ) : (
+              // No comments
               <div
                 className="nownownow-widget-no-comments"
                 style={{
@@ -666,46 +990,7 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
             )}
           </div>
 
-          <div
-            className="nownownow-widget-comment-input"
-            style={{
-              marginTop: "12px",
-              display: "flex",
-              gap: "8px",
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Add a comment..."
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: isDark
-                  ? "1px solid rgba(255,255,255,0.1)"
-                  : "1px solid rgba(0,0,0,0.1)",
-                background: isDark ? "#2a2a2a" : "white",
-                color: isDark ? "white" : "black",
-                outline: "none",
-                fontSize: "14px",
-              }}
-            />
-            <button
-              style={{
-                padding: "8px 12px",
-                borderRadius: "8px",
-                border: "none",
-                background: "linear-gradient(to right, #3b82f6, #60a5fa)",
-                color: "white",
-                fontWeight: "500",
-                cursor: "pointer",
-                fontSize: "14px",
-                transition: "opacity 0.2s ease",
-              }}
-            >
-              Post
-            </button>
-          </div>
+          {/* Comment input section removed as widget users can only read comments */}
         </div>
       )}
     </div>
