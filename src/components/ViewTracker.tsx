@@ -13,9 +13,20 @@ interface ViewTrackerProps {
  */
 export function ViewTracker({ postId, token }: ViewTrackerProps) {
   const [tracked, setTracked] = useState(false);
+  // State for tracking data - used in the tracking logic below
   const [viewerId, setViewerId] = useState<string | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  
+  // Debug information that can be displayed if needed
+  const debugInfo = { viewerId, error, loading };
+  
+  // Log debug info when it changes
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('ViewTracker debug info:', debugInfo);
+    }
+  }, [debugInfo]);
   
   // These state variables are used for debugging and future enhancements
   const elementRef = useRef<HTMLDivElement>(null);

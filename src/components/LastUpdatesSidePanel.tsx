@@ -55,43 +55,43 @@ export const LastUpdatesSidePanel: FunctionComponent<
       ".nownownow-widget-post-item"
     );
 
-    const observerCallback = (
-      entries: IntersectionObserverEntry[],
-      postId: string
-    ) => {
+    // Create a single observer for all posts
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting && !viewedPosts[postId]) {
-          // Track post view
-          api
-            .trackPostView(token, postId)
-            .then(() => {
-              console.log(`View tracked for post ${postId}`);
-              setViewedPosts((prev) => ({ ...prev, [postId]: true }));
-            })
-            .catch((error) => {
-              console.error(`Failed to track view for post ${postId}:`, error);
-            });
+        if (entry.isIntersecting) {
+          const postId = entry.target.getAttribute("data-post-id");
+          if (postId) {
+            // The trackPostView function now handles sessionStorage internally
+            api
+              .trackPostView(token, postId)
+              .then((response) => {
+                if (response.success) {
+                  // Update local state to prevent re-tracking in the component
+                  setViewedPosts((prev) => ({ ...prev, [postId]: true }));
+                  // Unobserve after successful tracking
+                  observer.unobserve(entry.target);
+                }
+              })
+              .catch((error) => {
+                console.error(`Failed to track view for post ${postId}:`, error);
+              });
+          }
         }
       });
-    };
+    }, { threshold: 0.5 });
 
     // Set up observers for each post
     postElements.forEach((element) => {
       const postId = element.getAttribute("data-post-id");
+      // The trackPostView function will check sessionStorage, but we also
+      // check our local state to avoid unnecessary API calls
       if (postId && !viewedPosts[postId]) {
-        const observer = new IntersectionObserver(
-          (entries) => observerCallback(entries, postId),
-          { threshold: 0.5 }
-        );
         observer.observe(element);
-        observers.push(observer);
       }
     });
 
-    // Clean up observers
-    return () => {
-      observers.forEach((observer) => observer.disconnect());
-    };
+    // Clean up observer
+    return () => observer.disconnect();
   }, [posts, token, viewedPosts]);
 
   // Handle feedback submission
