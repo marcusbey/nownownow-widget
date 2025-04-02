@@ -19,6 +19,14 @@ export function injectWidgetStyles(shadowRoot: ShadowRoot): void {
     const themeStyles = document.createElement('style');
     themeStyles.textContent = `
         :host {
+            /* Ensure HR styling is isolated */
+            & hr, & .border-t {
+                margin: 0.5rem 0 !important;
+                padding: 0 !important;
+                border-width: 1px !important;
+                border-top-width: 1px !important;
+                opacity: 0.5 !important;
+            }
             /* Light theme variables */
             --now-bg-color: #ffffff;
             --now-text-color: #333333;

@@ -21,6 +21,12 @@ export default function App({
   preloadData = false,
   onToggle,
 }: Props) {
+  // Debug console log to track App component rendering and build version
+  console.log('[DEBUG] App component rendering:', { 
+    buildTime: new Date().toISOString(),
+    orgId,
+    theme
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [orgInfo, setOrgInfo] = useState<WidgetOrgInfo | null>(null);

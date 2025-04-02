@@ -4,7 +4,6 @@ import type { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
 import type { WidgetOrgInfo, WidgetPost } from "../types/api";
-import { PostCard } from "./PostCard";
 
 interface LastUpdatesSidePanelProps {
   posts: WidgetPost[];
@@ -41,10 +40,59 @@ export const LastUpdatesSidePanel: FunctionComponent<
   const [expandedFeedback, setExpandedFeedback] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewedPosts, setViewedPosts] = useState<Record<string, boolean>>({});
   const mainRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
   const isDark = theme === "dark";
+
+  // Set up intersection observer to track post views
+  useEffect(() => {
+    if (!posts.length || !token) return;
+
+    const observers: IntersectionObserver[] = [];
+    const postElements = document.querySelectorAll(
+      ".nownownow-widget-post-item"
+    );
+
+    const observerCallback = (
+      entries: IntersectionObserverEntry[],
+      postId: string
+    ) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && !viewedPosts[postId]) {
+          // Track post view
+          api
+            .trackPostView(token, postId)
+            .then(() => {
+              console.log(`View tracked for post ${postId}`);
+              setViewedPosts((prev) => ({ ...prev, [postId]: true }));
+            })
+            .catch((error) => {
+              console.error(`Failed to track view for post ${postId}:`, error);
+            });
+        }
+      });
+    };
+
+    // Set up observers for each post
+    postElements.forEach((element) => {
+      const postId = element.getAttribute("data-post-id");
+      if (postId && !viewedPosts[postId]) {
+        const observer = new IntersectionObserver(
+          (entries) => observerCallback(entries, postId),
+          { threshold: 0.5 }
+        );
+        observer.observe(element);
+        observers.push(observer);
+      }
+    });
+
+    // Clean up observers
+    return () => {
+      observers.forEach((observer) => observer.disconnect());
+    };
+  }, [posts, token, viewedPosts]);
 
   // Handle feedback submission
   const handleFeedbackSubmit = async (e: Event): Promise<void> => {
@@ -175,14 +223,14 @@ export const LastUpdatesSidePanel: FunctionComponent<
   };
 
   return (
-    <div className="w-full h-screen bg-background relative flex flex-col">
+    <div className="w-full h-screen bg-background border-r relative flex flex-col">
       {/* Header */}
-      <div className="px-6 py-4 sticky top-0 bg-background z-10">
+      <div className="p-4 border-b sticky top-0 bg-background z-10">
         <div className="flex items-center justify-between">
           <h1 className="font-medium">Last Updates</h1>
           <button
             onClick={onClose}
-            className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted hover:text-destructive"
+            className="nownownow-close-button h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted hover:text-destructive"
             aria-label="Close panel"
             title="Close panel"
           >
@@ -205,19 +253,158 @@ export const LastUpdatesSidePanel: FunctionComponent<
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto px-7 py-5" ref={mainRef}>
+      <div className="flex-1 overflow-auto p-4" ref={mainRef}>
         {posts.length > 0 ? (
-          <div className="space-y-16">
-            {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                content={post.content}
-                createdAt={post.createdAt}
-                token={token}
-                theme={theme}
-              />
-            ))}
+          <div>
+            {posts.map((post) => {
+              const dateInfo = formatDate(post.createdAt);
+              const paragraphs = formatPostContent(post.content);
+
+              return (
+                <div
+                  key={post.id}
+                  data-post-id={post.id}
+                  className="flex mb-8 last:mb-0 nownownow-widget-post-item"
+                >
+                  {/* Date and line */}
+                  <div className="flex flex-col items-center mr-4 min-w-[40px]">
+                    <div className="text-sm text-muted-foreground font-medium">
+                      {dateInfo.month}
+                    </div>
+                    {dateInfo.day && (
+                      <div className="text-sm text-muted-foreground">
+                        {dateInfo.day}
+                      </div>
+                    )}
+                    <div className="w-px bg-border flex-grow mt-2 h-full"></div>
+                  </div>
+
+                  {/* Post content */}
+                  <div className="flex-1 space-y-2">
+                    {/* Author info */}
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div className="w-5 h-5 rounded-full overflow-hidden flex items-center justify-center bg-muted text-xs">
+                        {post.user?.image ? (
+                          <img
+                            src={post.user.image}
+                            alt={post.user?.name || "User"}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          getAvatarFallback(post.user?.name || "")
+                        )}
+                      </div>
+                      <span className="text-xs font-medium">
+                        {post.user?.name || "Anonymous"}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-medium">
+                      {post.title || paragraphs[0] || "Untitled Post"}
+                    </h3>
+                    <div className="space-y-2">
+                      {paragraphs
+                        .slice(post.title ? 0 : 1)
+                        .map((paragraph, idx) => (
+                          <p key={idx} className="text-sm">
+                            {paragraph}
+                          </p>
+                        ))}
+                    </div>
+
+                    {/* Interaction buttons */}
+                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-3 h-3"
+                          >
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                          </svg>
+                          <span>{post._count?.likes || 0}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-3 h-3"
+                          >
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          <span>{post._count?.comments || 0}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-3 h-3"
+                          >
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          <span>{post._count?.views || 0}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="text-muted-foreground"
+                        >
+                          <rect
+                            x="3"
+                            y="12"
+                            width="4"
+                            height="8"
+                            fill="currentColor"
+                          />
+                          <rect
+                            x="10"
+                            y="8"
+                            width="4"
+                            height="12"
+                            fill="currentColor"
+                          />
+                          <rect
+                            x="17"
+                            y="16"
+                            width="4"
+                            height="4"
+                            fill="currentColor"
+                          />
+                        </svg>
+                        <span>{post._count?.views || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center p-6 text-muted-foreground">
@@ -241,7 +428,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
       </div>
 
       {/* Footer */}
-      <div className="bg-background pt-2">
+      <div className="border-t bg-background">
         {/* Collapsible menu */}
         <div
           className={`overflow-hidden transition-all duration-300 ${

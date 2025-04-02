@@ -1,5 +1,5 @@
 import DOMPurify from "dompurify";
-import { Bookmark, Heart, MessageSquare } from "lucide-preact";
+import { Bookmark, Heart, MessageSquare } from "lucide-react";
 import * as markedLibrary from "marked";
 import type { FunctionComponent } from "preact";
 import { h } from "preact";
@@ -55,58 +55,16 @@ function sanitizeHtml(html: string): string {
 }
 
 function renderContent(content: string, isDark: boolean): h.JSX.Element {
-  // First, check if content is already HTML (contains tags)
-  const isHtml = /<[a-z][\s\S]*>/i.test(content);
-  
-  let processedContent;
-  if (isHtml) {
-    // If it's already HTML, just sanitize it
-    processedContent = sanitizeHtml(content);
-  } else {
-    // If it's markdown, parse it to HTML first
-    const htmlContent = markedLibrary.marked.parse(content);
-    processedContent = sanitizeHtml(htmlContent as string);
-  }
+  const htmlContent = markedLibrary.marked.parse(content);
+  const sanitizedHtml = sanitizeHtml(htmlContent as string);
 
-  // For simple text without HTML tags, split by newlines and create paragraphs
-  if (!isHtml && !processedContent.includes('<')) {
-    return (
-      <div className="space-y-2">
-        {content
-          .split("\n")
-          .filter((line) => line.trim())
-          .map((line, idx) => (
-            <p
-              key={idx}
-              className={`text-sm mb-2 ${
-                isDark ? "text-gray-300" : "text-gray-700"
-              }`}
-            >
-              {line.startsWith("-") || line.startsWith("•") ? (
-                <span>
-                  <span className="inline-block w-4">{line.charAt(0)}</span>
-                  {line.substring(1)}
-                </span>
-              ) : (
-                line
-              )}
-            </p>
-          ))}
-      </div>
-    );
-  }
-
-  // For HTML content, use dangerouslySetInnerHTML
   return (
-    <div 
+    <div
       className={`prose prose-sm max-w-none ${
         isDark ? "prose-invert text-gray-300" : "text-gray-700"
       }`}
-      style={{ 
-        whiteSpace: "pre-wrap", 
-        wordBreak: "break-word"
-      }}
-      dangerouslySetInnerHTML={{ __html: processedContent }}
+      style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
     />
   );
 }
@@ -120,8 +78,6 @@ const formatImageUrl = (imageUrl: string | null | undefined): string | null => {
   ) {
     return null;
   }
-  
-  // Handle already formatted URLs
   if (
     imageUrl.startsWith("http://") ||
     imageUrl.startsWith("https://") ||
@@ -129,18 +85,10 @@ const formatImageUrl = (imageUrl: string | null | undefined): string | null => {
   ) {
     return imageUrl;
   }
-  
-  // Handle protocol-relative URLs
-  if (imageUrl.startsWith("//")) {
-    return `https:${imageUrl}`;
-  }
-  
-  // Handle relative and other URLs
   const apiBaseUrl =
     process.env.NODE_ENV === "development"
       ? "http://localhost:3000"
       : "https://nownownow.io";
-      
   return imageUrl.startsWith("/")
     ? `${apiBaseUrl}${imageUrl}`
     : `${apiBaseUrl}/${imageUrl}`;
@@ -173,8 +121,6 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   theme = "light",
   token,
 }) => {
-  // Debug console log to track component rendering
-  console.log('[DEBUG] PostCard rendering:', { postId: post?.id, content, createdAt });
   const [isLiked, setIsLiked] = useState(false);
   const [currentLikes, setCurrentLikes] = useState(likes);
   const [showComments, setShowComments] = useState(false);
@@ -185,33 +131,18 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   const postRef = useRef<HTMLDivElement>(null);
   const isDark = theme === "dark";
 
-  /**
-   * Track post views when the post becomes visible in the viewport
-   * Using Intersection Observer API to detect visibility
-   */
   useEffect(() => {
-    // Skip if no post ID, already tracked, or no token
     if (!post?.id || viewTracked || !token) return;
 
-    // Create an observer to detect when post is visible
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        // Only track view if post is visible and not already tracked
-        if (entry?.isIntersecting && !viewTracked) {
-          console.log(`Post ${post.id} is now visible, tracking view...`);
-          
-          // Call the API to track the view
+        if (entries[0]?.isIntersecting && !viewTracked) {
           api
             .trackPostView(token, post.id)
             .then((response) => {
               if (response.success) {
-                console.log(`View tracked successfully for post ${post.id}`);
+                console.log(`View tracked for post ${post.id}`);
                 setViewTracked(true);
-                // Unobserve after tracking to prevent duplicate views
-                if (postRef.current) observer.unobserve(postRef.current);
-              } else {
-                console.error(`Failed to track view for post ${post.id}:`, response.error);
               }
             })
             .catch((error) => {
@@ -219,17 +150,10 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
             });
         }
       },
-      { threshold: 0.5, rootMargin: "0px" } // 50% of post must be visible
+      { threshold: 0.5, rootMargin: "0px" }
     );
 
-    // Start observing the post element
-    if (postRef.current) {
-      // Add data attribute for debugging
-      postRef.current.setAttribute('data-post-id', post.id);
-      observer.observe(postRef.current);
-    }
-    
-    // Clean up observer when component unmounts
+    if (postRef.current) observer.observe(postRef.current);
     return () => observer.disconnect();
   }, [post?.id, viewTracked, token]);
 
@@ -335,6 +259,17 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
     }
   };
 
+  const handleLikeToggle = (e: MouseEvent) => {
+    e.stopPropagation();
+    if (isLiked) {
+      setCurrentLikes(currentLikes - 1);
+    } else {
+      setCurrentLikes(currentLikes + 1);
+    }
+    setIsLiked(!isLiked);
+    console.log("Like toggled for post:", post?.id);
+  };
+
   const handleCommentsToggle = (e: MouseEvent) => {
     e.stopPropagation();
     const newShowComments = !showComments;
@@ -357,15 +292,14 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
   const hasMedia = post?.media && post?.media.length > 0;
   const hasAttachments = post?.attachments && post?.attachments.length > 0;
-  // Process media items with proper type safety
   const mediaItems: MediaItem[] = hasMedia
     ? (post.media as MediaItem[])
-    : hasAttachments && post.attachments
-    ? (post.attachments.map((att) => ({
-        id: att.url || '',
-        url: att.url || '',
-        type: att.type || 'unknown',
-      })) as MediaItem[])
+    : hasAttachments
+    ? (post.attachments?.map((att) => ({
+        id: att.url,
+        url: att.url,
+        type: att.type,
+      })) as MediaItem[]) || []
     : [];
 
   const handleImageError = (e: Event) => {
@@ -390,48 +324,9 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
       return;
     }
 
-    // Try with a different URL format if the original fails
-    if (imgElement.src.includes('?')) {
-      // If URL already has parameters, try without them
-      imgElement.src = imgElement.src.split('?')[0];
-    } else if (authorImage) {
-      // Type guard to ensure authorImage is a string
-      const safeAuthorImage = typeof authorImage === 'string' ? authorImage : null;
-      
-      // Only proceed if we have a valid string
-      if (safeAuthorImage && !imgElement.src.includes(safeAuthorImage)) {
-        // Try the original authorImage if it's different and valid
-        try {
-          imgElement.src = safeAuthorImage;
-        } catch (e) {
-          console.error('Error setting image source:', e);
-          imgElement.dataset.retried = "true";
-        }
-      } else {
-        imgElement.dataset.retried = "true";
-      }
-    } else {
-      // Mark as retried if all attempts fail
-      imgElement.dataset.retried = "true";
-      
-      // Show initials instead
-      imgElement.style.display = "none";
-      const parent = imgElement.parentElement;
-      if (parent) {
-        const initialSpan = parent.querySelector(".avatar-initials") as HTMLElement;
-        if (initialSpan) {
-          initialSpan.style.display = "flex";
-        } else {
-          const span = document.createElement("span");
-          span.textContent = getInitial(authorName);
-          span.className = "avatar-initials w-full h-full flex items-center justify-center font-semibold";
-          parent.appendChild(span);
-        }
-      }
-    }
-    
+    imgElement.dataset.retried = "true";
     console.warn(
-      `Avatar image failed to load: ${imgElement.src}. Trying alternative or showing initials.`
+      `Avatar image failed to load: ${imgElement.src}. Showing initials.`
     );
     imgElement.style.display = "none";
     const parent = imgElement.parentElement;
@@ -455,16 +350,10 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
         <div className="text-sm font-medium">{timelineDate.month}</div>
         {timelineDate.day && <div className="text-sm">{timelineDate.day}</div>}
         <div
-          className="w-px flex-grow mt-2 relative overflow-hidden"
-        >
-          <div 
-            className={`absolute inset-0 w-full h-full ${
-              isDark 
-                ? "bg-gradient-to-b from-gray-700 via-gray-600 to-transparent" 
-                : "bg-gradient-to-b from-gray-300 via-gray-200 to-transparent"
-            }`}
-          ></div>
-        </div>
+          className={`w-px flex-grow mt-2 ${
+            isDark ? "bg-gray-700" : "bg-gray-200"
+          }`}
+        ></div>
       </div>
 
       <div className="flex-1 space-y-2">
@@ -481,10 +370,13 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
                 className="w-full h-full object-cover"
                 onError={handleImageError}
                 crossOrigin="anonymous"
-                loading="lazy"
-                referrerPolicy="no-referrer"
               />
             ) : (
+              <span className="avatar-initials flex items-center justify-center w-full h-full">
+                {getInitial(authorName)}
+              </span>
+            )}
+            {!authorImage && (
               <span className="avatar-initials flex items-center justify-center w-full h-full">
                 {getInitial(authorName)}
               </span>
@@ -518,31 +410,44 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
         )}
 
         <div
-          className={`flex items-center justify-between text-xs pt-3 mt-1 ${
+          className={`flex items-center justify-between text-xs pt-2 ${
             isDark ? "text-gray-500" : "text-gray-500"
           }`}
         >
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={handleLikeToggle}
+              className={`flex items-center space-x-1 transition-colors hover:text-red-500 ${
+                isLiked ? "text-red-500" : ""
+              }`}
+              aria-label="Like post"
+            >
+              <Heart
+                size={12}
+                className="w-3 h-3"
+                fill={isLiked ? "currentColor" : "none"}
+              />
+              <span>{currentLikes}</span>
+            </button>
             <button
               onClick={handleCommentsToggle}
-              className={`flex items-center space-x-1 transition-colors ${
-                isDark 
-                  ? `hover:text-gray-300 ${showComments ? "text-gray-300" : ""}` 
-                  : `hover:text-gray-700 ${showComments ? "text-gray-700" : ""}`
+              className={`flex items-center space-x-1 transition-colors hover:text-blue-500 ${
+                showComments ? "text-blue-500" : ""
               }`}
               aria-label="Show comments"
             >
               <MessageSquare size={12} className="w-3 h-3" />
               <span>{comments}</span>
             </button>
-            <div className="flex items-center space-x-1">
+            {/* Bookmarks */}
+            {/* @ts-ignore: Property 'bookmarks' needs to be added to WidgetPost._count type definition */}
+            <div
+              className="flex items-center space-x-1"
+              title={`${post?._count?.bookmarks ?? 0} bookmarks`}
+            >
               <Bookmark size={12} className="w-3 h-3" />
               {/* @ts-ignore: Property 'bookmarks' needs to be added to WidgetPost._count type definition */}
               <span>{post?._count?.bookmarks ?? 0}</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <Heart size={12} className="w-3 h-3" />
-              <span>{currentLikes}</span>
             </div>
           </div>
           <div
@@ -567,8 +472,8 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
 
         {showComments && (
           <div
-            className={`mt-2 pt-2 border-t ${
-              isDark ? "border-gray-800/50" : "border-gray-100/50"
+            className={`mt-4 pt-4 border-t ${
+              isDark ? "border-gray-700" : "border-gray-200"
             }`}
           >
             <h4
@@ -611,20 +516,22 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
                           src={formatImageUrl(comment.user.image) ?? undefined}
                           alt={comment.user.name || "User"}
                           className="w-full h-full object-cover"
-                          onError={handleImageError}
-                          crossOrigin="anonymous"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
+                          onError={(e) =>
+                            ((
+                              e.currentTarget as HTMLImageElement
+                            ).style.display = "none")
+                          }
                         />
                       ) : (
-                        <span className="avatar-initials flex items-center justify-center w-full h-full">
-                          {getInitial(comment.user?.name)}
-                        </span>
+                        <span>{getInitial(comment.user?.name)}</span>
+                      )}
+                      {!comment.user?.image && (
+                        <span>{getInitial(comment.user?.name)}</span>
                       )}
                     </div>
                     <div
                       className={`flex-1 p-2 rounded ${
-                        isDark ? "bg-gray-900" : "bg-white"
+                        isDark ? "bg-gray-700" : "bg-gray-100"
                       }`}
                     >
                       <div className="flex justify-between items-center mb-1">
