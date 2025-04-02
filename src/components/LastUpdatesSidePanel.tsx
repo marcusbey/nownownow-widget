@@ -40,7 +40,6 @@ export const LastUpdatesSidePanel: FunctionComponent<
   const [expandedFeedback, setExpandedFeedback] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [viewedPosts, setViewedPosts] = useState<Record<string, boolean>>({});
   const mainRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
@@ -50,49 +49,50 @@ export const LastUpdatesSidePanel: FunctionComponent<
   useEffect(() => {
     if (!posts.length || !token) return;
 
-    const observers: IntersectionObserver[] = [];
     const postElements = document.querySelectorAll(
       ".nownownow-widget-post-item"
     );
 
     // Create a single observer for all posts
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const postId = entry.target.getAttribute("data-post-id");
-          if (postId) {
-            // The trackPostView function now handles sessionStorage internally
-            api
-              .trackPostView(token, postId)
-              .then((response) => {
-                if (response.success) {
-                  // Update local state to prevent re-tracking in the component
-                  setViewedPosts((prev) => ({ ...prev, [postId]: true }));
-                  // Unobserve after successful tracking
-                  observer.unobserve(entry.target);
-                }
-              })
-              .catch((error) => {
-                console.error(`Failed to track view for post ${postId}:`, error);
-              });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const postId = entry.target.getAttribute("data-post-id");
+            if (postId) {
+              // Track post view
+              api
+                .trackPostView(token, postId)
+                .then((response) => {
+                  if (response.success) {
+                    console.log(`View tracked for post ${postId}`);
+                    // Unobserve after successful tracking
+                    observer.unobserve(entry.target);
+                  }
+                })
+                .catch((error) => {
+                  console.error(`Failed to track view for post ${postId}:`, error);
+                });
+            }
           }
-        }
-      });
-    }, { threshold: 0.5 });
+        });
+      },
+      { threshold: 0.5 }
+    );
 
     // Set up observers for each post
     postElements.forEach((element) => {
       const postId = element.getAttribute("data-post-id");
-      // The trackPostView function will check sessionStorage, but we also
-      // check our local state to avoid unnecessary API calls
-      if (postId && !viewedPosts[postId]) {
+      if (postId) {
         observer.observe(element);
       }
     });
 
-    // Clean up observer
-    return () => observer.disconnect();
-  }, [posts, token, viewedPosts]);
+    // Clean up observers
+    return () => {
+      observer.disconnect();
+    };
+  }, [posts, token]);
 
   // Handle feedback submission
   const handleFeedbackSubmit = async (e: Event): Promise<void> => {

@@ -131,19 +131,17 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
   const postRef = useRef<HTMLDivElement>(null);
   const isDark = theme === "dark";
 
-  // Track post views when the post becomes visible in the viewport
   useEffect(() => {
     if (!post?.id || viewTracked || !token) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && !viewTracked) {
-          // trackPostView now handles sessionStorage internally
           api
             .trackPostView(token, post.id)
             .then((response) => {
               if (response.success) {
-                // Update local state
+                console.log(`View tracked for post ${post.id}`);
                 setViewTracked(true);
                 // Unobserve after successful tracking
                 if (postRef.current) observer.unobserve(postRef.current);
@@ -157,13 +155,12 @@ export const PostCard: FunctionComponent<PostCardProps> = ({
       { threshold: 0.5, rootMargin: "0px" }
     );
 
-    // Start observing the post element
     if (postRef.current) {
+      // Add data attribute for debugging
       postRef.current.setAttribute('data-post-id', post.id);
       observer.observe(postRef.current);
     }
     
-    // Clean up observer when component unmounts
     return () => observer.disconnect();
   }, [post?.id, viewTracked, token]);
 

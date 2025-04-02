@@ -201,15 +201,20 @@ export const api = {
       }
 
       // Skip if already tracked in this session
-      const viewedPosts = JSON.parse(sessionStorage.getItem('viewedPosts') || '[]');
-      if (viewedPosts.includes(postId)) {
-        console.log(`Post ${postId} already viewed in this session, skipping tracking`);
-        return { success: true, data: { message: 'Already tracked' } };
+      try {
+        const viewedPosts = JSON.parse(sessionStorage.getItem('viewedPosts') || '[]');
+        if (viewedPosts.includes(postId)) {
+          console.log(`Post ${postId} already viewed in this session, skipping tracking`);
+          return { success: true, data: { alreadyTracked: true } };
+        }
+        
+        // Add to viewed posts
+        viewedPosts.push(postId);
+        sessionStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
+      } catch (storageError) {
+        // Continue even if sessionStorage fails
+        console.warn('Session storage error:', storageError);
       }
-      
-      // Add to viewed posts
-      viewedPosts.push(postId);
-      sessionStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
 
       const response = await fetch(`${apiStore.baseUrl}/api/v1/widget/track-view`, {
         method: 'POST',
