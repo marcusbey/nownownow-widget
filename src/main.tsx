@@ -5,6 +5,7 @@ import { NowButton } from "./components/NowButton";
 import { apiStore as importedApiStore } from "./config/api";
 import "./index.css";
 import "./styles/nowWidgetStyles.css";
+import "./styles/customWidgetStyles.css";
 import type {
   WidgetConfig,
   WidgetInstance,
@@ -326,38 +327,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Set the nowPanel theme attribute
     nowPanel.setAttribute("now-data-theme", config.theme || "light");
 
-    // Create close button container for the absolute positioned close button
-    const closeButtonContainer = document.createElement("div");
-    closeButtonContainer.className = "nownownow-close-button-container";
-    closeButtonContainer.style.cssText = `
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 10;
-    `;
-
-    const closeButton = document.createElement("button");
-    closeButton.className = "nownownow-close-button";
-    closeButton.setAttribute("aria-label", "Close Now Panel");
-    closeButton.style.cssText = `
-      padding: 8px;
-      border: none;
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background-color 0.2s ease;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      width: 32px;
-      height: 32px;
-    `;
-    closeButton.innerHTML =
-      '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="white" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>';
-
-    closeButtonContainer.appendChild(closeButton);
-    nowPanel.appendChild(closeButtonContainer);
+    // We're using the close button from LastUpdatesSidePanel component instead of creating one here
 
     // Create nowPanel content
     const content = document.createElement("div");
@@ -678,17 +648,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Handle initial visibility
     handlePathChange();
 
-    // Add click handlers
-    closeButton.addEventListener("click", () => toggleNowPanel(true));
+    // Add click handler for overlay
     overlay.addEventListener("click", () => toggleNowPanel(true));
-
-    // Update close button for better hover effect
-    closeButton.addEventListener("mouseover", () => {
-      closeButton.style.background = "rgba(0, 0, 0, 0.5)";
-    });
-    closeButton.addEventListener("mouseout", () => {
-      closeButton.style.background = "rgba(0, 0, 0, 0.3)";
-    });
 
     // Render nowPanel content with preload flag to indicate data should be loaded immediately
     render(

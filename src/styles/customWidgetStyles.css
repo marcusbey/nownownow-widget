@@ -1,0 +1,54 @@
+/* Custom styles for the Now Panel widget */
+
+/* Ensure our HR styling doesn't affect the host website */
+.nownownow-panel hr,
+.nownownow-panel .border-t {
+  margin: 0.5rem 0 !important;
+  padding: 0 !important;
+  border-color: inherit !important;
+  border-width: 1px !important;
+  border-top-width: 1px !important;
+  opacity: 0.3 !important;
+}
+
+/* Ensure host website's HR styling doesn't affect our widget */
+:host {
+  /* Reset all potential inherited HR styles */
+  & hr, & .border-t {
+    all: revert;
+    margin: 0.5rem 0 !important;
+    padding: 0 !important;
+    border-width: 1px !important;
+    border-top-width: 1px !important;
+    opacity: 0.3 !important;
+  }
+}
+
+/* Style for the close button */
+.nownownow-close-button {
+  padding: 8px;
+  border: none;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 32px;
+  height: 32px;
+}
+
+.nownownow-close-button:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark theme adjustments */
+:host(.dark-theme) .nownownow-close-button {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+:host(.dark-theme) .nownownow-close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}

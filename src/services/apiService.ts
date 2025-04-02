@@ -187,16 +187,41 @@ export const api = {
     return fetchWithAuth<{ posts: WidgetPost[], nextCursor?: string, hasMore: boolean }>(url, token);
   },
 
+  /**
+   * Track a post view when it becomes visible in the viewport
+   * @param token - Authentication token
+   * @param postId - ID of the post to track
+   * @returns Promise with success status
+   */
   trackPostView: async (token: string, postId: string) => {
-    return await fetchWithAuth(
-      apiStore.config.ENDPOINTS.WIDGET.TRACK_VIEW,
-      token,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId })
+    try {
+      if (!postId) {
+        console.error('Missing postId for view tracking');
+        return { success: false, error: 'Missing postId' };
       }
-    );
+
+      const response = await fetch(`${apiStore.baseUrl}/api/v1/widget/track-view`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ postId })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error tracking post view:', error);
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to track view'
+      };
+    }
   },
 
   getPostComments: async (token: string | undefined, postId: string) => {
@@ -384,6 +409,45 @@ export const api = {
         success: false,
         data: { feedback: { id: "", content: "", votes: 0, createdAt: "" } },
         error: error instanceof Error ? error.message : "Failed to vote on feedback",
+      };
+    }
+  },
+  /**
+   * Track a post view
+   * @param postId - The ID of the post to track a view for
+   * @param token - Authentication token
+   */
+  async trackView(postId: string, token: string): Promise<WidgetApiResponse<{success: boolean; viewerId?: string}>> {
+    try {
+      if (!postId) {
+        return { success: false, data: { success: false }, error: 'Missing postId' };
+      }
+
+      const response = await fetch(`${apiStore.baseUrl}${API_ENDPOINTS.WIDGET.TRACK_VIEW}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Origin': window.location.origin,
+        },
+        body: JSON.stringify({ postId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data,
+      };
+    } catch (error) {
+      console.error('Error tracking view:', error);
+      return {
+        success: false,
+        data: { success: false },
+        error: error instanceof Error ? error.message : 'Failed to track view'
       };
     }
   },

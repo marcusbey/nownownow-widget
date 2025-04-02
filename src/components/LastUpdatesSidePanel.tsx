@@ -18,12 +18,6 @@ interface LastUpdatesSidePanelProps {
   onLoadMore?: () => void;
 }
 
-// Note: sanitizeHtml function removed as it's now handled by PostCard component
-
-// Note: renderContent function removed as it's now handled by PostCard component
-
-// Note: PostComment interface removed as it's now handled by PostCard component
-
 export const LastUpdatesSidePanel: FunctionComponent<
   LastUpdatesSidePanelProps
 > = ({
@@ -37,67 +31,20 @@ export const LastUpdatesSidePanel: FunctionComponent<
   hasMore = false,
   onLoadMore,
 }) => {
-  // UI state
+  // Debug console log to track component rendering
+  console.log("[DEBUG] LastUpdatesSidePanel rendering:", {
+    postsCount: posts.length,
+    orgId,
+  });
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showFooterMenu, setShowFooterMenu] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState(false);
   const [feedback, setFeedback] = useState("");
-  const [showScrollToTop, setShowScrollToTop] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
-
-  // Post interaction state
-  const [viewedPosts, setViewedPosts] = useState<Record<string, boolean>>({});
+  const lastScrollTop = useRef(0);
 
   const isDark = theme === "dark";
-
-  // Note: Removed initialization of likes as it's now handled by PostCard component
-
-  // Set up intersection observer to track post views
-  useEffect(() => {
-    if (!posts.length || !token) return;
-
-    const observers: IntersectionObserver[] = [];
-    const postElements = document.querySelectorAll(
-      ".nownownow-widget-post-item"
-    );
-
-    const observerCallback = (
-      entries: IntersectionObserverEntry[],
-      postId: string
-    ) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !viewedPosts[postId]) {
-          // Track post view
-          api
-            .trackPostView(token, postId)
-            .then(() => {
-              console.log(`View tracked for post ${postId}`);
-              setViewedPosts((prev) => ({ ...prev, [postId]: true }));
-            })
-            .catch((error) => {
-              console.error(`Failed to track view for post ${postId}:`, error);
-            });
-        }
-      });
-    };
-
-    // Set up observers for each post
-    postElements.forEach((element) => {
-      const postId = element.getAttribute("data-post-id");
-      if (postId && !viewedPosts[postId]) {
-        const observer = new IntersectionObserver(
-          (entries) => observerCallback(entries, postId),
-          { threshold: 0.5 }
-        );
-        observer.observe(element);
-        observers.push(observer);
-      }
-    });
-
-    // Clean up observers
-    return () => {
-      observers.forEach((observer) => observer.disconnect());
-    };
-  }, [posts, token, viewedPosts]);
 
   // Handle feedback submission
   const handleFeedbackSubmit = async (e: Event): Promise<void> => {
@@ -130,36 +77,23 @@ export const LastUpdatesSidePanel: FunctionComponent<
     return;
   };
 
-  // Note: highlightHashtags function removed as it's now handled by PostCard component
-
-  // Note: getAuthorInfo function removed as it's now handled by PostCard component
-
   // Helper to get avatar fallback (first letter of name)
   const getAvatarFallback = (name: string): string => {
     return name ? name.charAt(0).toUpperCase() : "U";
   };
 
-  // Note: hasImage and getPostImage functions removed as they're now handled by PostCard component
-
-  // Note: toggleComments function removed as it's now handled by PostCard component
-
-  // Note: loadComments function removed as it's now handled by PostCard component
-
-  // Note: handleCommentInputChange function removed as it's now handled by PostCard component
-
-  // Note: submitComment function removed as it's now handled by PostCard component
-
-  // Note: handleLikeToggle function removed as it's now handled by PostCard component
-
-  // Note: formatCommentDate function removed as it's now handled by PostCard component
-
-  // Note: isCommentButtonDisabled function removed as it's now handled by PostCard component
-
-  // Note: Helper functions for comments removed as they're now handled by PostCard component
-
   const handleScroll = (e: Event): void => {
     const target = e.target as HTMLDivElement;
-    setShowScrollToTop(target.scrollTop > 300);
+    const currentScrollTop = target.scrollTop;
+
+    setShowScrollTop(currentScrollTop > 300);
+
+    // Hide footer menu when scrolling down
+    if (currentScrollTop > lastScrollTop.current) {
+      setShowFooterMenu(false);
+    }
+
+    lastScrollTop.current = currentScrollTop;
   };
 
   // Set up scroll event listener for the main container
@@ -170,6 +104,22 @@ export const LastUpdatesSidePanel: FunctionComponent<
       return () => mainElement.removeEventListener("scroll", handleScroll);
     }
   }, []);
+
+  const scrollToTop = () => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const toggleFooterMenu = () => {
+    setShowFooterMenu(!showFooterMenu);
+  };
+
+  // Format post content into paragraphs
+  const formatPostContent = (content: string): string[] => {
+    if (!content) return [];
+    return content.split("\n").filter((line) => line.trim() !== "");
+  };
 
   // Render loading indicator at the bottom of the posts list
   const renderLoadingMore = () => {
@@ -211,225 +161,31 @@ export const LastUpdatesSidePanel: FunctionComponent<
     );
   };
 
+  // Format date for display
+  const formatDate = (dateString: string): { month: string; day?: string } => {
+    const date = new Date(dateString);
+    const month = date.toLocaleString("default", { month: "short" });
+    const day = date.getDate().toString();
+
+    // Return month and day
+    return {
+      month,
+      day,
+    };
+  };
+
   return (
-    <div
-      className="nownownow-widget-last-updates"
-      style={{
-        width: "100%",
-        height: "100vh",
-        background: isDark ? "#121212" : "white",
-        position: "relative",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <div className="w-full h-screen bg-background relative flex flex-col">
       {/* Header */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: isDark
-            ? "1px solid rgba(255,255,255,0.05)"
-            : "1px solid rgba(0,0,0,0.05)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          background: isDark ? "#121212" : "white",
-          backdropFilter: "blur(8px)",
-          zIndex: 10,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "16px",
-            fontWeight: 500,
-            margin: 0,
-            color: isDark ? "white" : "black",
-          }}
-        >
-          Last Updates
-        </h1>
-        <button
-          onClick={onClose}
-          style={{
-            width: "32px",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "transparent",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-            color: isDark ? "#9ca3af" : "#6b7280",
-          }}
-          aria-label="Close panel"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-
-      {/* Posts */}
-      <div
-        style={{
-          flex: 1,
-          overflow: "auto",
-          padding: "24px 16px", // Increased padding
-        }}
-        ref={mainRef}
-      >
-        <div>
-          {posts.length > 0 ? (
-            posts.map((post) => {
-              return (
-                <div
-                  key={post.id}
-                  data-post-id={post.id}
-                  className="nownownow-widget-post-item"
-                >
-                  <PostCard
-                    post={post}
-                    content={post.content}
-                    createdAt={post.createdAt}
-                    likes={post._count?.likes || 0}
-                    comments={post._count?.comments || 0}
-                    theme={theme}
-                    token={token}
-                  />
-                </div>
-              );
-            })
-          ) : (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "24px",
-                color: isDark ? "#9ca3af" : "#6b7280",
-              }}
-            >
-              <p>No updates available</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Footer with feedback form */}
-      <div
-        style={{
-          padding: "16px",
-          borderTop: isDark
-            ? "1px solid rgba(255,255,255,0.05)"
-            : "1px solid rgba(0,0,0,0.05)",
-          background: isDark ? "#121212" : "white",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-            }}
-          >
-            <div
-              style={{
-                width: "32px",
-                height: "32px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                background: isDark ? "#1e1e1e" : "#f3f4f6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: isDark ? "#e5e7eb" : "#4b5563",
-                fontSize: "14px",
-                fontWeight: "bold",
-                border: isDark
-                  ? "1px solid rgba(255,255,255,0.1)"
-                  : "1px solid rgba(0,0,0,0.05)",
-              }}
-            >
-              {orgInfo?.image ? (
-                <img
-                  src={orgInfo.image}
-                  alt={orgInfo.name}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              ) : (
-                getAvatarFallback(orgInfo?.name || "")
-              )}
-            </div>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "2px" }}
-            >
-              <span
-                style={{
-                  fontSize: "14px",
-                  fontWeight: "600",
-                  color: isDark ? "white" : "black",
-                }}
-              >
-                {orgInfo?.name || "Organization"}
-              </span>
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: isDark ? "#9ca3af" : "#6b7280",
-                }}
-              >
-                {(orgInfo as any)?._count?.followers || 0} followers
-              </span>
-            </div>
-          </div>
+      <div className="px-6 py-4 sticky top-0 bg-background z-10">
+        <div className="flex items-center justify-between">
+          <h1 className="font-medium">Last Updates</h1>
           <button
-            onClick={() => setExpandedFeedback(!expandedFeedback)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              background: "transparent",
-              border: "none",
-              fontSize: "14px",
-              color: "#3b82f6",
-              cursor: "pointer",
-              padding: "8px 12px",
-              borderRadius: "6px",
-              transition: "background-color 0.2s ease",
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.backgroundColor = isDark
-                ? "rgba(59, 130, 246, 0.1)"
-                : "rgba(59, 130, 246, 0.05)";
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            onClick={onClose}
+            className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted hover:text-destructive"
+            aria-label="Close panel"
+            title="Close panel"
           >
-            Feedback
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="14"
@@ -440,34 +196,77 @@ export const LastUpdatesSidePanel: FunctionComponent<
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              style={{ marginLeft: "4px" }}
             >
-              {expandedFeedback ? (
-                <polyline points="6 9 12 15 18 9"></polyline>
-              ) : (
-                <polyline points="9 18 15 12 9 6"></polyline>
-              )}
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
+        </div>
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 overflow-auto px-7 py-5" ref={mainRef}>
+        {posts.length > 0 ? (
+          <div className="space-y-16">
+            {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                content={post.content}
+                createdAt={post.createdAt}
+                token={token}
+                theme={theme}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center p-6 text-muted-foreground">
+            <p>No updates available</p>
+          </div>
+        )}
+
+        {/* After posts list, before footer */}
+        {renderLoadingMore()}
+
+        {!isLoadingMore && hasMore && onLoadMore && (
+          <div className="text-center py-2">
+            <button
+              onClick={onLoadMore}
+              className="text-primary text-sm font-medium py-2 px-4 rounded-md hover:bg-primary/5"
+            >
+              Load More
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-background pt-2">
+        {/* Collapsible menu */}
+        <div
+          className={`overflow-hidden transition-all duration-300 ${
+            showFooterMenu ? "max-h-24" : "max-h-0"
+          }`}
+        >
+          <div className="p-3 space-y-2">
+            <button className="w-full text-xs h-8 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
+              Subscribe for Updates
+            </button>
+            <button
+              className="w-full text-xs h-8 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md"
+              onClick={() => setExpandedFeedback(!expandedFeedback)}
+            >
+              Send Feedback
+            </button>
+          </div>
         </div>
 
         {/* Feedback form */}
         {expandedFeedback && (
-          <div
-            style={{
-              marginTop: "16px",
-              padding: "16px",
-              background: isDark ? "#1e1e1e" : "#f8fafc",
-              borderRadius: "10px",
-            }}
-          >
+          <div className="p-3 border-t">
             <form
               onSubmit={handleFeedbackSubmit}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
+              className="flex flex-col gap-2"
             >
               <textarea
                 value={feedback}
@@ -475,50 +274,20 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   setFeedback((e.target as HTMLTextAreaElement).value)
                 }
                 placeholder="Share your thoughts or suggestions..."
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: isDark
-                    ? "1px solid rgba(255,255,255,0.08)"
-                    : "1px solid rgba(0,0,0,0.08)",
-                  background: isDark ? "#2a2a2a" : "white",
-                  color: isDark ? "#e5e7eb" : "#1f2937",
-                  fontSize: "14px",
-                  resize: "none",
-                  minHeight: "80px",
-                }}
+                className="w-full p-2 text-sm rounded-md border resize-none min-h-[80px] bg-background"
                 required
               />
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                }}
-              >
+              <div className="flex justify-end">
                 <button
                   type="submit"
                   disabled={isSubmitting || !feedback.trim()}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "6px",
-                    background: "#3b82f6",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    padding: "8px 16px",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                    opacity: isSubmitting || !feedback.trim() ? 0.5 : 1,
-                  }}
+                  className="flex items-center gap-1 bg-primary text-primary-foreground rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
                 >
                   {isSubmitting ? "Sending..." : "Send"}
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
+                    width="12"
+                    height="12"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -535,119 +304,89 @@ export const LastUpdatesSidePanel: FunctionComponent<
           </div>
         )}
 
-        {/* Powered by sticker - only show when user is not basic or promember */}
-        {(!orgInfo?.subscription ||
-          (orgInfo.subscription !== "basic" &&
-            orgInfo.subscription !== "promember")) && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: "8px",
-              right: "8px",
-              fontSize: "12px",
-              color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-            }}
-          >
-            <span>powered by</span>
-            <a
-              href="https://nownownow.io"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.6)",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.color = isDark
-                  ? "rgba(255,255,255,0.8)"
-                  : "rgba(0,0,0,0.8)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.color = isDark
-                  ? "rgba(255,255,255,0.6)"
-                  : "rgba(0,0,0,0.6)";
-              }}
-            >
-              nownownow.io
-            </a>
+        {/* Main footer */}
+        <div className="p-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-muted">
+                {orgInfo?.image ? (
+                  <img
+                    src={orgInfo.image}
+                    alt={orgInfo.name || "Organization"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  getAvatarFallback(orgInfo?.name || "")
+                )}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-medium">
+                  {orgInfo?.name || "Organization"}
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {(orgInfo as any)?._count?.followers || 0} followers
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button className="h-7 text-xs border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md px-3">
+                Follow
+              </button>
+              <button
+                onClick={toggleFooterMenu}
+                className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-muted"
+                aria-label="Toggle menu"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`transition-transform duration-200 ${
+                    showFooterMenu ? "" : "rotate-180"
+                  }`}
+                >
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+              </button>
+            </div>
           </div>
-        )}
+          <div className="mt-1 text-center">
+            <span className="text-[10px] text-muted-foreground">
+              powered by nownownow.io
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Scroll to top button */}
-      {showScrollToTop && (
+      {showScrollTop && (
         <button
-          onClick={() => {
-            if (mainRef.current) {
-              mainRef.current.scrollTo({ top: 0, behavior: "smooth" });
-            }
-          }}
-          style={{
-            position: "absolute",
-            bottom: "64px",
-            right: "16px",
-            background: "#3b82f6",
-            color: "white",
-            borderRadius: "50%",
-            width: "32px",
-            height: "32px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "none",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            cursor: "pointer",
-            transition: "opacity 0.2s ease",
-          }}
+          onClick={scrollToTop}
+          className="absolute bottom-20 right-4 bg-primary text-primary-foreground rounded-full p-2 shadow-lg transition-opacity duration-300 hover:opacity-80"
           aria-label="Scroll to top"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
+            width="12"
+            height="12"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            className="w-3 h-3"
           >
             <line x1="12" y1="19" x2="12" y2="5"></line>
             <polyline points="5 12 12 5 19 12"></polyline>
           </svg>
         </button>
-      )}
-
-      {/* After posts list, before footer */}
-      {renderLoadingMore()}
-
-      {!isLoadingMore && hasMore && onLoadMore && (
-        <div
-          style={{
-            textAlign: "center",
-            padding: "8px 0 16px",
-          }}
-        >
-          <button
-            onClick={onLoadMore}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#3b82f6",
-              fontSize: "14px",
-              padding: "8px 16px",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
-          >
-            Load More
-          </button>
-        </div>
       )}
     </div>
   );
