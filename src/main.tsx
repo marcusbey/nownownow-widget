@@ -327,7 +327,8 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // Set the nowPanel theme attribute
     nowPanel.setAttribute("now-data-theme", config.theme || "light");
 
-    // We're using the close button from LastUpdatesSidePanel component instead of creating one here
+    // We're using the close button from LastUpdatesSidePanel component
+    // The close button in the main.tsx has been removed to avoid duplicates
 
     // Create nowPanel content
     const content = document.createElement("div");
@@ -650,6 +651,9 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Add click handler for overlay
     overlay.addEventListener("click", () => toggleNowPanel(true));
+    
+    // Note: Close button event handlers have been removed as we're using the close button
+    // from the LastUpdatesSidePanel component instead
 
     // Render nowPanel content with preload flag to indicate data should be loaded immediately
     render(
