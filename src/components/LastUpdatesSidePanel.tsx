@@ -1,6 +1,7 @@
 "use client";
 
 import type { FunctionComponent } from "preact";
+import { Fragment } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
 import type { WidgetOrgInfo, WidgetPost, WidgetSubscriptionRequest } from "../types/api";
@@ -284,31 +285,6 @@ export const LastUpdatesSidePanel: FunctionComponent<
       {/* Footer - Enhanced Styling with Improved Padding and Margins */}
       <div className={`border-t border-border p-6 ${isDark ? 'bg-gray-900/95' : 'bg-gray-50/95'}`}>
         <div className="space-y-4">
-          {/* Buttons to toggle forms - Improved spacing */}
-          <div className="flex space-x-3 px-1">
-            {/* Custom "Outline" Style Button */}
-            <button
-              type="button"
-              className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-200 border-gray-700 hover:bg-gray-800' : 'text-gray-800 border-gray-300 hover:bg-gray-100'}`}
-              onClick={() => {
-                setExpandedSubscribe(prev => !prev);
-                if (!expandedSubscribe) setExpandedFeedback(false);
-              }}
-            >
-              {expandedSubscribe ? 'Close Subscribe' : 'Subscribe for Updates'}
-            </button>
-             {/* Custom "Outline" Style Button */}
-            <button
-              type="button"
-              className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-200 border-gray-700 hover:bg-gray-800' : 'text-gray-800 border-gray-300 hover:bg-gray-100'}`}
-               onClick={() => {
-                 setExpandedFeedback(prev => !prev);
-                 if (!expandedFeedback) setExpandedSubscribe(false);
-               }}
-            >
-              {expandedFeedback ? 'Close Feedback' : 'Send Feedback'}
-            </button>
-          </div>
 
           {/* Collapsible Subscribe Form */}
           <div
@@ -427,7 +403,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                           </svg>
                         ) : (
-                          <>
+                          <Fragment>
                             Send Feedback
                             <svg
                               width="12"
@@ -442,7 +418,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                               <line x1="22" y1="2" x2="11" y2="13"></line>
                               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                             </svg>
-                          </>
+                          </Fragment>
                         )}
                       </button>
                     </div>
@@ -482,9 +458,11 @@ export const LastUpdatesSidePanel: FunctionComponent<
               </div>
             </div>
             <div className="flex items-center space-x-2">
-               {/* Custom "Outline" Style Button */}
-              <button
-                type="button"
+              {/* Follow on button with link to main app */}
+              <a
+                href={window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://nownownow.io'}
+                target="_blank"
+                rel="noopener noreferrer"
                 className={`h-8 px-3 inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-300 border-gray-700 hover:bg-gray-800' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}`}
               >
                 Follow on
@@ -493,12 +471,14 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   alt="nownownow.io logo"
                   className="h-3.5 w-auto"
                 />
-              </button>
-              {/* Custom "Outline" Style Icon Button */}
+              </a>
+              {/* Enhanced Toggle Menu Button */}
               <button
                 type="button"
                 onClick={toggleFooterMenu}
-                className={`h-8 w-8 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-400 border-gray-700 hover:bg-gray-800 hover:text-gray-200' : 'text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800'}`}
+                className={`h-8 w-8 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isDark ? 
+                  showFooterMenu ? 'bg-indigo-600/80 text-white border-indigo-700' : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-indigo-600/50' : 
+                  showFooterMenu ? 'bg-indigo-500/80 text-white border-indigo-400' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-indigo-100'} border shadow-sm`}
                 aria-label="Toggle menu"
               >
                 <svg
@@ -519,8 +499,42 @@ export const LastUpdatesSidePanel: FunctionComponent<
               </button>
             </div>
           </div>
-          <div className="mt-4 text-center opacity-80 hover:opacity-100 transition-opacity">
-            {/* Footer links can remain as is */}
+          
+          {/* Collapsible Footer Menu */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ${showFooterMenu ? "max-h-96 mt-4" : "max-h-0"}`}
+          >
+            <div className={`space-y-3 p-4 rounded-lg ${isDark ? 'bg-gray-800/70' : 'bg-gray-100/70'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="flex space-x-3">
+                {/* Subscribe Button */}
+                <button
+                  type="button"
+                  className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${expandedSubscribe ? 
+                    (isDark ? 'bg-indigo-600/80 text-white border-indigo-700' : 'bg-indigo-500 text-white border-indigo-400') : 
+                    (isDark ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-gray-800 border-gray-300')}`}
+                  onClick={() => {
+                    setExpandedSubscribe(prev => !prev);
+                    if (!expandedSubscribe) setExpandedFeedback(false);
+                  }}
+                >
+                  {expandedSubscribe ? 'Close Subscribe' : 'Subscribe for Updates'}
+                </button>
+                
+                {/* Feedback Button */}
+                <button
+                  type="button"
+                  className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${expandedFeedback ? 
+                    (isDark ? 'bg-indigo-600/80 text-white border-indigo-700' : 'bg-indigo-500 text-white border-indigo-400') : 
+                    (isDark ? 'bg-gray-700 text-gray-200 border-gray-600' : 'bg-white text-gray-800 border-gray-300')}`}
+                  onClick={() => {
+                    setExpandedFeedback(prev => !prev);
+                    if (!expandedFeedback) setExpandedSubscribe(false);
+                  }}
+                >
+                  {expandedFeedback ? 'Close Feedback' : 'Send Feedback'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
