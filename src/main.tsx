@@ -187,7 +187,7 @@ const nowPanelStyles = `
   }
 
   .nownownow-panel {
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
     width: 100%;
@@ -197,6 +197,8 @@ const nowPanelStyles = `
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    z-index: 2147483646;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
   }
 
   .nownownow-panel[now-data-theme="dark"] {
@@ -330,12 +332,14 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // We're using the close button from LastUpdatesSidePanel component
     // The close button in the main.tsx has been removed to avoid duplicates
 
-    // Create nowPanel content
+    // Create nowPanel content with improved scrolling behavior
     const content = document.createElement("div");
     content.className = "nownownow-panel-content";
     content.style.cssText = `
       height: 100%;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
     `;
     nowPanel.appendChild(content);
 
@@ -356,100 +360,12 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     const buttonWrapper = document.createElement("div");
     buttonShadow.appendChild(buttonWrapper);
 
-    // Create style tag for the main document
+    // Create minimal style tag for the main document - avoiding global layout manipulation
     const mainStyle = document.createElement("style");
     mainStyle.dataset.nowWidget = "styles";
     mainStyle.textContent = `
-      html.nownownow-widget-open {
-        overflow: hidden;
-      }
-
-      html.nownownow-widget-open[data-panel-position="left"] #root,
-      html.nownownow-widget-open[data-panel-position="left"] [id="root"],
-      html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-        transform: translateX(min(95%, 480px));
-        transition: transform 0.3s ease;
-        transform-origin: right top;
-      }
-
-      @media (max-width: 480px) {
-        html.nownownow-widget-open[data-panel-position="left"] #root,
-        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(calc(100% - 24px));
-        }
-      }
-
-      @media (min-width: 481px) and (max-width: 767px) {
-        html.nownownow-widget-open[data-panel-position="left"] #root,
-        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(95%, 450px));
-        }
-      }
-
-      @media (min-width: 768px) {
-        html.nownownow-widget-open[data-panel-position="left"] #root,
-        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(90%, 520px));
-        }
-      }
-
-      @media (min-width: 1200px) {
-        html.nownownow-widget-open[data-panel-position="left"] #root,
-        html.nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="left"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(90%, 580px));
-        }
-      }
-
-      html.nownownow-widget-open[data-panel-position="right"] #root,
-      html.nownownow-widget-open[data-panel-position="right"] [id="root"],
-      html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-        transform: translateX(min(-95%, -480px));
-        transition: transform 0.3s ease;
-        transform-origin: left top;
-      }
-
-      @media (max-width: 480px) {
-        html.nownownow-widget-open[data-panel-position="right"] #root,
-        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(calc(-100% + 24px));
-        }
-      }
-
-      @media (min-width: 481px) and (max-width: 767px) {
-        html.nownownow-widget-open[data-panel-position="right"] #root,
-        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-95%, -450px));
-        }
-      }
-
-      @media (min-width: 768px) {
-        html.nownownow-widget-open[data-panel-position="right"] #root,
-        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-90%, -520px));
-        }
-      }
-
-      @media (min-width: 1200px) {
-        html.nownownow-widget-open[data-panel-position="right"] #root,
-        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-90%, -580px));
-        }
-      }
-
-      html:not(.nownownow-widget-open) #root,
-      html:not(.nownownow-widget-open) [id="root"],
-      html:not(.nownownow-widget-open) > body > div:not([id^="nownownow-widget"]) {
-        transition: transform 0.3s ease;
-        transform: translateX(0);
-        transform-origin: center top;
+      /* No global styles that affect page layout or scrolling */
+      /* Widget components are fully contained within their shadow DOM */
         will-change: transform;
       }
 
@@ -502,26 +418,24 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     let isButtonVisible = isLandingPage();
     const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
-    // Define toggle nowPanel function early
+    // Define toggle nowPanel function early - avoiding global document manipulation
     const toggleNowPanel = (forceClose = false) => {
+      // Only allow panel to open if button is visible (on landing page)
+      if (!forceClose && !isButtonVisible) {
+        return; // Prevent opening panel when button is not visible
+      }
+      
       isNowPanelOpen = forceClose ? false : !isNowPanelOpen;
       nowPanel.classList.toggle("nownownow-open", isNowPanelOpen);
       overlay.classList.toggle("nownownow-open", isNowPanelOpen);
 
-      // Set the nowPanel position as a data attribute on the html element
-      if (isNowPanelOpen) {
-        document.documentElement.setAttribute(
-          "data-panel-position",
-          config.position || "right"
-        );
-      } else {
-        document.documentElement.removeAttribute("data-panel-position");
-      }
-
-      document.documentElement.classList.toggle(
-        "nownownow-widget-open",
-        isNowPanelOpen
+      // Set position directly on the panel element instead of document
+      nowPanel.setAttribute(
+        "now-data-position",
+        config.position || "right"
       );
+      
+      // Update button state
       renderButton();
     };
 
@@ -584,16 +498,21 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       });
 
       if (!onLandingPage) {
-        // Not on landing page - hide button immediately
+        // Not on landing page - hide button immediately and ensure it's not rendered at all
         isButtonVisible = false;
-        renderButton();
-
+        
+        // Completely hide the button container when not on landing page
+        buttonContainer.style.display = 'none';
+        
         // If nowPanel is open, close it when navigating away from landing page
         if (isNowPanelOpen) {
           toggleNowPanel(true);
         }
       } else {
-        // On landing page - check scroll position to determine visibility
+        // On landing page - restore button container visibility
+        buttonContainer.style.display = '';
+        
+        // Check scroll position to determine button visibility
         handleScroll();
       }
     }
@@ -683,7 +602,9 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     return {
       unmount: () => {
+        // Remove all event listeners
         window.removeEventListener("scroll", handleScroll);
+        window.removeEventListener("resize", renderButton);
         window.removeEventListener("popstate", handlePathChange);
 
         // Clear polling interval if it exists
@@ -691,6 +612,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           clearInterval(widgetState.value.pollIntervalId);
         }
 
+        // Disconnect observer
         if (observer) {
           try {
             observer.disconnect();
@@ -699,11 +621,20 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           }
         }
 
+        // Clean up Preact renders
         render(null, content);
         render(null, buttonWrapper);
-        widgetContainer.remove();
+        
+        // Remove DOM elements
+        nowPanelContainer.remove();
+        buttonContainer.remove();
         mainStyle.remove();
+        
+        // Ensure no global classes remain
         document.documentElement.classList.remove("nownownow-widget-open");
+        document.documentElement.removeAttribute("data-panel-position");
+        
+        console.log("Now Widget successfully unmounted");
       },
     };
   } catch (error) {
