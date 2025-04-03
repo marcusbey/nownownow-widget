@@ -7,7 +7,8 @@ import {
   FeedbackResponse,
   SubmitFeedbackRequest,
   VoteFeedbackRequest,
-  WidgetApiResponse
+  WidgetApiResponse,
+  WidgetSubscriptionRequest
 } from "../types/api";
 
 interface ApiResponse<T> {
@@ -384,6 +385,40 @@ export const api = {
         success: false,
         data: { feedback: { id: "", content: "", votes: 0, createdAt: "" } },
         error: error instanceof Error ? error.message : "Failed to vote on feedback",
+      };
+    }
+  },
+  subscribeToWidget: async (
+    token: string,
+    request: WidgetSubscriptionRequest
+  ): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    try {
+      const response = await fetchWithAuth<{ success: boolean; message: string }>(
+        API_ENDPOINTS.WIDGET.SUBSCRIPTION,
+        token,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(request),
+        }
+      );
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to subscribe to widget updates');
+      }
+
+      return {
+        success: true,
+        data: response.data || { success: true, message: 'Subscription successful' },
+      };
+    } catch (error) {
+      console.error('Failed to subscribe to widget:', error);
+      return {
+        success: false,
+        data: { success: false, message: 'Subscription failed' },
+        error: error instanceof Error ? error.message : 'An unknown error occurred',
       };
     }
   },

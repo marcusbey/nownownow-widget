@@ -3,7 +3,7 @@
 import type { FunctionComponent } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { api } from "../services/apiService";
-import type { WidgetOrgInfo, WidgetPost } from "../types/api";
+import type { WidgetOrgInfo, WidgetPost, WidgetSubscriptionRequest } from "../types/api";
 import { PostCard } from "./PostCard";
 
 interface LastUpdatesSidePanelProps {
@@ -39,8 +39,13 @@ export const LastUpdatesSidePanel: FunctionComponent<
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [showFooterMenu, setShowFooterMenu] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState(false);
+  const [expandedSubscribe, setExpandedSubscribe] = useState(false);
   const [feedback, setFeedback] = useState("");
+  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
+  const [subscribeSuccess, setSubscribeSuccess] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const lastScrollTop = useRef(0);
 
@@ -63,16 +68,52 @@ export const LastUpdatesSidePanel: FunctionComponent<
 
       if (response.success) {
         setFeedback("");
+        setFeedbackSuccess(true);
 
         // Auto-hide form after success
         setTimeout(() => {
           setExpandedFeedback(false);
+          setFeedbackSuccess(false);
         }, 3000);
       }
     } catch (error) {
       console.error("Failed to submit feedback:", error);
     } finally {
       setIsSubmitting(false);
+    }
+    return;
+  };
+
+  // Handle subscription submission
+  const handleSubscribeSubmit = async (e: Event): Promise<void> => {
+    e.preventDefault();
+
+    if (!email.trim() || !email.includes('@')) return;
+
+    try {
+      setIsSubscribing(true);
+
+      const request: WidgetSubscriptionRequest = {
+        email: email.trim(),
+        organizationId: orgId,
+      };
+
+      const response = await api.subscribeToWidget(token, request);
+
+      if (response.success) {
+        setEmail("");
+        setSubscribeSuccess(true);
+
+        // Auto-hide form after success
+        setTimeout(() => {
+          setExpandedSubscribe(false);
+          setSubscribeSuccess(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Failed to subscribe:", error);
+    } finally {
+      setIsSubscribing(false);
     }
     return;
   };
@@ -240,107 +281,216 @@ export const LastUpdatesSidePanel: FunctionComponent<
         )}
       </div>
 
-      {/* Footer */}
-      <div className="bg-background pt-2">
-        {/* Collapsible menu */}
-        <div
-          className={`overflow-hidden transition-all duration-300 ${
-            showFooterMenu ? "max-h-24" : "max-h-0"
-          }`}
-        >
-          <div className="p-3 space-y-2">
-            <button className="w-full text-xs h-8 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">
-              Subscribe for Updates
-            </button>
+      {/* Footer - Improved Styling and Interaction with Custom Buttons */}
+      <div className={`border-t border-border p-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
+        <div className="space-y-3">
+          {/* Buttons to toggle forms */}
+          <div className="flex space-x-2">
+            {/* Custom "Outline" Style Button */}
             <button
-              className="w-full text-xs h-8 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md"
-              onClick={() => setExpandedFeedback(!expandedFeedback)}
+              type="button"
+              className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-200 border-gray-700 hover:bg-gray-800' : 'text-gray-800 border-gray-300 hover:bg-gray-100'}`}
+              onClick={() => {
+                setExpandedSubscribe(prev => !prev);
+                if (!expandedSubscribe) setExpandedFeedback(false);
+              }}
             >
-              Send Feedback
+              {expandedSubscribe ? 'Close Subscribe' : 'Subscribe for Updates'}
+            </button>
+             {/* Custom "Outline" Style Button */}
+            <button
+              type="button"
+              className={`flex-1 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-200 border-gray-700 hover:bg-gray-800' : 'text-gray-800 border-gray-300 hover:bg-gray-100'}`}
+               onClick={() => {
+                 setExpandedFeedback(prev => !prev);
+                 if (!expandedFeedback) setExpandedSubscribe(false);
+               }}
+            >
+              {expandedFeedback ? 'Close Feedback' : 'Send Feedback'}
             </button>
           </div>
-        </div>
 
-        {/* Feedback form */}
-        {expandedFeedback && (
-          <div className="p-3 border-t">
-            <form
-              onSubmit={handleFeedbackSubmit}
-              className="flex flex-col gap-2"
-            >
-              <textarea
-                value={feedback}
-                onInput={(e) =>
-                  setFeedback((e.target as HTMLTextAreaElement).value)
-                }
-                placeholder="Share your thoughts or suggestions..."
-                className="w-full p-2 text-sm rounded-md border resize-none min-h-[80px] bg-background"
-                required
-              />
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !feedback.trim()}
-                  className="flex items-center gap-1 bg-primary text-primary-foreground rounded-md px-3 py-1 text-xs font-medium disabled:opacity-50"
-                >
-                  {isSubmitting ? "Sending..." : "Send"}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                  </svg>
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Main footer */}
-        <div className="p-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-muted">
-                {orgInfo?.image ? (
-                  <img
-                    src={orgInfo.image}
-                    alt={orgInfo.name || "Organization"}
-                    className="w-full h-full object-cover"
-                  />
+          {/* Collapsible Subscribe Form */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              expandedSubscribe ? "max-h-96 border-t pt-3 mt-3 border-border" : "max-h-0"
+            }`}
+          >
+            {expandedSubscribe && (
+              <div className="p-1">
+                {subscribeSuccess ? (
+                  <div className={`flex items-center justify-center p-3 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-xs font-medium">Thanks for subscribing!</span>
+                  </div>
                 ) : (
-                  getAvatarFallback(orgInfo?.name || "")
+                  <form
+                    onSubmit={handleSubscribeSubmit}
+                    className="flex flex-col gap-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="email"
+                        value={email}
+                        onInput={(e) =>
+                          setEmail((e.target as HTMLInputElement).value)
+                        }
+                        placeholder="Your email address"
+                        className={`w-full px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'} border focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all`}
+                        required
+                      />
+                      {/* Custom "Primary" Style Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubscribing || !email.trim() || !email.includes('@')}
+                        className={`flex-shrink-0 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                      >
+                        {isSubscribing ? (
+                          <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          "Subscribe"
+                        )}
+                      </button>
+                    </div>
+                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'} px-1`}>We'll send you updates about new posts and features.</p>
+                  </form>
                 )}
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-medium">
-                  {orgInfo?.name || "Organization"}
-                </span>
-                <span className="text-[10px] text-muted-foreground">
-                  {(orgInfo as any)?._count?.followers || 0} followers
-                </span>
+            )}
+          </div>
+
+          {/* Collapsible Feedback Form */}
+          <div
+            className={`overflow-hidden transition-all duration-300 ease-in-out ${
+              expandedFeedback ? "max-h-96 border-t pt-3 mt-3 border-border" : "max-h-0"
+            }`}
+          >
+            {expandedFeedback && (
+              <div className="p-1">
+                {feedbackSuccess ? (
+                  <div className={`flex items-center justify-center p-3 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-xs font-medium">Thanks for your feedback!</span>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={handleFeedbackSubmit}
+                    className="flex flex-col gap-3"
+                  >
+                    <div className={`flex items-center mb-2 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`}>
+                      <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                      <span className="text-xs font-medium">We value your feedback</span>
+                    </div>
+                    <textarea
+                      value={feedback}
+                      onInput={(e) =>
+                        setFeedback((e.target as HTMLTextAreaElement).value)
+                      }
+                      placeholder="Share your thoughts or suggestions..."
+                      className={`w-full px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'} border focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none min-h-[100px]`}
+                      required
+                      maxLength={500}
+                    />
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{feedback.length} / 500 characters</span>
+                      {/* Custom "Primary" Style Button */}
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || !feedback.trim()}
+                        className={`flex items-center gap-2 h-9 px-3 inline-flex justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                      >
+                        {isSubmitting ? (
+                          <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <>
+                            Send Feedback
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <line x1="22" y1="2" x2="11" y2="13"></line>
+                              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        {/* Main footer */}
+        <div className={`mt-4 pt-4 ${isDark ? 'border-t border-gray-800' : 'border-t border-gray-200'}`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <img
+                src={window.location.hostname === 'localhost' ? 'http://localhost:3000/logo.png' : 'https://nownownow.io/logo.png'}
+                alt="Logo"
+                className="h-5 w-auto rounded-sm"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = isDark ? "/nownownow-logo-light.svg" : "/nownownow-logo-dark.svg";
+                }}
+              />
+              <div className="text-xs">
+                <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`}>
+                  {orgInfo?.name || "Updates"}
+                </p>
+                <p className={`${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                  Powered by{" "}
+                  <a
+                    href="https://nownownow.io"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline"
+                  >
+                    nownownow.io
+                  </a>
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <button className="h-7 text-xs border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md px-3">
-                Follow
-              </button>
+               {/* Custom "Outline" Style Button */}
               <button
+                type="button"
+                className={`h-8 px-3 inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-300 border-gray-700 hover:bg-gray-800' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}`}
+              >
+                Follow on
+                <img
+                  src={window.location.hostname === 'localhost' ? 'http://localhost:3000/logo.png' : 'https://nownownow.io/logo.png'}
+                  alt="nownownow.io logo"
+                  className="h-3.5 w-auto"
+                />
+              </button>
+              {/* Custom "Outline" Style Icon Button */}
+              <button
+                type="button"
                 onClick={toggleFooterMenu}
-                className="h-7 w-7 flex items-center justify-center rounded-md hover:bg-muted"
+                className={`h-8 w-8 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-400 border-gray-700 hover:bg-gray-800 hover:text-gray-200' : 'text-gray-600 border-gray-300 hover:bg-gray-100 hover:text-gray-800'}`}
                 aria-label="Toggle menu"
               >
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="14"
-                  height="14"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -348,7 +498,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   className={`transition-transform duration-200 ${
-                    showFooterMenu ? "" : "rotate-180"
+                    showFooterMenu ? "rotate-180" : ""
                   }`}
                 >
                   <polyline points="18 15 12 9 6 15"></polyline>
@@ -356,10 +506,8 @@ export const LastUpdatesSidePanel: FunctionComponent<
               </button>
             </div>
           </div>
-          <div className="mt-1 text-center">
-            <span className="text-[10px] text-muted-foreground">
-              powered by nownownow.io
-            </span>
+          <div className="mt-3 text-center">
+            {/* Footer links can remain as is */}
           </div>
         </div>
       </div>
@@ -367,21 +515,21 @@ export const LastUpdatesSidePanel: FunctionComponent<
       {/* Scroll to top button */}
       {showScrollTop && (
         <button
+          type="button"
           onClick={scrollToTop}
-          className="absolute bottom-20 right-4 bg-primary text-primary-foreground rounded-full p-2 shadow-lg transition-opacity duration-300 hover:opacity-80"
+          className={`absolute bottom-20 right-4 h-10 w-10 inline-flex items-center justify-center whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 shadow-lg ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
           aria-label="Scroll to top"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="12"
-            height="12"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="w-3 h-3"
           >
             <line x1="12" y1="19" x2="12" y2="5"></line>
             <polyline points="5 12 12 5 19 12"></polyline>

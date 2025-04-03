@@ -129,6 +129,11 @@ export interface VoteFeedbackRequest {
   organizationId: string;
 }
 
+export interface WidgetSubscriptionRequest {
+  email: string;
+  organizationId: string;
+}
+
 export const API_ENDPOINTS = {
   ORG_INFO: '/api/v1/organization/info',
   USER_ORG_LIST: '/api/v1/user/organizations',
@@ -139,6 +144,8 @@ export const API_ENDPOINTS = {
     POST_COMMENTS: '/api/v1/widget/post-comments',
     ADD_COMMENT: '/api/v1/widget/add-comment',
     TOGGLE_LIKE: '/api/v1/widget/toggle-like',
-    TRACK_VIEW: '/api/v1/widget/track-view'
+    TRACK_VIEW: '/api/v1/widget/track-view',
+    SUBSCRIPTION: '/api/v1/widget-subscription',
+    FEEDBACK: '/api/v1/widget-feedback'
   }
 } as const;
