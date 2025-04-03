@@ -62,7 +62,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
 
       const response = await api.submitFeedback(token, {
         content: feedback,
-        email: null,
+        email: email.trim() || null,
         organizationId: orgId,
       });
 
@@ -281,11 +281,11 @@ export const LastUpdatesSidePanel: FunctionComponent<
         )}
       </div>
 
-      {/* Footer - Improved Styling and Interaction with Custom Buttons */}
-      <div className={`border-t border-border p-4 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <div className="space-y-3">
-          {/* Buttons to toggle forms */}
-          <div className="flex space-x-2">
+      {/* Footer - Enhanced Styling with Improved Padding and Margins */}
+      <div className={`border-t border-border p-6 ${isDark ? 'bg-gray-900/95' : 'bg-gray-50/95'}`}>
+        <div className="space-y-4">
+          {/* Buttons to toggle forms - Improved spacing */}
+          <div className="flex space-x-3 px-1">
             {/* Custom "Outline" Style Button */}
             <button
               type="button"
@@ -317,9 +317,9 @@ export const LastUpdatesSidePanel: FunctionComponent<
             }`}
           >
             {expandedSubscribe && (
-              <div className="p-1">
+              <div className="p-3">
                 {subscribeSuccess ? (
-                  <div className={`flex items-center justify-center p-3 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
+                  <div className={`flex items-center justify-center p-4 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M5 13l4 4L19 7" />
                     </svg>
@@ -371,9 +371,9 @@ export const LastUpdatesSidePanel: FunctionComponent<
             }`}
           >
             {expandedFeedback && (
-              <div className="p-1">
+              <div className="p-3">
                 {feedbackSuccess ? (
-                  <div className={`flex items-center justify-center p-3 ${isDark ? 'bg-green-900/20 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
+                  <div className={`flex items-center justify-center p-4 ${isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-50 text-green-600'} rounded-lg`}>
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M5 13l4 4L19 7" />
                     </svg>
@@ -382,7 +382,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 ) : (
                   <form
                     onSubmit={handleFeedbackSubmit}
-                    className="flex flex-col gap-3"
+                    className="flex flex-col gap-4"
                   >
                     <div className={`flex items-center mb-2 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`}>
                       <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -390,23 +390,36 @@ export const LastUpdatesSidePanel: FunctionComponent<
                       </svg>
                       <span className="text-xs font-medium">We value your feedback</span>
                     </div>
+                    
+                    {/* Email input field */}
+                    <input
+                      type="email"
+                      value={email}
+                      onInput={(e) =>
+                        setEmail((e.target as HTMLInputElement).value)
+                      }
+                      placeholder="Your email address (optional)"
+                      className={`w-full px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-gray-800/90 border-gray-700 text-gray-200 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'} border focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all`}
+                    />
+                    
                     <textarea
                       value={feedback}
                       onInput={(e) =>
                         setFeedback((e.target as HTMLTextAreaElement).value)
                       }
                       placeholder="Share your thoughts or suggestions..."
-                      className={`w-full px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'} border focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none min-h-[100px]`}
+                      className={`w-full px-3 py-2 text-sm rounded-lg ${isDark ? 'bg-gray-800/90 border-gray-700 text-gray-200 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-800 placeholder-gray-400'} border focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all resize-none min-h-[100px]`}
                       required
                       maxLength={500}
                     />
+                    
                     <div className="flex justify-between items-center">
-                      <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>{feedback.length} / 500 characters</span>
+                      <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{feedback.length} / 500 characters</span>
                       {/* Custom "Primary" Style Button */}
                       <button
                         type="submit"
                         disabled={isSubmitting || !feedback.trim()}
-                        className={`flex items-center gap-2 h-9 px-3 inline-flex justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        className={`flex items-center gap-2 h-9 px-4 inline-flex justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                       >
                         {isSubmitting ? (
                           <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
@@ -439,9 +452,9 @@ export const LastUpdatesSidePanel: FunctionComponent<
             )}
           </div>
         </div>
-        {/* Main footer */}
-        <div className={`mt-4 pt-4 ${isDark ? 'border-t border-gray-800' : 'border-t border-gray-200'}`}>
-          <div className="flex items-center justify-between">
+        {/* Main footer - Enhanced spacing and borders */}
+        <div className={`mt-6 pt-5 ${isDark ? 'border-t border-gray-800/80' : 'border-t border-gray-200/80'}`}>
+          <div className="flex items-center justify-between px-2">
             <div className="flex items-center space-x-2">
               <img
                 src={window.location.hostname === 'localhost' ? 'http://localhost:3000/logo.png' : 'https://nownownow.io/logo.png'}
@@ -452,10 +465,10 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 }}
               />
               <div className="text-xs">
-                <p className={`${isDark ? 'text-gray-300' : 'text-gray-700'} font-medium`}>
+                <p className={`${isDark ? 'text-gray-200' : 'text-gray-700'} font-medium`}>
                   {orgInfo?.name || "Updates"}
                 </p>
-                <p className={`${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                <p className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   Powered by{" "}
                   <a
                     href="https://nownownow.io"
@@ -506,7 +519,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
               </button>
             </div>
           </div>
-          <div className="mt-3 text-center">
+          <div className="mt-4 text-center opacity-80 hover:opacity-100 transition-opacity">
             {/* Footer links can remain as is */}
           </div>
         </div>
