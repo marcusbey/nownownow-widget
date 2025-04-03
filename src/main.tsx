@@ -11,6 +11,7 @@ import type {
   WidgetInstance,
   WidgetPosition,
   WidgetStateData,
+  SizeVariant
 } from "./types/widget";
 import { injectWidgetStyles } from "./utils/styleUtils";
 
@@ -275,243 +276,30 @@ const containerStyles = `
 
 const mount = (config: WidgetConfig): WidgetInstance => {
   try {
-    // Log when widget is mounted in Montreal timezone
-    const mountTime = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "America/Montreal",
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(new Date());
-
-    console.log(`Now Widget - Mounted at: ${mountTime} (Montreal time)`);
-
-    // Create a container for our widget elements
-    const widgetContainer = document.createElement("div");
-    widgetContainer.id = "nownownow-widget-container";
-    widgetContainer.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 2147483646;
-    `;
-
-    // Create nowPanel container with shadow DOM
-    const nowPanelContainer = document.createElement("div");
-    nowPanelContainer.id = "nownownow-widget-panel";
-    const nowPanelShadow = nowPanelContainer.attachShadow({ mode: "closed" });
-
-    // Inject shared widget styles
-    injectWidgetStyles(nowPanelShadow);
-
-    const nowPanelStyle = document.createElement("style");
-    nowPanelStyle.textContent = nowPanelStyles;
-    nowPanelShadow.appendChild(nowPanelStyle);
-
-    // Create overlay
-    const overlay = document.createElement("div");
-    overlay.className = "nownownow-overlay";
-    nowPanelShadow.appendChild(overlay);
-
-    // Create nowPanel
-    const nowPanel = document.createElement("div");
-    nowPanel.className = "nownownow-panel";
-    // Set the nowPanel position attribute
-    nowPanel.setAttribute("now-data-position", config.position || "right");
-    // Set the nowPanel theme attribute
-    nowPanel.setAttribute("now-data-theme", config.theme || "light");
-
-    // We're using the close button from LastUpdatesSidePanel component
-    // The close button in the main.tsx has been removed to avoid duplicates
-
-    // Create nowPanel content
-    const content = document.createElement("div");
-    content.className = "nownownow-panel-content";
-    content.style.cssText = `
-      height: 100%;
-      overflow-y: auto;
-    `;
-    nowPanel.appendChild(content);
-
-    nowPanelShadow.appendChild(nowPanel);
-
-    // Create button container with shadow DOM
-    const buttonContainer = document.createElement("div");
-    buttonContainer.id = "nownownow-widget-button-container";
-    const buttonShadow = buttonContainer.attachShadow({ mode: "closed" });
-
-    // Inject shared widget styles
-    injectWidgetStyles(buttonShadow);
-
-    const buttonStyle = document.createElement("style");
-    buttonStyle.textContent = containerStyles;
-    buttonShadow.appendChild(buttonStyle);
-
-    const buttonWrapper = document.createElement("div");
-    buttonShadow.appendChild(buttonWrapper);
-
-    // Create style tag for the main document
-    // Create a style element for the main document that will only apply when on the landing page
-    const mainStyle = document.createElement("style");
-    mainStyle.dataset.nowWidget = "styles";
-    mainStyle.textContent = `
-      /* Only apply overflow hidden when the panel is open */
-      html.nownownow-widget-open {
-        overflow: hidden;
-      }
-
-      /* Create a data attribute to identify pages where animation is allowed */
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-        transform: translateX(min(95%, 480px));
-        transition: transform 0.3s ease;
-        transform-origin: right top;
-      }
-
-      @media (max-width: 480px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(calc(100% - 24px));
-        }
-      }
-
-      @media (min-width: 481px) and (max-width: 767px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(95%, 450px));
-        }
-      }
-
-      @media (min-width: 768px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(90%, 520px));
-        }
-      }
-
-      @media (min-width: 1200px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(90%, 580px));
-        }
-      }
-
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-      html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-        transform: translateX(min(-95%, -480px));
-        transition: transform 0.3s ease;
-        transform-origin: left top;
-      }
-
-      @media (max-width: 480px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(calc(-100% + 24px));
-        }
-      }
-
-      @media (min-width: 481px) and (max-width: 767px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-95%, -450px));
-        }
-      }
-
-      @media (min-width: 768px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-90%, -520px));
-        }
-      }
-
-      @media (min-width: 1200px) {
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-        html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-          transform: translateX(min(-90%, -580px));
-        }
-      }
-
-
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          transition-duration: 0s !important;
-        }
-      }
-    `;
-
-    // Wait for document ready
-    const init = () => {
-      document.head.appendChild(mainStyle);
-      document.body.appendChild(widgetContainer);
-      widgetContainer.appendChild(nowPanelContainer);
-      widgetContainer.appendChild(buttonContainer);
-      
-      // Set initial animation-allowed state based on whether we're on a landing page
-      const onLandingPage = isLandingPage();
-      document.documentElement.setAttribute(
-        "data-nownownow-animation-allowed", 
-        onLandingPage ? "true" : "false"
-      );
-    };
-
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", init);
-    } else {
-      init();
-    }
-
-    // Create state for nowPanel
-    let isNowPanelOpen = false;
-
-    // Check if we're on homepage - exclude auth and other paths with a more robust check
     const isLandingPage = () => {
-      // Get the current path and remove trailing slash if present
       const path = window.location.pathname.replace(/\/$/, "");
-      const hostname = window.location.hostname;
-      const url = window.location.href;
-
-      // Only show on domain root - exclude any path segments
-      // Check if URL matches domain name with optional protocol and www prefix
-      // but no additional path segments beyond the root
-      const isExactDomainMatch = !!url.match(
-        new RegExp(`^https?://(www\\.)?${hostname.replace(/\./g, "\\.")}/?$`)
-      );
-
-      return (
-        path === "" ||
-        path === "/" ||
-        path === "/index.html" ||
-        isExactDomainMatch
-      );
+      // More robust check: only true root path or index.html
+      return path === "" || path === "/index.html";
+      // If you need the less strict check, uncomment below:
+      // const hostname = window.location.hostname;
+      // const url = window.location.href;
+      // const isExactDomainMatch = !!url.match(
+      //   new RegExp(`^https?://(www\\.)?${hostname.replace(/\./g, "\\.")}/?(\\?.*)?$`)
+      // );
+      // return path === "" || path === "/" || path === "/index.html" || isExactDomainMatch;
     };
 
+    let isNowPanelOpen = false;
     let isButtonVisible = isLandingPage();
-    const SCROLL_THRESHOLD = 800; // Threshold for button visibility
+    const SCROLL_THRESHOLD = 800;
 
-    // Pre-define functions to avoid temporal dead zone issues
     let toggleNowPanel: (forceClose?: boolean) => void;
     let renderButton: () => void;
-    
-    // Define renderButton function first
+    let handleScroll: () => void;
+    let handlePathChange: () => void;
+
     renderButton = () => {
-      // Determine the appropriate size variant based on screen width
-      const getResponsiveSizeVariant = (): 'xs' | 'sm' | 'md' | 'lg' => {
+      const getResponsiveSizeVariant = (): SizeVariant => {
         const width = window.innerWidth;
         if (width < 480) return 'xs';
         if (width < 768) return 'sm';
@@ -519,6 +307,11 @@ const mount = (config: WidgetConfig): WidgetInstance => {
         return 'lg';
       };
 
+      // Ensure buttonWrapper is defined before rendering into it
+      if (!buttonWrapper) {
+          console.warn("Now Widget: Button wrapper not ready for rendering.");
+          return;
+      }
       render(
         h(NowButton, {
           size: String(config.buttonSize || 48),
@@ -532,53 +325,31 @@ const mount = (config: WidgetConfig): WidgetInstance => {
         buttonWrapper
       );
     };
-    
-    // Define toggle nowPanel function after renderButton
+
     toggleNowPanel = (forceClose = false) => {
-      isNowPanelOpen = forceClose ? false : !isNowPanelOpen;
+      const nextState = forceClose ? false : !isNowPanelOpen;
+      if (nextState === isNowPanelOpen) return;
+
+      if (nextState === true && !isLandingPage()) {
+        console.debug("Now Widget: Preventing panel open on non-landing page.");
+        return;
+      }
+
+      isNowPanelOpen = nextState;
       nowPanel.classList.toggle("nownownow-open", isNowPanelOpen);
       overlay.classList.toggle("nownownow-open", isNowPanelOpen);
-
-      // Check if we're on a landing page to determine if animation should be allowed
-      const onLandingPage = isLandingPage();
       
-      // Only allow animation on landing pages to avoid conflicts with host site layouts
-      if (onLandingPage) {
-        document.documentElement.setAttribute("data-nownownow-animation-allowed", "true");
-      } else {
-        document.documentElement.setAttribute("data-nownownow-animation-allowed", "false");
-      }
+      // Update document classes for widget open state
+      document.documentElement.classList.toggle("nownownow-widget-open", isNowPanelOpen);
 
-      // Set the nowPanel position as a data attribute on the html element
-      if (isNowPanelOpen) {
-        document.documentElement.setAttribute(
-          "data-panel-position",
-          config.position || "right"
-        );
-      } else {
-        document.documentElement.removeAttribute("data-panel-position");
-      }
-
-      document.documentElement.classList.toggle(
-        "nownownow-widget-open",
-        isNowPanelOpen
-      );
       renderButton();
     };
 
-    // This renderButton function has been moved up to avoid temporal dead zone issues
-
-    // Handle scroll visibility using functional approach
-    const handleScroll = () => {
+    handleScroll = () => {
       if (isLandingPage()) {
         const currentScrollY = window.scrollY;
         const viewportHeight = window.innerHeight;
         const documentHeight = document.documentElement.scrollHeight;
-
-        // Show button if:
-        // 1. User is near the top (within threshold)
-        // 2. User is near the bottom of the page
-        // 3. Page is shorter than threshold
         const shouldShow =
           currentScrollY <= SCROLL_THRESHOLD ||
           documentHeight - (currentScrollY + viewportHeight) < 100 ||
@@ -588,146 +359,160 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           isButtonVisible = shouldShow;
           renderButton();
         }
+      } else {
+        if (isButtonVisible) {
+          isButtonVisible = false;
+          renderButton();
+        }
       }
     };
 
-    // Define handlePathChange function before using it
-    function handlePathChange() {
+    handlePathChange = () => {
       const onLandingPage = isLandingPage();
+      console.debug("Now Widget: Path change detected", { path: window.location.pathname, onLandingPage });
 
-      // Log for debugging
-      console.debug("Now Widget: Path changed", {
-        path: window.location.pathname,
-        isLandingPage: onLandingPage,
-      });
-
-      if (!onLandingPage) {
-        // Not on landing page - hide button immediately
-        isButtonVisible = false;
-        renderButton();
-
-        // If nowPanel is open, close it when navigating away from landing page
+      if (onLandingPage) {
+        handleScroll();
+      } else {
+        if (isButtonVisible) {
+          isButtonVisible = false;
+          renderButton();
+        }
         if (isNowPanelOpen) {
           toggleNowPanel(true);
         }
-        
-        // Ensure animation is disabled on non-landing pages
-        document.documentElement.setAttribute("data-nownownow-animation-allowed", "false");
-      } else {
-        // On landing page - check scroll position to determine visibility
-        handleScroll();
-        
-        // Enable animation on landing pages
-        document.documentElement.setAttribute("data-nownownow-animation-allowed", "true");
       }
+    };
+
+    const mountTime = new Date().toLocaleString('en-US', { timeZone: 'America/Montreal' });
+    console.log(`Now Widget - Mounted at: ${mountTime} (Montreal time)`);
+
+    const widgetContainer = document.createElement("div");
+    widgetContainer.id = "nownownow-widget-container";
+    widgetContainer.style.cssText = `position: fixed; z-index: 9999; pointer-events: none;`;
+
+    const nowPanelContainer = document.createElement("div");
+    nowPanelContainer.id = "nownownow-widget-panel";
+    const nowPanelShadow = nowPanelContainer.attachShadow({ mode: "closed" });
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.id = "nownownow-widget-button-container";
+    const buttonShadow = buttonContainer.attachShadow({ mode: "closed" });
+
+    injectWidgetStyles(nowPanelShadow);
+    injectWidgetStyles(buttonShadow);
+
+    const nowPanelStyle = document.createElement("style");
+    nowPanelStyle.textContent = nowPanelStyles;
+    nowPanelShadow.appendChild(nowPanelStyle);
+
+    const buttonStyle = document.createElement("style");
+    buttonStyle.textContent = containerStyles;
+    buttonShadow.appendChild(buttonStyle);
+
+    const overlay = document.createElement("div");
+    overlay.className = "nownownow-overlay";
+    nowPanelShadow.appendChild(overlay);
+
+    const nowPanel = document.createElement("div");
+    nowPanel.className = "nownownow-panel";
+    nowPanel.setAttribute("now-data-position", config.position || "right");
+    nowPanel.setAttribute("now-data-theme", config.theme || "light");
+    nowPanelShadow.appendChild(nowPanel);
+
+    const content = document.createElement("div");
+    content.className = "nownownow-panel-content";
+    content.style.cssText = `height: 100%; overflow: auto; -webkit-overflow-scrolling: touch;`;
+    nowPanel.appendChild(content);
+
+    const buttonWrapper = document.createElement("div");
+    buttonShadow.appendChild(buttonWrapper);
+
+    const init = () => {
+      document.body.appendChild(widgetContainer);
+      widgetContainer.appendChild(nowPanelContainer);
+      widgetContainer.appendChild(buttonContainer);
+      handlePathChange();
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
     }
 
-    // Add scroll, resize, and navigation listeners
     window.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("resize", renderButton, { passive: true });
     window.addEventListener("popstate", handlePathChange);
 
-    // Use a safer approach for URL change detection that doesn't interfere with host website
     let observer: MutationObserver | undefined;
     try {
-      // Watch for URL changes using a polling mechanism instead of history API interception
-      // This avoids conflicts with the host website's JavaScript
       let lastUrl = window.location.href;
-
-      // Set up MutationObserver to watch for DOM changes that might indicate navigation
-      observer = new MutationObserver(() => {
-        // Don't directly call handlePathChange from MutationObserver callback
-        // Instead, just check if URL has changed and schedule the check with RAF
-        requestAnimationFrame(() => {
-          // Only trigger if URL has actually changed
-          const currentUrl = window.location.href;
-          if (currentUrl !== lastUrl) {
-            lastUrl = currentUrl;
-            console.debug("Now Widget: URL changed via DOM mutation", {
-              from: lastUrl,
-              to: currentUrl,
-            });
-            handlePathChange();
-          }
-        });
-      });
-
-      // Observe the body instead of head to catch content changes
       const targetNode = document.body;
       if (targetNode) {
+        observer = new MutationObserver(() => {
+          requestAnimationFrame(() => {
+            const currentUrl = window.location.href;
+            if (currentUrl !== lastUrl) {
+              lastUrl = currentUrl;
+              console.debug("Now Widget: URL changed via DOM mutation");
+              handlePathChange();
+            }
+          });
+        });
         observer.observe(targetNode, { childList: true, subtree: true });
       }
-
-      // Set up polling for URL changes as a fallback (less intensive than history API interception)
       const pollInterval = setInterval(() => {
         const currentUrl = window.location.href;
         if (currentUrl !== lastUrl) {
           lastUrl = currentUrl;
-          console.debug("Now Widget: URL changed via polling", {
-            from: lastUrl,
-            to: currentUrl,
-          });
+          console.debug("Now Widget: URL changed via polling");
           handlePathChange();
         }
-      }, 300); // Check every 300ms - less frequent to reduce performance impact
-
-      // Store interval ID for cleanup
+      }, 300);
+      // Store interval ID for cleanup in the existing widgetState
       widgetState.value = {
         ...widgetState.value,
         pollIntervalId: pollInterval,
       };
     } catch (error) {
       console.warn("Failed to setup URL change detection:", error);
-      // Continue without the observer as it's not critical for core functionality
     }
 
-    // Handle initial visibility
     handlePathChange();
 
-    // Add click handler for overlay
     overlay.addEventListener("click", () => toggleNowPanel(true));
-    
-    // Note: Close button event handlers have been removed as we're using the close button
-    // from the LastUpdatesSidePanel component instead
 
-    // Render nowPanel content with preload flag to indicate data should be loaded immediately
     render(
       h(App, {
         theme: config.theme || "light",
         orgId: config.orgId,
         token: config.token,
         onToggle: () => toggleNowPanel(),
-        preloadData: true, // Add preload flag to load data immediately
+        preloadData: true,
       }),
       content
     );
 
-    // Initial button render
     renderButton();
 
     return {
       unmount: () => {
         window.removeEventListener("scroll", handleScroll);
         window.removeEventListener("popstate", handlePathChange);
+        window.removeEventListener("resize", renderButton);
 
-        // Clear polling interval if it exists
         if (widgetState.value.pollIntervalId) {
           clearInterval(widgetState.value.pollIntervalId);
         }
-
-        if (observer) {
-          try {
-            observer.disconnect();
-          } catch (error) {
-            console.warn("Failed to disconnect observer:", error);
-          }
-        }
+        if (observer) observer.disconnect();
 
         render(null, content);
         render(null, buttonWrapper);
         widgetContainer.remove();
-        mainStyle.remove();
         document.documentElement.classList.remove("nownownow-widget-open");
+        document.documentElement.removeAttribute("data-nownownow-animation-allowed");
+        document.documentElement.removeAttribute("data-panel-position");
       },
     };
   } catch (error) {
@@ -735,11 +520,6 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     throw error;
   }
 };
-
-// Define custom event types
-interface NowWidgetEvents {
-  nowWidgetInitialized: CustomEvent<{ success: boolean }>;
-}
 
 declare global {
   interface WindowEventMap extends NowWidgetEvents {}

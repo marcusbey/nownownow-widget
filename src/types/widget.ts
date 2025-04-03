@@ -1,6 +1,7 @@
 // Widget position and theme types
 export type WidgetPosition = 'left' | 'right';
 export type WidgetTheme = 'light' | 'dark';
+export type SizeVariant = 'xs' | 'sm' | 'md' | 'lg';
 
 export interface WidgetConfig {
   orgId: string;
@@ -47,4 +48,5 @@ export interface NowButtonProps {
   isOpen?: boolean;
   isVisible?: boolean;
   updated?: boolean;
+  sizeVariant?: SizeVariant;
 }
