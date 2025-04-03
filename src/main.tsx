@@ -187,7 +187,7 @@ const nowPanelStyles = `
   }
 
   .nownownow-panel {
-    position: fixed;
+    position: absolute;
     top: 0;
     bottom: 0;
     width: 100%;
@@ -197,8 +197,6 @@ const nowPanelStyles = `
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    z-index: 2147483646;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
   }
 
   .nownownow-panel[now-data-theme="dark"] {
@@ -332,14 +330,12 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     // We're using the close button from LastUpdatesSidePanel component
     // The close button in the main.tsx has been removed to avoid duplicates
 
-    // Create nowPanel content with improved scrolling behavior
+    // Create nowPanel content
     const content = document.createElement("div");
     content.className = "nownownow-panel-content";
     content.style.cssText = `
       height: 100%;
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      overscroll-behavior: contain;
     `;
     nowPanel.appendChild(content);
 
@@ -360,12 +356,118 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     const buttonWrapper = document.createElement("div");
     buttonShadow.appendChild(buttonWrapper);
 
-    // Create minimal style tag for the main document - avoiding global layout manipulation
+    // Create style tag for the main document
     const mainStyle = document.createElement("style");
     mainStyle.dataset.nowWidget = "styles";
     mainStyle.textContent = `
-      /* No global styles that affect page layout or scrolling */
-      /* Widget components are fully contained within their shadow DOM */
+      /* Only apply overflow hidden when on landing page */
+      html.nownownow-widget-open[data-now-landing-page="true"] {
+        overflow: hidden;
+      }
+      
+      /* Create a more targeted selector for main content push animation */
+      /* Only target main content containers, not all divs */
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] #root,
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] [id="root"],
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > main,
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#app,
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#__next,
+      html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div.main-content {
+        transform: translateX(min(95%, 480px));
+        transition: transform 0.3s ease;
+        transform-origin: right top;
+      }
+
+      @media (max-width: 480px) {
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > main,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#app,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#__next,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div.main-content {
+          transform: translateX(calc(100% - 24px));
+        }
+      }
+
+      @media (min-width: 481px) and (max-width: 767px) {
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > main,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#app,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#__next,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div.main-content {
+          transform: translateX(min(95%, 450px));
+        }
+      }
+
+      @media (min-width: 768px) {
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > main,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#app,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#__next,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div.main-content {
+          transform: translateX(min(90%, 520px));
+        }
+      }
+
+      @media (min-width: 1200px) {
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] #root,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] [id="root"],
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > main,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#app,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div#__next,
+        html.nownownow-widget-open[data-now-landing-page="true"][data-panel-position="left"] > body > div.main-content {
+          transform: translateX(min(90%, 580px));
+        }
+      }
+
+      html.nownownow-widget-open[data-panel-position="right"] #root,
+      html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+      html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+        transform: translateX(min(-95%, -480px));
+        transition: transform 0.3s ease;
+        transform-origin: left top;
+      }
+
+      @media (max-width: 480px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(calc(-100% + 24px));
+        }
+      }
+
+      @media (min-width: 481px) and (max-width: 767px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-95%, -450px));
+        }
+      }
+
+      @media (min-width: 768px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-90%, -520px));
+        }
+      }
+
+      @media (min-width: 1200px) {
+        html.nownownow-widget-open[data-panel-position="right"] #root,
+        html.nownownow-widget-open[data-panel-position="right"] [id="root"],
+        html.nownownow-widget-open[data-panel-position="right"] > body > div:not([id^="nownownow-widget"]) {
+          transform: translateX(min(-90%, -580px));
+        }
+      }
+
+      html:not(.nownownow-widget-open) #root,
+      html:not(.nownownow-widget-open) [id="root"],
+      html:not(.nownownow-widget-open) > body > div:not([id^="nownownow-widget"]) {
+        transition: transform 0.3s ease;
+        transform: translateX(0);
+        transform-origin: center top;
         will-change: transform;
       }
 
@@ -418,24 +520,34 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     let isButtonVisible = isLandingPage();
     const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
-    // Define toggle nowPanel function early - avoiding global document manipulation
+    // Define toggle nowPanel function early
     const toggleNowPanel = (forceClose = false) => {
-      // Only allow panel to open if button is visible (on landing page)
-      if (!forceClose && !isButtonVisible) {
-        return; // Prevent opening panel when button is not visible
-      }
-      
       isNowPanelOpen = forceClose ? false : !isNowPanelOpen;
       nowPanel.classList.toggle("nownownow-open", isNowPanelOpen);
       overlay.classList.toggle("nownownow-open", isNowPanelOpen);
 
-      // Set position directly on the panel element instead of document
-      nowPanel.setAttribute(
-        "now-data-position",
-        config.position || "right"
-      );
+      // Check if we're on the landing page
+      const onLandingPage = isLandingPage();
       
-      // Update button state
+      // Set the nowPanel position and landing page status as data attributes on the html element
+      if (isNowPanelOpen) {
+        document.documentElement.setAttribute(
+          "data-panel-position",
+          config.position || "right"
+        );
+        document.documentElement.setAttribute(
+          "data-now-landing-page",
+          onLandingPage ? "true" : "false"
+        );
+      } else {
+        document.documentElement.removeAttribute("data-panel-position");
+        document.documentElement.removeAttribute("data-now-landing-page");
+      }
+
+      document.documentElement.classList.toggle(
+        "nownownow-widget-open",
+        isNowPanelOpen
+      );
       renderButton();
     };
 
@@ -496,23 +608,26 @@ const mount = (config: WidgetConfig): WidgetInstance => {
         path: window.location.pathname,
         isLandingPage: onLandingPage,
       });
+      
+      // Always update the landing page attribute to ensure CSS selectors work correctly
+      if (document.documentElement.classList.contains('nownownow-widget-open')) {
+        document.documentElement.setAttribute(
+          "data-now-landing-page",
+          onLandingPage ? "true" : "false"
+        );
+      }
 
       if (!onLandingPage) {
-        // Not on landing page - hide button immediately and ensure it's not rendered at all
+        // Not on landing page - hide button immediately
         isButtonVisible = false;
-        
-        // Completely hide the button container when not on landing page
-        buttonContainer.style.display = 'none';
-        
+        renderButton();
+
         // If nowPanel is open, close it when navigating away from landing page
         if (isNowPanelOpen) {
           toggleNowPanel(true);
         }
       } else {
-        // On landing page - restore button container visibility
-        buttonContainer.style.display = '';
-        
-        // Check scroll position to determine button visibility
+        // On landing page - check scroll position to determine visibility
         handleScroll();
       }
     }
@@ -602,9 +717,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     return {
       unmount: () => {
-        // Remove all event listeners
         window.removeEventListener("scroll", handleScroll);
-        window.removeEventListener("resize", renderButton);
         window.removeEventListener("popstate", handlePathChange);
 
         // Clear polling interval if it exists
@@ -612,7 +725,6 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           clearInterval(widgetState.value.pollIntervalId);
         }
 
-        // Disconnect observer
         if (observer) {
           try {
             observer.disconnect();
@@ -621,20 +733,11 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           }
         }
 
-        // Clean up Preact renders
         render(null, content);
         render(null, buttonWrapper);
-        
-        // Remove DOM elements
-        nowPanelContainer.remove();
-        buttonContainer.remove();
+        widgetContainer.remove();
         mainStyle.remove();
-        
-        // Ensure no global classes remain
         document.documentElement.classList.remove("nownownow-widget-open");
-        document.documentElement.removeAttribute("data-panel-position");
-        
-        console.log("Now Widget successfully unmounted");
       },
     };
   } catch (error) {
