@@ -96,12 +96,61 @@ function renderContent(content: string, isDark: boolean): h.JSX.Element {
     );
   }
 
-  // For HTML content, use dangerouslySetInnerHTML
+  // For HTML content, use dangerouslySetInnerHTML with enhanced prose styling
   return (
     <div 
-      className={`prose prose-sm max-w-none ${
-        isDark ? "prose-invert text-gray-300" : "text-gray-700"
-      }`}
+      className={`prose prose-sm max-w-none
+        ${isDark ? "prose-invert" : ""}
+        [--tw-prose-body:var(--foreground)]
+        [--tw-prose-headings:var(--foreground)]
+        [--tw-prose-lead:var(--foreground)]
+        [--tw-prose-links:var(--foreground)]
+        [--tw-prose-bold:var(--foreground)]
+        [--tw-prose-counters:var(--foreground)]
+        [--tw-prose-bullets:var(--foreground)]
+        [--tw-prose-quotes:var(--foreground)]
+        [--tw-prose-quote-borders:var(--border)]
+        [--tw-prose-captions:var(--foreground)]
+        [--tw-prose-code:var(--foreground)]
+        [--tw-prose-pre-code:var(--foreground)]
+        [--tw-prose-pre-bg:var(--background)]
+        [--tw-prose-th-borders:var(--border)]
+        [--tw-prose-td-borders:var(--border)]
+        
+        /* Proper spacing for elements */
+        [&_p]:mt-[0.5em] [&_p]:mb-[0.5em]
+        [&_h1]:mt-[0.5em] [&_h1]:mb-[0.5em]
+        [&_h2]:mt-[0.5em] [&_h2]:mb-[0.5em]
+        [&_h3]:mt-[0.5em] [&_h3]:mb-[0.5em]
+        [&_ul]:mt-[0.5em] [&_ul]:mb-[0.5em]
+        [&_ol]:mt-[0.5em] [&_ol]:mb-[0.5em]
+        [&_blockquote]:mt-[0.5em] [&_blockquote]:mb-[0.5em]
+        [&_pre]:mt-[0.5em] [&_pre]:mb-[0.5em]
+        
+        /* Specific element styling */
+        [&_h1]:text-xl [&_h1]:font-bold
+        [&_h2]:text-lg [&_h2]:font-semibold
+        [&_h3]:text-base [&_h3]:font-semibold
+        [&_ul]:list-disc [&_ul]:pl-5
+        [&_ol]:list-decimal [&_ol]:pl-5
+        [&_li]:my-1
+        [&_hr]:mt-[1em] [&_hr]:mb-[1em] [&_hr]:border-t [&_hr]:border-muted-foreground/30
+        
+        /* Special elements */
+        [&_.callout]:!my-2 [&_.callout]:!mt-[0.5em] [&_.callout]:!mb-[0.5em]
+        [&_.callout]:bg-zinc-700/50 [&_.callout]:backdrop-blur-sm
+        
+        /* Text styling */
+        [&_*]:!text-foreground [&_*]:!opacity-100
+        [&_p]:text-base [&_ul]:text-base [&_ol]:text-base
+        [&_p]:leading-6
+        [&_h1]:leading-8
+        [&_h2]:leading-7
+        [&_h3]:leading-6
+        
+        /* Theme-specific colors */
+        ${isDark ? "text-gray-300" : "text-gray-700"}
+      `}
       style={{ 
         whiteSpace: "pre-wrap", 
         wordBreak: "break-word"
