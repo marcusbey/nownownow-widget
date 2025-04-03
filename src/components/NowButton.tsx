@@ -13,6 +13,7 @@ export interface NowButtonProps {
   isNowPanelOpen?: boolean;
   isVisible?: boolean;
   updated?: boolean;
+  sizeVariant?: 'xs' | 'sm' | 'md' | 'lg';
 }
 
 export function NowButton({
@@ -23,7 +24,20 @@ export function NowButton({
   isNowPanelOpen = false,
   isVisible = true,
   updated = false,
+  sizeVariant = "md",
 }: NowButtonProps) {
+  // Define responsive sizes based on sizeVariant
+  const getSizeValue = () => {
+    switch(sizeVariant) {
+      case "xs": return "32";
+      case "sm": return "40";
+      case "lg": return "56";
+      case "md":
+      default: return size;
+    }
+  };
+  
+  const buttonSize = getSizeValue();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isNear, setIsNear] = useState(false);
@@ -152,8 +166,8 @@ export function NowButton({
     }
 
     .button {
-      width: ${size}px;
-      height: ${size}px;
+      width: ${buttonSize}px;
+      height: ${buttonSize}px;
       border-radius: 50%;
       background: transparent;
       border: none;
@@ -199,7 +213,7 @@ export function NowButton({
       position: absolute;
       top: 50%;
       left: 50%;
-      font-size: 1.1rem;
+      font-size: ${parseInt(buttonSize) < 40 ? '0.85rem' : '1.1rem'};
       font-weight: bold;
       background: linear-gradient(45deg, ${color}, ${color}dd);
       -webkit-background-clip: text;
@@ -211,10 +225,10 @@ export function NowButton({
     }
 
     .arrow-icon {
-      width: ${parseInt(size) * 0.3}px;
-      height: ${parseInt(size) * 0.3}px;
+      width: ${parseInt(buttonSize) * 0.3}px;
+      height: ${parseInt(buttonSize) * 0.3}px;
       stroke: ${color};
-      stroke-width: 2;
+      stroke-width: ${parseInt(buttonSize) < 40 ? 1.5 : 2};
       fill: none;
       cursor: pointer;
     }
@@ -223,6 +237,19 @@ export function NowButton({
       .button-wrapper {
         bottom: 12px;
         ${position === "right" ? "right: 12px;" : "left: 12px;"}
+      }
+      .now-char {
+        font-size: ${parseInt(buttonSize) < 40 ? '0.75rem' : '0.95rem'};
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .button-wrapper {
+        bottom: 10px;
+        ${position === "right" ? "right: 10px;" : "left: 10px;"}
+      }
+      .now-char {
+        font-size: ${parseInt(buttonSize) < 40 ? '0.7rem' : '0.85rem'};
       }
     }
 

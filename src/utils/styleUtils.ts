@@ -22,10 +22,9 @@ export function injectWidgetStyles(shadowRoot: ShadowRoot): void {
             /* Ensure HR styling is isolated */
             & hr, & .border-t {
                 margin: 0.5rem 0 !important;
-                padding: 0 !important;
-                border-width: 1px !important;
+                padding: 2px !important;
                 border-top-width: 1px !important;
-                opacity: 0.5 !important;
+                opacity: 0.9 !important;
             }
             /* Light theme variables */
             --now-bg-color: #ffffff;

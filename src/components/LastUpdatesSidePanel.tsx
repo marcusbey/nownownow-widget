@@ -216,8 +216,36 @@ export const LastUpdatesSidePanel: FunctionComponent<
     };
   };
 
+  // Define responsive styles for the panel
+  const panelStyles = `
+    .panel-container {
+      width: 100%;
+      height: 100vh;
+      background-color: var(--background);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      max-width: 600px;
+      transition: max-width 0.3s ease;
+    }
+    
+    @media (max-width: 768px) {
+      .panel-container {
+        max-width: 80vw;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .panel-container {
+        max-width: 80vw;
+      }
+    }
+  `;
+
   return (
-    <div className="w-full h-screen bg-background relative flex flex-col">
+    <>
+      <style>{panelStyles}</style>
+      <div className="panel-container">
       {/* Header */}
       <div className="px-6 py-4 sticky top-0 bg-background z-10">
         <div className="flex items-center justify-between">
@@ -321,7 +349,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                       <button
                         type="submit"
                         disabled={isSubscribing || !email.trim() || !email.includes('@')}
-                        className={`flex-shrink-0 h-9 px-3 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        className={`flex-shrink-0 h-9 px-3 flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                       >
                         {isSubscribing ? (
                           <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
@@ -395,13 +423,13 @@ export const LastUpdatesSidePanel: FunctionComponent<
                       <button
                         type="submit"
                         disabled={isSubmitting || !feedback.trim()}
-                        className={`flex items-center gap-2 h-9 px-4 inline-flex justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                        className={`flex-shrink-0 h-9 px-3 flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isDark ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
                       >
                         {isSubmitting ? (
                           <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"></circle>
                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
+                        </svg>
                         ) : (
                           <Fragment>
                             Send Feedback
@@ -429,13 +457,13 @@ export const LastUpdatesSidePanel: FunctionComponent<
           </div>
         </div>
         {/* Main footer - Enhanced spacing and borders */}
-        <div className={`mt-6 pt-5 ${isDark ? 'border-t border-gray-800/80' : 'border-t border-gray-200/80'}`}>
+        <div className={`my-2 ${isDark ? 'border-t border-gray-800/80' : 'border-t full-h border-gray-200/80'}`}>
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center space-x-2">
               <img
-                src={window.location.hostname === 'localhost' ? 'http://localhost:3000/logo.png' : 'https://nownownow.io/logo.png'}
-                alt="Logo"
-                className="h-5 w-auto rounded-sm"
+                src={orgInfo?.image || (window.location.hostname === 'localhost' ? 'http://localhost:3000/logo.png' : 'https://nownownow.io/logo.png')}
+                alt={orgInfo?.name || "Organization"}
+                className="h-5 w-5 object-cover rounded-full"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = isDark ? "/nownownow-logo-light.svg" : "/nownownow-logo-dark.svg";
                 }}
@@ -463,7 +491,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
                 href={window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://nownownow.io'}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`h-8 px-3 inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-300 border-gray-700 hover:bg-gray-800' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}`}
+                className={`h-8 px-3 flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-xs font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground ${isDark ? 'text-gray-300 border-gray-700 hover:bg-gray-800' : 'text-gray-700 border-gray-300 hover:bg-gray-100'}`}
               >
                 Follow on
                 <img
@@ -476,7 +504,7 @@ export const LastUpdatesSidePanel: FunctionComponent<
               <button
                 type="button"
                 onClick={toggleFooterMenu}
-                className={`h-8 w-8 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isDark ? 
+                className={`h-8 w-8 flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${isDark ? 
                   showFooterMenu ? 'bg-indigo-600/80 text-white border-indigo-700' : 'bg-gray-800 text-gray-300 border-gray-700 hover:bg-indigo-600/50' : 
                   showFooterMenu ? 'bg-indigo-500/80 text-white border-indigo-400' : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-indigo-100'} border shadow-sm`}
                 aria-label="Toggle menu"
@@ -564,5 +592,6 @@ export const LastUpdatesSidePanel: FunctionComponent<
         </button>
       )}
     </div>
+    </>
   );
 };

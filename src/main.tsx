@@ -527,6 +527,15 @@ const mount = (config: WidgetConfig): WidgetInstance => {
 
     // Render button - define this function before any code that uses it
     const renderButton = () => {
+      // Determine the appropriate size variant based on screen width
+      const getResponsiveSizeVariant = (): 'xs' | 'sm' | 'md' | 'lg' => {
+        const width = window.innerWidth;
+        if (width < 480) return 'xs';
+        if (width < 768) return 'sm';
+        if (width < 1200) return 'md';
+        return 'lg';
+      };
+
       render(
         h(NowButton, {
           size: String(config.buttonSize || 48),
@@ -535,6 +544,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
           onClick: () => toggleNowPanel(),
           isNowPanelOpen: isNowPanelOpen,
           isVisible: isButtonVisible,
+          sizeVariant: getResponsiveSizeVariant(),
         }),
         buttonWrapper
       );
@@ -588,8 +598,9 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       }
     }
 
-    // Add scroll and navigation listeners
+    // Add scroll, resize, and navigation listeners
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", renderButton, { passive: true });
     window.addEventListener("popstate", handlePathChange);
 
     // Use a safer approach for URL change detection that doesn't interfere with host website
