@@ -504,8 +504,37 @@ const mount = (config: WidgetConfig): WidgetInstance => {
     let isButtonVisible = isLandingPage();
     const SCROLL_THRESHOLD = 800; // Threshold for button visibility
 
-    // Define toggle nowPanel function early
-    const toggleNowPanel = (forceClose = false) => {
+    // Pre-define functions to avoid temporal dead zone issues
+    let toggleNowPanel: (forceClose?: boolean) => void;
+    let renderButton: () => void;
+    
+    // Define renderButton function first
+    renderButton = () => {
+      // Determine the appropriate size variant based on screen width
+      const getResponsiveSizeVariant = (): 'xs' | 'sm' | 'md' | 'lg' => {
+        const width = window.innerWidth;
+        if (width < 480) return 'xs';
+        if (width < 768) return 'sm';
+        if (width < 1200) return 'md';
+        return 'lg';
+      };
+
+      render(
+        h(NowButton, {
+          size: String(config.buttonSize || 48),
+          color: config.buttonColor || "#f59e0b",
+          position: (config.position || "right") as WidgetPosition,
+          onClick: () => toggleNowPanel(),
+          isNowPanelOpen: isNowPanelOpen,
+          isVisible: isButtonVisible,
+          sizeVariant: getResponsiveSizeVariant(),
+        }),
+        buttonWrapper
+      );
+    };
+    
+    // Define toggle nowPanel function after renderButton
+    toggleNowPanel = (forceClose = false) => {
       isNowPanelOpen = forceClose ? false : !isNowPanelOpen;
       nowPanel.classList.toggle("nownownow-open", isNowPanelOpen);
       overlay.classList.toggle("nownownow-open", isNowPanelOpen);
@@ -537,30 +566,7 @@ const mount = (config: WidgetConfig): WidgetInstance => {
       renderButton();
     };
 
-    // Render button - define this function before any code that uses it
-    const renderButton = () => {
-      // Determine the appropriate size variant based on screen width
-      const getResponsiveSizeVariant = (): 'xs' | 'sm' | 'md' | 'lg' => {
-        const width = window.innerWidth;
-        if (width < 480) return 'xs';
-        if (width < 768) return 'sm';
-        if (width < 1200) return 'md';
-        return 'lg';
-      };
-
-      render(
-        h(NowButton, {
-          size: String(config.buttonSize || 48),
-          color: config.buttonColor || "#f59e0b",
-          position: (config.position || "right") as WidgetPosition,
-          onClick: () => toggleNowPanel(),
-          isNowPanelOpen: isNowPanelOpen,
-          isVisible: isButtonVisible,
-          sizeVariant: getResponsiveSizeVariant(),
-        }),
-        buttonWrapper
-      );
-    };
+    // This renderButton function has been moved up to avoid temporal dead zone issues
 
     // Handle scroll visibility using functional approach
     const handleScroll = () => {
@@ -740,6 +746,7 @@ declare global {
 }
 
 // Initialize widget state with signals
+// Cast to any to avoid TypeScript errors with optional properties
 const widgetState = signal<WidgetStateData>({
   initialized: false,
   instance: null,
@@ -748,7 +755,7 @@ const widgetState = signal<WidgetStateData>({
   maxAttempts: 3,
   initializationPromise: null,
   lastPathChecked: "",
-});
+} as WidgetStateData);
 
 // Initialization function with retry logic and promise handling
 const initializeWidget = async (): Promise<void> => {
@@ -831,51 +838,51 @@ const initializeWidget = async (): Promise<void> => {
       setTimeout(() => {
         try {
           console.debug("Now Widget: Starting initialization...");
-          initializeWidget().catch((error) => {
-            console.error("Now Widget: Initialization failed:", error);
-          });
+          
+          // Create a more robust initialization sequence with proper error handling
+          const safeInitialize = async () => {
+            try {
+              await initializeWidget();
+              console.debug("Now Widget: Initialization completed successfully");
+              
+              // Extra safety check after initialization
+              setTimeout(() => {
+                console.debug("Now Widget: Performing final visibility check");
+                if (widgetState.value.instance) {
+                  try {
+                    // Simple path check without accessing potentially problematic global variables
+                    const currentPath = window.location.pathname;
+                    console.debug("Now Widget: Current path is", currentPath);
 
-          // Extra safety check after initialization
-          // No need to create custom events - just update state directly
-          setTimeout(() => {
-            console.debug("Now Widget: Performing final visibility check");
-            if (widgetState.value.instance) {
-              try {
-                // Simple path check without accessing potentially problematic global variables
-                const currentPath = window.location.pathname;
-                console.debug("Now Widget: Current path is", currentPath);
-
-                // Update widget state if needed
-                if (widgetState.value.lastPathChecked !== currentPath) {
-                  console.debug(
-                    "Now Widget: Path changed since initialization"
-                  );
-                  widgetState.value = {
-                    ...widgetState.value,
-                    lastPathChecked: currentPath,
-                  };
-
-                  // Trigger a path change if the instance exists
-                  if (
-                    widgetState.value.instance &&
-                    typeof widgetState.value.instance === "object"
-                  ) {
-                    // Call handlePathChange safely through instance if possible
-                    console.debug("Now Widget: Triggering visibility update");
+                    // Update widget state if needed
+                    if (widgetState.value.lastPathChecked !== currentPath) {
+                      console.debug(
+                        "Now Widget: Path changed since initialization"
+                      );
+                      widgetState.value = {
+                        ...widgetState.value,
+                        lastPathChecked: currentPath,
+                      };
+                    }
+                  } catch (error) {
+                    console.warn(
+                      "Now Widget: Error in final visibility check:",
+                      error
+                    );
                   }
                 }
-              } catch (error) {
-                console.warn(
-                  "Now Widget: Error in final visibility check:",
-                  error
-                );
-              }
+              }, 1500);
+            } catch (error) {
+              console.error("Now Widget: Initialization failed:", error);
             }
-          }, 1500);
+          };
+          
+          // Start the safe initialization process
+          safeInitialize();
         } catch (error) {
           console.error("Now Widget: Critical initialization error:", error);
         }
-      }, 500); // Longer delay to ensure host site is fully initialized
+      }, 1000); // Longer delay to ensure host site is fully initialized
     };
 
     // Ensure DOM is ready before initialization
