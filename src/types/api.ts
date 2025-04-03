@@ -145,7 +145,7 @@ export const API_ENDPOINTS = {
     ADD_COMMENT: '/api/v1/widget/add-comment',
     TOGGLE_LIKE: '/api/v1/widget/toggle-like',
     TRACK_VIEW: '/api/v1/widget/track-view',
-    SUBSCRIPTION: '/api/v1/widget-subscription',
-    FEEDBACK: '/api/v1/widget-feedback'
+    SUBSCRIPTION: '/api/v1/widget/subscription',
+    FEEDBACK: '/api/v1/widget/feedback'
   }
 } as const;
