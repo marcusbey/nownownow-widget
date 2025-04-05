@@ -23,7 +23,9 @@ export interface WidgetStateData {
   maxAttempts: number;
   initializationPromise: Promise<void> | null;
   lastPathChecked: string;
-  pollIntervalId?: ReturnType<typeof setInterval> | undefined;
+  // Use number type for better cross-environment compatibility
+  // This allows the widget to work in both browser and Node.js environments
+  pollIntervalId?: number | undefined;
 }
 
 export type WidgetState = Signal<WidgetStateData>;
