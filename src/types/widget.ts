@@ -23,7 +23,7 @@ export interface WidgetStateData {
   maxAttempts: number;
   initializationPromise: Promise<void> | null;
   lastPathChecked: string;
-  pollIntervalId?: ReturnType<typeof setInterval>;
+  pollIntervalId?: ReturnType<typeof setInterval> | undefined;
 }
 
 export type WidgetState = Signal<WidgetStateData>;
