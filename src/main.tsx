@@ -256,106 +256,18 @@ const buttonContainerStyles = `
 
 // Styles injected into the main document HEAD for host page animation
 // These are the potentially conflicting styles
+// Host page animation styles have been removed to prevent conflicts with host application
 const mainDocumentHostAnimationStyles = `
-  /* Only apply overflow hidden when the panel is open AND animation is allowed */
-  html.nownownow-widget-open[data-nownownow-animation-allowed="true"] {
-    overflow: hidden;
-  }
-
-  /* Selectors for animating the host page content */
-  /* TARGETING LOGIC: Try to target the main app wrapper. Common IDs/structures. */
-  /* Only apply when panel is open AND animation is explicitly allowed */
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"], /* Alternative ID selector */
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) { /* Fallback for apps without #root */
-    transform: translateX(min(95%, 480px)); /* Adjust based on panel width */
-    transition: transform 0.3s ease;
-    transform-origin: right top; /* Animation origin */
-  }
-
-  /* Responsive adjustments for left panel animation */
-  @media (max-width: 480px) {
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(calc(100% - 24px));
-    }
-  }
-   @media (min-width: 481px) and (max-width: 767px) {
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(95%, 450px));
-    }
-  }
-  @media (min-width: 768px) {
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(90%, 520px));
-    }
-  }
-   @media (min-width: 1200px) {
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] #root,
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] [id="root"],
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="left"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(90%, 580px));
-    }
-  }
-
-  /* Animation styles for right panel */
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-  html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-    transform: translateX(min(-95%, -480px)); /* Negative transform for right */
-    transition: transform 0.3s ease;
-    transform-origin: left top; /* Animation origin */
-  }
-
-   /* Responsive adjustments for right panel animation */
-  @media (max-width: 480px) {
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(calc(-100% + 24px));
-    }
-  }
-  @media (min-width: 481px) and (max-width: 767px) {
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(-95%, -450px));
-    }
-  }
-  @media (min-width: 768px) {
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(-90%, -520px));
-    }
-  }
-  @media (min-width: 1200px) {
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] #root,
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] [id="root"],
-     html[data-nownownow-animation-allowed="true"].nownownow-widget-open[data-panel-position="right"] > body > div:first-child:not([id^="nownownow-widget"]) {
-      transform: translateX(min(-90%, -580px));
-    }
-  }
-
-  /* Respect reduced motion */
+  /* Host page animation styles have been disabled */
+  
+  /* Only internal panel transitions remain active */
   @media (prefers-reduced-motion: reduce) {
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open #root,
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open [id="root"],
-    html[data-nownownow-animation-allowed="true"].nownownow-widget-open > body > div:first-child:not([id^="nownownow-widget"]) {
+    .nownownow-panel {
       transition-duration: 0s !important;
     }
-    /* Also disable internal panel transition */
-     .nownownow-panel {
-       transition-duration: 0s !important;
-     }
-     .nownownow-overlay {
-       transition-duration: 0s !important;
-     }
+    .nownownow-overlay {
+      transition-duration: 0s !important;
+    }
   }
 `;
 // --- End Styles ---
